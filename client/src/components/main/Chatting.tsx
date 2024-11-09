@@ -23,8 +23,8 @@ const Chatting = ({ messages, className, ...props }: ChattingProps) => {
       <div className="flex w-full flex-col gap-2">
         {messages.map((message: Message) => {
           const { nickname, content } = message;
-          if (message.isOthers) return <ChatBubble content={content} nickname={nickname} variant="secondary" />;
-          else return <ChatBubble content={content} />;
+          if (message.isOthers) return <ChatBubble content={content} nickname={nickname} />;
+          else return <ChatBubble content={content} variant="secondary" />;
         })}
       </div>
       <Input placeholder="답을 입력해주세요." className="mt-1" />
