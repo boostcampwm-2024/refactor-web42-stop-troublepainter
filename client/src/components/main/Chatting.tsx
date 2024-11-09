@@ -7,6 +7,7 @@ interface Message {
   nickname: string;
   content: string;
   isOthers: boolean;
+  id: number;
 }
 
 export interface ChattingProps extends HTMLAttributes<HTMLDivElement> {
@@ -22,9 +23,9 @@ const Chatting = ({ messages, className, ...props }: ChattingProps) => {
       </p>
       <div className="flex w-full flex-col gap-2">
         {messages.map((message: Message) => {
-          const { nickname, content } = message;
-          if (message.isOthers) return <ChatBubble content={content} nickname={nickname} />;
-          else return <ChatBubble content={content} variant="secondary" />;
+          const { nickname, content, id } = message;
+          if (message.isOthers) return <ChatBubble content={content} nickname={nickname} key={id} />;
+          else return <ChatBubble content={content} variant="secondary" key={id} />;
         })}
       </div>
       <Input placeholder="답을 입력해주세요." className="mt-1" />
