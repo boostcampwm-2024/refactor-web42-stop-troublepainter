@@ -22,7 +22,7 @@ const Dropdown = ({ options, handleChange, selectedValue, className }: DropdownP
       {/* 선택한 value */}
       <button
         onClick={toggleDropdown}
-        className="flex w-full items-center justify-between rounded-lg border-2 border-violet-950 p-2 text-2xl"
+        className="flex w-full items-center justify-between rounded-lg border-2 border-violet-950 px-2 text-2xl"
       >
         <span className="w-full text-center">{selectedValue}</span>
         <img
