@@ -1,5 +1,6 @@
-import { SelectHTMLAttributes, useState } from 'react';
+import { SelectHTMLAttributes } from 'react';
 import ArrowDownIcon from '@/assets/arrow.svg';
+import { useDropdown } from '@/hooks/useDropdown';
 import { cn } from '@/utils/cn';
 
 export interface DropdownProps extends SelectHTMLAttributes<HTMLSelectElement> {
@@ -7,19 +8,14 @@ export interface DropdownProps extends SelectHTMLAttributes<HTMLSelectElement> {
     id: number;
     value: string;
   }[];
-  dropdownId: string;
+  handleChange: (value: string) => void;
+  selectedValue: string;
 }
 
-const Dropdown = ({ options, className }: DropdownProps) => {
-  const [isOpen, setIsOpen] = useState(false);
-  const [selectedOption, setSelectedOption] = useState<string>(options[0].value);
-
-  const toggleDropdown = () => setIsOpen((prev) => !prev);
-
-  const handleOptionClick = (value: string) => {
-    setSelectedOption(value);
-    setIsOpen(false);
-  };
+const Dropdown = ({ options, handleChange, selectedValue, className }: DropdownProps) => {
+  const { isOpen, toggleDropdown, handleOptionClick } = useDropdown({
+    handleChange,
+  });
 
   return (
     <div className={cn('relative bg-eastbay-50', className)}>
@@ -28,7 +24,7 @@ const Dropdown = ({ options, className }: DropdownProps) => {
         onClick={toggleDropdown}
         className="flex w-full items-center justify-between rounded-lg border-2 border-violet-950 p-2 text-2xl"
       >
-        <span className="w-full text-center">{selectedOption}</span>
+        <span className="w-full text-center">{selectedValue}</span>
         <img
           src={ArrowDownIcon}
           alt="드롭다운 메뉴 토글버튼"
