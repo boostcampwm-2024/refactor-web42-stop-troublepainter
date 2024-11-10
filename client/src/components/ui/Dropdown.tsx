@@ -13,12 +13,12 @@ export interface DropdownProps extends SelectHTMLAttributes<HTMLSelectElement> {
 }
 
 const Dropdown = ({ options, handleChange, selectedValue, className }: DropdownProps) => {
-  const { isOpen, toggleDropdown, handleOptionClick } = useDropdown({
+  const { isOpen, toggleDropdown, handleOptionClick, dropdownRef } = useDropdown({
     handleChange,
   });
 
   return (
-    <div className={cn('relative bg-eastbay-50', className)}>
+    <div className={cn('relative bg-eastbay-50', className)} ref={dropdownRef}>
       {/* 선택한 value */}
       <button
         onClick={toggleDropdown}
