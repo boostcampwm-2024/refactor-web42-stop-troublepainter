@@ -57,6 +57,30 @@ export const MainCanvas = () => {
     } catch (err) {
       console.error(err);
     }
+
+    setCanDrawing(true);
+  };
+
+  const drawingEvent = (e: TouchEvent<HTMLCanvasElement> | MouseEvent<HTMLCanvasElement>) => {
+    if (!canDrawing) return;
+
+    const canvas = mainCanvasRef.current;
+    if (!canvas) return;
+
+    const ctx = canvas.getContext('2d');
+    if (!ctx) return;
+
+    try {
+      const [drawX, drawY] = getDrawPoint(e, canvas);
+      ctx.lineTo(drawX, drawY);
+      ctx.stroke();
+    } catch (err) {
+      console.error(err);
+    }
+  };
+
+  const stopDrawingEvent = () => {
+    setCanDrawing(false);
   };
 
   return (
@@ -68,6 +92,12 @@ export const MainCanvas = () => {
         height={CANVAS_SIZE_HEIGHT}
         onMouseDown={startDrawingEvent}
         onTouchStart={startDrawingEvent}
+        onMouseMove={drawingEvent}
+        onTouchMove={drawingEvent}
+        onMouseUp={stopDrawingEvent}
+        onMouseLeave={stopDrawingEvent}
+        onTouchEnd={stopDrawingEvent}
+        onTouchCancel={stopDrawingEvent}
       >
         <img src="/" /> {/* canvas 지원하지 않는 브라우저일 경우 대체 이미지 */}
       </canvas>
