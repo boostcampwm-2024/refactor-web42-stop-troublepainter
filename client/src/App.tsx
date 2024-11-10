@@ -1,6 +1,9 @@
 import './App.css';
 import { useState } from 'react';
+import asdf from '@/assets/big-timer.gif';
 import helpIcon from '@/assets/help-icon.svg';
+import asd from '@/assets/small-timer.gif';
+import as from '@/assets/small-timer.png';
 import { GameCanvas } from '@/components/canvas/GameCanvasExample';
 import { Button } from '@/components/ui/Button';
 import { Logo } from '@/components/ui/Logo';
@@ -8,7 +11,6 @@ import { UserInfoCard } from '@/components/ui/UserInfoCard';
 
 const App = () => {
   const [isReady, setIsReady] = useState(false);
-
   return (
     <main className="bg-eastbay-600">
       <Logo />
@@ -48,6 +50,9 @@ const App = () => {
           </div>
         </div>
       </div>
+      <img src={as} alt="as" />
+      <img src={asd} alt="asd" />
+      <img src={asdf} alt="asdf" />
     </main>
   );
 };
