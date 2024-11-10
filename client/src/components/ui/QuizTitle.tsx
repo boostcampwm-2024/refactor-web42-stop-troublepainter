@@ -15,7 +15,7 @@ const QuizTitle = ({ className, currentRound, totalRound, remainingTime, title, 
     <>
       <div
         className={cn(
-          'relative flex w-full max-w-[26.88rem] items-center justify-center border-violet-950 bg-violet-500 p-1.5 text-stroke-sm sm:max-w-[42.19rem] sm:rounded-lg sm:border-2 sm:p-3.5',
+          'relative flex w-full items-center justify-center border-violet-950 bg-violet-500 p-1.5 text-stroke-sm sm:rounded-lg sm:border-2 sm:p-3.5',
           className,
         )}
         {...props}
@@ -39,7 +39,7 @@ const QuizTitle = ({ className, currentRound, totalRound, remainingTime, title, 
               <img src={flashingTimer} alt="타이머" className="h-full w-full" />
             )}
 
-            <span className="absolute inset-0 top-1/2 flex -translate-y-1/3 items-center justify-center text-base text-stroke-md sm:text-[2rem]">
+            <span className="absolute inset-0 top-1/2 ml-[0.1rem] flex -translate-y-1/3 items-center justify-center text-base text-stroke-md sm:ml-1 sm:text-[2rem]">
               {remainingTime}
             </span>
           </div>
