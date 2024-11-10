@@ -3,7 +3,7 @@ import { cva, type VariantProps } from 'class-variance-authority';
 import { cn } from '@/utils/cn';
 
 const chatBubbleVariants = cva(
-  'px-2.5 inline-flex items-center justify-center rounded-lg border-2 border-violet-950 text-violet-950 text-base min-h-8',
+  'px-2.5 inline-flex max-w-[85%] items-center justify-center rounded-lg border-2 border-violet-950 text-violet-950 text-base min-h-8',
   {
     variants: {
       variant: {
@@ -37,7 +37,7 @@ const ChatBubble = ({ className, variant, content, nickname, ...props }: ChatBub
           {nickname}
         </span>
       )}
-      <p className={cn('max-w-[85%]', chatBubbleVariants({ variant, className }))} {...props}>
+      <p className={cn(chatBubbleVariants({ variant, className }))} {...props}>
         {content}
       </p>
     </div>
