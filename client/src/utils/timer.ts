@@ -22,10 +22,10 @@ interface Timer {
  * @param delay - 타이머의 전체 지속 시간(밀리초 단위)
  * @returns 남은 시간(초 단위)
  */
-const calculateRemainingTime = (currentTime: number, startTime: number, delay: number) => {
+function calculateRemainingTime(currentTime: number, startTime: number, delay: number) {
   const elapsedTime = currentTime - startTime;
   return Math.ceil((delay - elapsedTime) / 1000);
-};
+}
 
 /**
  * 주어진 콜백 함수를 실행합니다.
@@ -33,7 +33,7 @@ const calculateRemainingTime = (currentTime: number, startTime: number, delay: n
  * @param callback - 실행할 콜백 함수
  * @param remainingTime - 남은 시간(초) 값
  */
-const executeCallback = (callback: TimerCallback, remainingTime: number) => {
+function executeCallback(callback: TimerCallback, remainingTime: number) {
   if (!callback) return;
 
   if (callback.length > 0) {
@@ -41,7 +41,7 @@ const executeCallback = (callback: TimerCallback, remainingTime: number) => {
   } else {
     callback();
   }
-};
+}
 
 /**
  * 타이머를 실행하는 함수입니다.
@@ -74,7 +74,7 @@ const executeCallback = (callback: TimerCallback, remainingTime: number) => {
  *
  * @category Utils
  */
-export const timer = ({ handleTick, handleComplete, delay }: Timer): (() => void) => {
+export function timer({ handleTick, handleComplete, delay }: Timer): () => void {
   const startTime = performance.now();
   let animationFrameId: number;
 
@@ -96,4 +96,4 @@ export const timer = ({ handleTick, handleComplete, delay }: Timer): (() => void
   return () => {
     cancelAnimationFrame(animationFrameId);
   };
-};
+}
