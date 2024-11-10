@@ -10,6 +10,7 @@ import { UserInfoCard } from '@/components/ui/UserInfoCard';
 const App = () => {
   const [isReady, setIsReady] = useState(false);
   const { isModalOpened, openModal } = useModal(3000);
+
   return (
     <>
       <Logo />
