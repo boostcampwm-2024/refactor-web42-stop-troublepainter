@@ -1,20 +1,24 @@
 import './App.css';
 import { useState } from 'react';
 import helpIcon from '@/assets/help-icon.svg';
+import { GameCanvas } from '@/components/canvas/GameCanvasExample';
 import { Button } from '@/components/ui/Button';
 import { Logo } from '@/components/ui/Logo';
 import { UserInfoCard } from '@/components/ui/UserInfoCard';
-
 
 const App = () => {
   const [isReady, setIsReady] = useState(false);
 
   return (
-    <>
+    <main className="bg-eastbay-600">
       <Logo />
       <Logo variant="side" />
 
-      <h1 className="transition">Hello world!</h1>
+      <div className="flex items-center justify-center">
+        <GameCanvas role="방해꾼" />
+      </div>
+
+      <h1 className="justify-center">Hello world!</h1>
       <Button className="font-neodgm-pro text-2xl font-normal">유미라</Button>
       <Button variant="transperent" size="icon">
         <img src={helpIcon} alt="도움말 보기 버튼" />
@@ -44,7 +48,7 @@ const App = () => {
           </div>
         </div>
       </div>
-    </>
+    </main>
   );
 };
 
