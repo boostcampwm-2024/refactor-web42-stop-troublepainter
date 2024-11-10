@@ -37,7 +37,7 @@ const ChatBubble = ({ className, variant, content, nickname, ...props }: ChatBub
           {nickname}
         </span>
       )}
-      <p className={cn(chatBubbleVariants({ variant, className }))} {...props}>
+      <p className={cn('max-w-[85%]', chatBubbleVariants({ variant, className }))} {...props}>
         {content}
       </p>
     </div>
