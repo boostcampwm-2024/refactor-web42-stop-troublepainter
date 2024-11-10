@@ -16,7 +16,7 @@ export interface ChattingProps extends HTMLAttributes<HTMLDivElement> {
 
 const Chatting = ({ messages, className, ...props }: ChattingProps) => {
   return (
-    <section className={cn('flex w-full max-w-[19.38rem] flex-col items-center justify-center', className)} {...props}>
+    <section className={cn('flex w-full flex-col items-center justify-center', className)} {...props}>
       <p className="mb-7 text-xl text-eastbay-50">
         여기에다가 답하고
         <br /> 채팅할 수 있습니다.
