@@ -46,8 +46,6 @@ export const MainCanvas = () => {
     if (!mainCanvasRef.current) return;
 
     const canvas = mainCanvasRef.current;
-    if (!canvas) return;
-
     const ctx = canvas.getContext('2d');
     if (!ctx) return;
 
@@ -63,10 +61,9 @@ export const MainCanvas = () => {
 
   const drawingEvent = (e: TouchEvent<HTMLCanvasElement> | MouseEvent<HTMLCanvasElement>) => {
     if (!canDrawing) return;
+    if (!mainCanvasRef.current) return;
 
     const canvas = mainCanvasRef.current;
-    if (!canvas) return;
-
     const ctx = canvas.getContext('2d');
     if (!ctx) return;
 
