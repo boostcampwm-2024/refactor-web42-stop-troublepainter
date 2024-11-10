@@ -19,7 +19,6 @@ const Dropdown = ({ options, handleChange, selectedValue, className }: DropdownP
 
   return (
     <div className={cn('relative bg-eastbay-50', className)} ref={dropdownRef}>
-      {/* 선택한 value */}
       <button
         onClick={toggleDropdown}
         className="flex h-full w-full items-center justify-between rounded-lg border-2 border-violet-950 px-2 text-2xl"
@@ -28,15 +27,15 @@ const Dropdown = ({ options, handleChange, selectedValue, className }: DropdownP
         <img
           src={ArrowDownIcon}
           alt="드롭다운 메뉴 토글버튼"
-          className={cn('h-5 w-5 transition-transform', isOpen && 'rotate-180')}
+          className={cn('h-5 w-5 transition-transform duration-200', isOpen && 'rotate-180')}
         />
       </button>
 
-      {/* 드롭다운 메뉴 */}
       <div
         className={cn(
-          'absolute left-0 w-full rounded-lg bg-eastbay-50 shadow-lg transition-opacity ease-in-out',
-          isOpen ? 'opacity-100' : 'pointer-events-none opacity-0',
+          'absolute left-0 w-full rounded-lg bg-eastbay-50 shadow-lg',
+          'origin-top transform transition-all duration-200',
+          !isOpen && 'invisible scale-y-0',
         )}
       >
         <div className="overflow-hidden rounded-lg">
