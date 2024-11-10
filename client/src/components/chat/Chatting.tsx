@@ -1,6 +1,6 @@
 import { HTMLAttributes } from 'react';
-import { ChatBubble } from '../ui/ChatBubble';
 import { Input } from '../ui/Input';
+import { ChatBubble } from './ChatBubbleUI';
 import { cn } from '@/utils/cn';
 
 interface Message {
