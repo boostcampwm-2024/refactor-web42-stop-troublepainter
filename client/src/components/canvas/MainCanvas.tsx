@@ -25,7 +25,7 @@ const getDrawPoint = (
   else throw new Error('mouse 혹은 touch 이벤트가 아닙니다.');
 };
 
-export const MainCanvas = () => {
+const MainCanvas = () => {
   const mainCanvasRef = useRef<HTMLCanvasElement>(null);
   const canDrawing = useCanvasStore((state: CanvasStore) => state.canDrawing);
   const setCanDrawing = useCanvasStore((state: CanvasStore) => state.action.setCanDrawing);
@@ -104,3 +104,5 @@ export const MainCanvas = () => {
     </section>
   );
 };
+
+export default MainCanvas;
