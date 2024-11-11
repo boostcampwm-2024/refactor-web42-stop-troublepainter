@@ -1,4 +1,4 @@
-import { useCallback, useRef } from 'react';
+import { MouseEvent, TouchEvent, useCallback, useRef } from 'react';
 import { Canvas } from '@/components/canvas/CanvasUI';
 import { useDrawing } from '@/hooks/useDrawing';
 import { UserRole, PainterRole } from '@/types/userInfo.types';
@@ -35,7 +35,7 @@ const GameCanvas = ({ role, maxPixels = 100000 }: GameCanvasProps) => {
   };
 
   const handleMouseDown = useCallback(
-    (e: React.MouseEvent<HTMLElement>) => {
+    (e: MouseEvent<HTMLElement>) => {
       const rect = canvasRef.current?.getBoundingClientRect();
       if (!rect) return;
 
@@ -48,7 +48,7 @@ const GameCanvas = ({ role, maxPixels = 100000 }: GameCanvasProps) => {
   );
 
   const handleMouseMove = useCallback(
-    (e: React.MouseEvent<HTMLElement>) => {
+    (e: MouseEvent<HTMLElement>) => {
       const rect = canvasRef.current?.getBoundingClientRect();
       if (!rect) return;
 
@@ -61,7 +61,7 @@ const GameCanvas = ({ role, maxPixels = 100000 }: GameCanvasProps) => {
   );
 
   const handleTouchStart = useCallback(
-    (e: React.TouchEvent<HTMLElement>) => {
+    (e: TouchEvent<HTMLElement>) => {
       e.preventDefault();
       const rect = canvasRef.current?.getBoundingClientRect();
       if (!rect) return;
@@ -76,7 +76,7 @@ const GameCanvas = ({ role, maxPixels = 100000 }: GameCanvasProps) => {
   );
 
   const handleTouchMove = useCallback(
-    (e: React.TouchEvent<HTMLElement>) => {
+    (e: TouchEvent<HTMLElement>) => {
       e.preventDefault();
       const rect = canvasRef.current?.getBoundingClientRect();
       if (!rect) return;

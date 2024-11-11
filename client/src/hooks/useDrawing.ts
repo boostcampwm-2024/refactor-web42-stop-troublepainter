@@ -1,4 +1,4 @@
-import { useCallback, useEffect, useRef, useState } from 'react';
+import { RefObject, useCallback, useEffect, useRef, useState } from 'react';
 import { DrawingMode } from '@/components/canvas/CanvasUI';
 
 // 필요한 타입 정의
@@ -18,7 +18,7 @@ interface DrawingOptions {
 
 const DEFAULT_MAX_PIXELS = 1000; // 기본값 설정
 
-const useDrawing = (canvasRef: React.RefObject<HTMLCanvasElement>, options?: DrawingOptions) => {
+const useDrawing = (canvasRef: RefObject<HTMLCanvasElement>, options?: DrawingOptions) => {
   const [drawingState, setDrawingState] = useState<DrawingState>({
     isDrawing: false,
     startPoint: null,

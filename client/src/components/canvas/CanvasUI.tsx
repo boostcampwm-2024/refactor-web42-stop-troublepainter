@@ -1,4 +1,4 @@
-import { forwardRef, HTMLAttributes } from 'react';
+import { forwardRef, HTMLAttributes, RefObject } from 'react';
 import { cva, type VariantProps } from 'class-variance-authority';
 import bucketIcon from '@/assets/bucket-icon.svg';
 import penIcon from '@/assets/pen-icon.svg';
@@ -89,7 +89,7 @@ interface ColorButton {
 type DrawingMode = 'pen' | 'fill';
 
 interface CanvasProps extends HTMLAttributes<HTMLDivElement>, VariantProps<typeof canvasContainerVariants> {
-  canvasRef: React.RefObject<HTMLCanvasElement>;
+  canvasRef: RefObject<HTMLCanvasElement>;
   isDrawable: boolean;
   colors: ColorButton[];
   canUndo: boolean;
