@@ -51,7 +51,7 @@ jobs:
         uses: peaceiris/actions-gh-pages@v3
         with:
           github_token: ${{ secrets.GITHUB_TOKEN }}
-          publish_dir: ./client/storybook-static
+          publish_dir: storybook-static
           destination_dir: storybook/preview/pr-${{ github.event.number }}
 
       - name: Comment Preview URL
@@ -77,7 +77,7 @@ jobs:
         uses: peaceiris/actions-gh-pages@v3
         with:
           github_token: ${{ secrets.GITHUB_TOKEN }}
-          publish_dir: ./client/storybook-static
+          publish_dir: storybook-static
           destination_dir: storybook/preview/pr-${{ github.event.number }}
           keep_files: false
 
