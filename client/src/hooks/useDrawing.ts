@@ -16,7 +16,29 @@ interface DrawingOptions {
   maxPixels?: number;
 }
 
+interface CanvasContext {
+  canvas: HTMLCanvasElement;
+  ctx: CanvasRenderingContext2D;
+}
+
 const DEFAULT_MAX_PIXELS = 1000; // 기본값 설정
+
+// Canvas 컨텍스트를 안전하게 가져오는 유틸리티 함수
+const getCanvasContext = (canvasRef: RefObject<HTMLCanvasElement>): CanvasContext | null => {
+  const canvas = canvasRef.current;
+  if (!canvas) {
+    console.warn('Canvas 요소를 찾지 못했습니다.');
+    return null;
+  }
+
+  const ctx = canvas.getContext('2d');
+  if (!ctx) {
+    console.warn('2D context를 가져오는데 실패했습니다.');
+    return null;
+  }
+
+  return { canvas, ctx };
+};
 
 const useDrawing = (canvasRef: RefObject<HTMLCanvasElement>, options?: DrawingOptions) => {
   const [drawingState, setDrawingState] = useState<DrawingState>({
@@ -33,17 +55,15 @@ const useDrawing = (canvasRef: RefObject<HTMLCanvasElement>, options?: DrawingOp
   const currentStepRef = useRef(-1);
 
   const initCanvas = useCallback(() => {
-    const canvas = canvasRef.current;
-    if (!canvas) return;
+    const context = getCanvasContext(canvasRef);
+    if (!context) return;
+    const { canvas, ctx } = context;
 
     const container = canvas.parentElement;
     if (!container) return;
 
     canvas.width = container.clientWidth;
     canvas.height = container.clientHeight;
-
-    const ctx = canvas.getContext('2d');
-    if (!ctx) return;
 
     ctx.lineCap = 'round';
     ctx.lineJoin = 'round';
@@ -54,9 +74,9 @@ const useDrawing = (canvasRef: RefObject<HTMLCanvasElement>, options?: DrawingOp
 
   // 드로잉 상태 저장
   const saveDrawingState = useCallback(() => {
-    const canvas = canvasRef.current;
-    const ctx = canvas?.getContext('2d');
-    if (!ctx || !canvas) return;
+    const context = getCanvasContext(canvasRef);
+    if (!context) return;
+    const { canvas, ctx } = context;
 
     // 현재 스텝 이후의 기록은 삭제
     drawHistoryRef.current = drawHistoryRef.current.slice(0, currentStepRef.current + 1);
@@ -70,9 +90,9 @@ const useDrawing = (canvasRef: RefObject<HTMLCanvasElement>, options?: DrawingOp
   // Fill 모드 구현
   const floodFill = useCallback(
     (startX: number, startY: number, fillColor: string) => {
-      const canvas = canvasRef.current;
-      const ctx = canvas?.getContext('2d');
-      if (!ctx || !canvas) return;
+      const context = getCanvasContext(canvasRef);
+      if (!context) return;
+      const { canvas, ctx } = context;
 
       const imageData = ctx.getImageData(0, 0, canvas.width, canvas.height);
       const pixels = imageData.data;
@@ -134,8 +154,9 @@ const useDrawing = (canvasRef: RefObject<HTMLCanvasElement>, options?: DrawingOp
     (point: Point) => {
       if (inkRemaining <= 0) return;
 
-      const ctx = canvasRef.current?.getContext('2d');
-      if (!ctx) return;
+      const context = getCanvasContext(canvasRef);
+      if (!context) return;
+      const { ctx } = context;
 
       if (drawingMode === 'fill') {
         floodFill(Math.floor(point.x), Math.floor(point.y), currentColor);
@@ -159,8 +180,9 @@ const useDrawing = (canvasRef: RefObject<HTMLCanvasElement>, options?: DrawingOp
     (point: Point) => {
       if (!drawingState.isDrawing || inkRemaining <= 0) return;
 
-      const ctx = canvasRef.current?.getContext('2d');
-      if (!ctx) return;
+      const context = getCanvasContext(canvasRef);
+      if (!context) return;
+      const { ctx } = context;
 
       ctx.lineTo(point.x, point.y);
       ctx.stroke();
@@ -196,9 +218,9 @@ const useDrawing = (canvasRef: RefObject<HTMLCanvasElement>, options?: DrawingOp
   const undo = useCallback(() => {
     if (currentStepRef.current > 0) {
       currentStepRef.current--;
-      const canvas = canvasRef.current;
-      const ctx = canvas?.getContext('2d');
-      if (!ctx || !canvas) return;
+      const context = getCanvasContext(canvasRef);
+      if (!context) return;
+      const { ctx } = context;
 
       ctx.putImageData(drawHistoryRef.current[currentStepRef.current], 0, 0);
     }
@@ -207,9 +229,9 @@ const useDrawing = (canvasRef: RefObject<HTMLCanvasElement>, options?: DrawingOp
   const redo = useCallback(() => {
     if (currentStepRef.current < drawHistoryRef.current.length - 1) {
       currentStepRef.current++;
-      const canvas = canvasRef.current;
-      const ctx = canvas?.getContext('2d');
-      if (!ctx || !canvas) return;
+      const context = getCanvasContext(canvasRef);
+      if (!context) return;
+      const { ctx } = context;
 
       ctx.putImageData(drawHistoryRef.current[currentStepRef.current], 0, 0);
     }
