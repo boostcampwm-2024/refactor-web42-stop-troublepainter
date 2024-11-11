@@ -4,9 +4,6 @@ import { useCoordinateScale } from '@/hooks/useCoordinateScale';
 import { useCanvasStore } from '@/stores/useCanvasStore';
 import { CanvasStore } from '@/types/canvas.types';
 
-const CV = ['#000', '#f257c9', '#e2f724', '#4eb4c2', '#d9d9d9'];
-//임시 색상 배열
-
 const getTouchPoint = (canvas: HTMLCanvasElement, e: TouchEvent) => {
   const { clientX, clientY } = e.touches[0]; //뷰포트 기준
   const { top, left } = canvas.getBoundingClientRect(); // 캔버스의 뷰포트 기준 위치
@@ -24,15 +21,14 @@ const getDrawPoint = (
   else throw new Error('mouse 혹은 touch 이벤트가 아닙니다.');
 };
 
-const MainCanvas = () => {
+export const MainCanvas = () => {
   const mainCanvasRef = useRef<HTMLCanvasElement>(null);
   const canDrawing = useCanvasStore((state: CanvasStore) => state.canDrawing);
   const setCanDrawing = useCanvasStore((state: CanvasStore) => state.action.setCanDrawing);
-  const coordinateScale = useRef(1);
-  useCoordinateScale(coordinateScale, mainCanvasRef);
+  const coordinateScaleRef = useCoordinateScale(MAINCANVAS_RESOLUTION_WIDTH, mainCanvasRef);
 
   const convertCoordinate = ([x, y]: number[]): number[] => {
-    return [x * coordinateScale.current, y * coordinateScale.current];
+    return [x * coordinateScaleRef.current, y * coordinateScaleRef.current];
   };
 
   const drawStartPath = (ctx: CanvasRenderingContext2D, drawX: number, drawY: number) => {
