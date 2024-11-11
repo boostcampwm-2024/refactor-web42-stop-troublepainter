@@ -5,6 +5,9 @@ import { CanvasStore } from '@/types/canvas.types';
 const CANVAS_SIZE_WIDTH = 640; //임시 사이즈
 const CANVAS_SIZE_HEIGHT = 420;
 
+const CV = ['#000', '#f257c9', '#e2f724', '#4eb4c2', '#d9d9d9'];
+//임시 색상 배열
+
 const getTouchPoint = (canvas: HTMLCanvasElement, e: TouchEvent) => {
   const { clientX, clientY } = e.touches[0]; //뷰포트 기준
   const { top, left } = canvas.getBoundingClientRect(); // 캔버스의 뷰포트 기준 위치
@@ -30,8 +33,11 @@ export const MainCanvas = () => {
 
   const drawStartPath = (ctx: CanvasRenderingContext2D, drawX: number, drawY: number) => {
     ctx.beginPath();
+    ctx.fillStyle = CV[penSetting.colorNum];
+    ctx.strokeStyle = CV[penSetting.colorNum];
+    ctx.lineWidth = penSetting.lineWidth;
 
-    ctx.arc(drawX, drawY, 2, 0, Math.PI * 2);
+    ctx.arc(drawX, drawY, penSetting.lineWidth / 2, 0, Math.PI * 2);
     ctx.fill();
 
     ctx.beginPath();
