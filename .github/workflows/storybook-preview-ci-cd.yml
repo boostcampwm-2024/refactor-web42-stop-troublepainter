@@ -56,7 +56,8 @@ jobs:
           commit_message: "docs: deploy storybook-preview"
 
       - name: Set Preview URL
-        run: echo "::notice::🚀 Preview: https://${{ github.repository_owner }}.github.io/${{ github.event.repository.name }}/storybook/preview-${{ github.event.number }}"
+        run: |
+          echo "🚀 Preview URL: https://${{ github.repository_owner }}.github.io/${{ github.event.repository.name }}/storybook/preview-${{ github.event.number }}"
 
   cleanup-preview:
     if: github.event.action == 'closed'
