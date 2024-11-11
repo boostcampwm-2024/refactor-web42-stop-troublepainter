@@ -1,29 +1,25 @@
-import { useRef, TouchEvent, MouseEvent } from 'react';
-import { CANVAS_EVENT } from '@/constants/canvasConstants';
+import { useRef, TouchEvent as ReactTouchEvent, MouseEvent as ReactMouseEvent } from 'react';
 import { useCanvasStore } from '@/stores/useCanvasStore';
 import { CanvasStore } from '@/types/canvas.types';
 
 const CANVAS_SIZE_WIDTH = 640; //임시 사이즈
 const CANVAS_SIZE_HEIGHT = 420;
 
-const getTouchPoint = (canvas: HTMLCanvasElement, e: TouchEvent<HTMLCanvasElement>) => {
-  const { clientX, clientY } = e.nativeEvent.touches[0]; //뷰포트 기준
+const getTouchPoint = (canvas: HTMLCanvasElement, e: TouchEvent) => {
+  const { clientX, clientY } = e.touches[0]; //뷰포트 기준
   const { top, left } = canvas.getBoundingClientRect(); // 캔버스의 뷰포트 기준 위치
   return [clientX - left, clientY - top];
 };
 
-const getDrawPoint = (e: TouchEvent<HTMLCanvasElement> | MouseEvent<HTMLCanvasElement>, canvas: HTMLCanvasElement) => {
+const getDrawPoint = (
+  e: ReactTouchEvent<HTMLCanvasElement> | ReactMouseEvent<HTMLCanvasElement>,
+  canvas: HTMLCanvasElement,
+) => {
   if (!canvas) new Error('canvas element가 없습니다.');
 
-  if (e.type === CANVAS_EVENT.MOUSE_DOWN || e.type === CANVAS_EVENT.MOUSE_MOVE) {
-    const event = e as MouseEvent<HTMLCanvasElement>;
-    return [event.nativeEvent.offsetX, event.nativeEvent.offsetY];
-  } else if (e.type === CANVAS_EVENT.TOUCH_DOWN || e.type === CANVAS_EVENT.TOUCH_MOVE) {
-    const event = e as TouchEvent<HTMLCanvasElement>;
-    return getTouchPoint(canvas, event);
-  } else {
-    throw new Error('mouse 혹은 touch 이벤트가 아닙니다.');
-  }
+  if (e.nativeEvent instanceof MouseEvent) return [e.nativeEvent.offsetX, e.nativeEvent.offsetY];
+  else if (e.nativeEvent instanceof TouchEvent) return getTouchPoint(canvas, e.nativeEvent);
+  else throw new Error('mouse 혹은 touch 이벤트가 아닙니다.');
 };
 
 export const MainCanvas = () => {
@@ -41,7 +37,7 @@ export const MainCanvas = () => {
     ctx.moveTo(drawX, drawY);
   };
 
-  const startDrawingEvent = (e: TouchEvent<HTMLCanvasElement> | MouseEvent<HTMLCanvasElement>) => {
+  const startDrawingEvent = (e: ReactTouchEvent<HTMLCanvasElement> | ReactMouseEvent<HTMLCanvasElement>) => {
     if (canDrawing) return;
     if (!mainCanvasRef.current) return;
 
@@ -53,13 +49,13 @@ export const MainCanvas = () => {
       const [drawX, drawY] = getDrawPoint(e, canvas);
       drawStartPath(ctx, drawX, drawY);
     } catch (err) {
-      console.error(err);
+      throw err;
     }
 
     setCanDrawing(true);
   };
 
-  const drawingEvent = (e: TouchEvent<HTMLCanvasElement> | MouseEvent<HTMLCanvasElement>) => {
+  const drawingEvent = (e: ReactTouchEvent<HTMLCanvasElement> | ReactMouseEvent<HTMLCanvasElement>) => {
     if (!canDrawing) return;
     if (!mainCanvasRef.current) return;
 
@@ -72,7 +68,7 @@ export const MainCanvas = () => {
       ctx.lineTo(drawX, drawY);
       ctx.stroke();
     } catch (err) {
-      console.error(err);
+      throw err;
     }
   };
 
