@@ -111,7 +111,7 @@ const GameCanvas = ({ role, maxPixels = 100000 }: GameCanvasProps) => {
       colors={isDrawable ? COLORS : []}
       // toolbarPosition="floating"
       brushSize={brushSize}
-      onBrushSize={setBrushSize}
+      setBrushSize={setBrushSize}
       drawingMode={drawingMode}
       onDrawingModeChange={setDrawingMode}
       inkRemaining={inkRemaining}

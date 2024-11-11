@@ -97,7 +97,7 @@ interface CanvasProps extends HTMLAttributes<HTMLDivElement>, VariantProps<typeo
   canRedo: boolean;
   onRedo: () => void;
   brushSize: number;
-  onBrushSize: (size: number) => void;
+  setBrushSize: (size: number) => void;
   toolbarPosition?: VariantProps<typeof toolbarVariants>['position'];
   drawingMode: DrawingMode;
   onDrawingModeChange: (mode: DrawingMode) => void;
@@ -115,7 +115,7 @@ const Canvas = forwardRef<HTMLDivElement, CanvasProps>(
       colors = [],
       onUndo,
       onRedo,
-      onBrushSize,
+      setBrushSize,
       canUndo = false,
       canRedo = false,
       brushSize = 1,
@@ -167,7 +167,7 @@ const Canvas = forwardRef<HTMLDivElement, CanvasProps>(
                     min="1"
                     max="20"
                     value={brushSize}
-                    onChange={(e) => onBrushSize(Number(e.target.value))}
+                    onChange={(e) => setBrushSize(Number(e.target.value))}
                     className="h-2 w-full appearance-none rounded-full bg-violet-200"
                     aria-label="선 굵기 조절"
                   />
