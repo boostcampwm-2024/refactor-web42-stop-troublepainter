@@ -1,4 +1,5 @@
 import { useRef, TouchEvent as ReactTouchEvent, MouseEvent as ReactMouseEvent } from 'react';
+import { PENMODE } from '@/constants/canvasConstants';
 import { useCanvasStore } from '@/stores/useCanvasStore';
 import { CanvasStore } from '@/types/canvas.types';
 
@@ -63,7 +64,7 @@ const MainCanvas = () => {
   };
 
   const handleDrawingEvent = (e: ReactTouchEvent<HTMLCanvasElement> | ReactMouseEvent<HTMLCanvasElement>) => {
-    if (!canDrawing) return;
+    if (!canDrawing || penSetting.mode === PENMODE.PAINTER) return;
     if (!mainCanvasRef.current) return;
 
     const canvas = mainCanvasRef.current;
