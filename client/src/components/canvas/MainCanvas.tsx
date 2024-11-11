@@ -26,6 +26,7 @@ export const MainCanvas = () => {
   const mainCanvasRef = useRef<HTMLCanvasElement>(null);
   const canDrawing = useCanvasStore((state: CanvasStore) => state.canDrawing);
   const setCanDrawing = useCanvasStore((state: CanvasStore) => state.action.setCanDrawing);
+  const penSetting = useCanvasStore((state: CanvasStore) => state.penSetting);
 
   const drawStartPath = (ctx: CanvasRenderingContext2D, drawX: number, drawY: number) => {
     ctx.beginPath();

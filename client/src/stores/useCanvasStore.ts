@@ -1,5 +1,5 @@
 import { create } from 'zustand';
-import { CanvasStore } from '@/types/canvas.types';
+import { CanvasStore, SelectingPenOptions } from '@/types/canvas.types';
 
 const canvasDefaultConfig = {
   inkRemaining: 500,
@@ -16,6 +16,18 @@ export const useCanvasStore = create<CanvasStore>((set) => ({
   action: {
     setCanDrawing: (canDrawing: boolean) => {
       set(() => ({ canDrawing }));
+    },
+    setPenSetting: (penSetting: SelectingPenOptions) => {
+      set((state) => {
+        const newPenSettingState = { ...state.penSetting, ...penSetting };
+        return { ...state, penSetting: newPenSettingState };
+      });
+    },
+    setPenMode: (mode: number) => {
+      set((state) => {
+        const newPenSettingState = { ...state.penSetting, mode };
+        return { ...state, penSetting: newPenSettingState };
+      });
     },
   },
 }));
