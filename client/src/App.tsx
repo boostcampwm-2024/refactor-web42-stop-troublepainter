@@ -63,6 +63,8 @@ const App = () => {
       <Modal title="역할 배정" isModalOpened={isModalOpened} className="w-80">
         <span className="flex min-h-28 items-center justify-center text-3xl text-violet-950">그림꾼</span>
       </Modal>
+
+      {/* storybook-preview test */}
     </main>
   );
 };
