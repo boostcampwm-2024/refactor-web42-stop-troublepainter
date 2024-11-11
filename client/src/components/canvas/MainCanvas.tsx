@@ -1,9 +1,11 @@
 import { useRef, TouchEvent as ReactTouchEvent, MouseEvent as ReactMouseEvent } from 'react';
+import { MAINCANVAS_RESOLUTION_HEIGHT, MAINCANVAS_RESOLUTION_WIDTH, PENMODE } from '@/constants/canvasConstants';
+import { useCoordinateScale } from '@/hooks/useCoordinateScale';
 import { useCanvasStore } from '@/stores/useCanvasStore';
 import { CanvasStore } from '@/types/canvas.types';
 
-const CANVAS_SIZE_WIDTH = 640; //임시 사이즈
-const CANVAS_SIZE_HEIGHT = 420;
+const CV = ['#000', '#f257c9', '#e2f724', '#4eb4c2', '#d9d9d9'];
+//임시 색상 배열
 
 const getTouchPoint = (canvas: HTMLCanvasElement, e: TouchEvent) => {
   const { clientX, clientY } = e.touches[0]; //뷰포트 기준
@@ -22,10 +24,16 @@ const getDrawPoint = (
   else throw new Error('mouse 혹은 touch 이벤트가 아닙니다.');
 };
 
-export const MainCanvas = () => {
+const MainCanvas = () => {
   const mainCanvasRef = useRef<HTMLCanvasElement>(null);
   const canDrawing = useCanvasStore((state: CanvasStore) => state.canDrawing);
   const setCanDrawing = useCanvasStore((state: CanvasStore) => state.action.setCanDrawing);
+  const coordinateScale = useRef(1);
+  useCoordinateScale(coordinateScale, mainCanvasRef);
+
+  const convertCoordinate = ([x, y]: number[]): number[] => {
+    return [x * coordinateScale.current, y * coordinateScale.current];
+  };
 
   const drawStartPath = (ctx: CanvasRenderingContext2D, drawX: number, drawY: number) => {
     ctx.beginPath();
@@ -46,7 +54,7 @@ export const MainCanvas = () => {
     if (!ctx) return;
 
     try {
-      const [drawX, drawY] = getDrawPoint(e, canvas);
+      const [drawX, drawY] = convertCoordinate(getDrawPoint(e, canvas));
       drawStartPath(ctx, drawX, drawY);
     } catch (err) {
       throw err;
@@ -64,7 +72,7 @@ export const MainCanvas = () => {
     if (!ctx) return;
 
     try {
-      const [drawX, drawY] = getDrawPoint(e, canvas);
+      const [drawX, drawY] = convertCoordinate(getDrawPoint(e, canvas));
       ctx.lineTo(drawX, drawY);
       ctx.stroke();
     } catch (err) {
@@ -79,10 +87,10 @@ export const MainCanvas = () => {
   return (
     <section>
       <canvas
-        className="touch-none border border-black"
+        className="w-full max-w-screen-sm touch-none border border-black"
         ref={mainCanvasRef}
-        width={CANVAS_SIZE_WIDTH}
-        height={CANVAS_SIZE_HEIGHT}
+        width={MAINCANVAS_RESOLUTION_WIDTH}
+        height={MAINCANVAS_RESOLUTION_HEIGHT}
         onMouseDown={handleStartDrawingEvent}
         onTouchStart={handleStartDrawingEvent}
         onMouseMove={handleDrawingEvent}
