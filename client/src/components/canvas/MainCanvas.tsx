@@ -1,7 +1,7 @@
 import { useRef, TouchEvent as ReactTouchEvent, MouseEvent as ReactMouseEvent } from 'react';
 import { useCanvasStore } from '@/stores/useCanvasStore';
 import { CanvasStore, RGBA } from '@/types/canvas.types';
-import { hexToRgba } from '@/utils/hexToRgba';
+import { hexToRGBA } from '@/utils/hexToRGBA';
 
 const CANVAS_SIZE_WIDTH = 640; //임시 사이즈
 const CANVAS_SIZE_HEIGHT = 420;
@@ -116,7 +116,7 @@ const MainCanvas = () => {
     try {
       const [drawX, drawY] = getDrawPoint(e, canvas);
       if (penSetting.mode === PENMODE.PAINTER)
-        paintCanvas(Math.floor(drawX), Math.floor(drawY), ctx, hexToRgba(CV[penSetting.colorNum]));
+        paintCanvas(Math.floor(drawX), Math.floor(drawY), ctx, hexToRGBA(CV[penSetting.colorNum]));
       else drawStartPath(ctx, drawX, drawY);
     } catch (err) {
       throw err;
