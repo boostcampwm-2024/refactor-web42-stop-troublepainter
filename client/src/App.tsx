@@ -5,12 +5,16 @@ import helpIcon from '@/assets/help-icon.svg';
 import asd from '@/assets/small-timer.gif';
 import as from '@/assets/small-timer.png';
 import { GameCanvas } from '@/components/canvas/GameCanvasExample';
+import { Modal } from '@/components/ui/Modal';
 import { Button } from '@/components/ui/Button';
 import { Logo } from '@/components/ui/Logo';
 import { UserInfoCard } from '@/components/ui/UserInfoCard';
+import { useDropdown } from '@/hooks/useDropdown';
 
 const App = () => {
   const [isReady, setIsReady] = useState(false);
+  const { isModalOpened, openModal } = useModal(3000);
+
   return (
     <main className="bg-eastbay-600">
       <Logo />
@@ -54,6 +58,13 @@ const App = () => {
       <img src={asd} alt="asd" />
       <img src={asdf} alt="asdf" />
     </main>
+
+      {/* Role 모달 */}
+      <button onClick={openModal}>3초 후 사라지는 Role 모달 오픈</button>
+      <Modal title="역할 배정" isModalOpened={isModalOpened} className="w-80">
+        <span className="flex min-h-28 items-center justify-center text-3xl text-violet-950">그림꾼</span>
+      </Modal>
+    </>
   );
 };
 
