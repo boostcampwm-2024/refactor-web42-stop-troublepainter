@@ -37,7 +37,7 @@ export const MainCanvas = () => {
     ctx.moveTo(drawX, drawY);
   };
 
-  const startDrawingEvent = (e: ReactTouchEvent<HTMLCanvasElement> | ReactMouseEvent<HTMLCanvasElement>) => {
+  const handleStartDrawingEvent = (e: ReactTouchEvent<HTMLCanvasElement> | ReactMouseEvent<HTMLCanvasElement>) => {
     if (canDrawing) return;
     if (!mainCanvasRef.current) return;
 
@@ -55,7 +55,7 @@ export const MainCanvas = () => {
     setCanDrawing(true);
   };
 
-  const drawingEvent = (e: ReactTouchEvent<HTMLCanvasElement> | ReactMouseEvent<HTMLCanvasElement>) => {
+  const handleDrawingEvent = (e: ReactTouchEvent<HTMLCanvasElement> | ReactMouseEvent<HTMLCanvasElement>) => {
     if (!canDrawing) return;
     if (!mainCanvasRef.current) return;
 
@@ -72,7 +72,7 @@ export const MainCanvas = () => {
     }
   };
 
-  const stopDrawingEvent = () => {
+  const handleStopDrawingEvent = () => {
     setCanDrawing(false);
   };
 
@@ -83,14 +83,14 @@ export const MainCanvas = () => {
         ref={mainCanvasRef}
         width={CANVAS_SIZE_WIDTH}
         height={CANVAS_SIZE_HEIGHT}
-        onMouseDown={startDrawingEvent}
-        onTouchStart={startDrawingEvent}
-        onMouseMove={drawingEvent}
-        onTouchMove={drawingEvent}
-        onMouseUp={stopDrawingEvent}
-        onMouseLeave={stopDrawingEvent}
-        onTouchEnd={stopDrawingEvent}
-        onTouchCancel={stopDrawingEvent}
+        onMouseDown={handleStartDrawingEvent}
+        onTouchStart={handleStartDrawingEvent}
+        onMouseMove={handleDrawingEvent}
+        onTouchMove={handleDrawingEvent}
+        onMouseUp={handleStopDrawingEvent}
+        onMouseLeave={handleStopDrawingEvent}
+        onTouchEnd={handleStopDrawingEvent}
+        onTouchCancel={handleStopDrawingEvent}
       >
         <img src="/" /> {/* canvas 지원하지 않는 브라우저일 경우 대체 이미지 */}
       </canvas>
