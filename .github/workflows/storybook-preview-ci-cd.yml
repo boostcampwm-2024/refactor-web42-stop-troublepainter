@@ -55,47 +55,38 @@ jobs:
           destination_dir: storybook/preview-${{ github.event.number }}
           commit_message: "docs: deploy storybook-preview"
 
-      - name: Comment Preview URL
+      - name: Set Preview URL
+        run: echo "::notice::🚀 Preview: https://${{ github.repository_owner }}.github.io/${{ github.event.repository.name }}/storybook/preview-${{ github.event.number }}"
+
+  cleanup-preview:
+    if: github.event.action == 'closed'
+    runs-on: ubuntu-latest
+
+    permissions:
+      contents: write
+      pull-requests: write
+
+    steps:
+      - name: Checkout
+        uses: actions/checkout@v4
+        with:
+          ref: gh-pages
+
+      - name: Delete preview directory
+        run: |
+          git config --global user.name 'github-actions[bot]'
+          git config --global user.email 'github-actions[bot]@users.noreply.github.com'
+          git rm -rf storybook/preview-${{ github.event.number }}
+          git commit -m "docs: remove storybook preview for PR #${{ github.event.number }}"
+          git push origin gh-pages
+
+      - name: Comment Cleanup Notification
         uses: actions/github-script@v6
         with:
           script: |
-            const previewUrl = `https://${context.repo.owner}.github.io/${context.repo.repo}/storybook/preview-${context.issue.number}`
             github.rest.issues.createComment({
               issue_number: context.issue.number,
               owner: context.repo.owner,
               repo: context.repo.repo,
-              body: `📚 Storybook preview deployed to: [${previewUrl}](${previewUrl})`
+              body: `🧹 Storybook preview for PR #${context.issue.number} has been removed.`
             })
-
-cleanup-preview:
-  if: github.event.action == 'closed'
-  runs-on: ubuntu-latest
-
-  permissions:
-    contents: write
-    pull-requests: write
-
-  steps:
-    - name: Checkout
-      uses: actions/checkout@v4
-      with:
-        ref: gh-pages
-
-    - name: Delete preview directory
-      run: |
-        git config --global user.name 'github-actions[bot]'
-        git config --global user.email 'github-actions[bot]@users.noreply.github.com'
-        git rm -rf storybook/preview-${{ github.event.number }}
-        git commit -m "docs: remove storybook preview for PR #${{ github.event.number }}"
-        git push origin gh-pages
-
-    - name: Comment Cleanup Notification
-      uses: actions/github-script@v6
-      with:
-        script: |
-          github.rest.issues.createComment({
-            issue_number: context.issue.number,
-            owner: context.repo.owner,
-            repo: context.repo.repo,
-            body: `🧹 Storybook preview for PR #${context.issue.number} has been removed.`
-          })
