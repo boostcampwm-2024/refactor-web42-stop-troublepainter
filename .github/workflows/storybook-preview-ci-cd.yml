@@ -71,6 +71,10 @@ jobs:
     if: github.event.action == 'closed'
     runs-on: ubuntu-latest
 
+    defaults:
+      run:
+        working-directory: .
+
     permissions:
       contents: write
       pull-requests: write
