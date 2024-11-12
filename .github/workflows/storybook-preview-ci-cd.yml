@@ -1,0 +1,107 @@
+name: Deploy Storybook Preview
+
+on:
+  pull_request:
+    types:
+      - opened
+      - synchronize
+      - reopened
+      - closed
+    branches:
+      - main
+      - develop
+    paths:
+      - client/**
+
+defaults:
+  run:
+    working-directory: ./client
+
+jobs:
+  deploy-preview:
+    if: github.event.action != 'closed'
+    runs-on: ubuntu-latest
+    permissions:
+      contents: write
+      pull-requests: write
+    steps:
+      - name: Checkout
+        uses: actions/checkout@v4
+
+      - name: Setup pnpm
+        uses: pnpm/action-setup@v2
+        with:
+          version: 8
+          run_install: false
+
+      - name: Setup Node
+        uses: actions/setup-node@v4
+        with:
+          node-version: 18
+          cache: "pnpm"
+          cache-dependency-path: "./client/pnpm-lock.yaml"
+
+      - name: Install dependencies
+        run: pnpm install
+
+      - name: Build storybook
+        run: pnpm run build-storybook
+
+      - name: Deploy
+        uses: peaceiris/actions-gh-pages@v3
+        with:
+          github_token: ${{ secrets.GITHUB_TOKEN }}
+          publish_dir: ./client/storybook-static
+          destination_dir: storybook/preview-${{ github.event.number }}
+          commit_message: "docs: deploy storybook-preview"
+
+      - name: Comment Preview URL
+        uses: actions/github-script@v6
+        with:
+          script: |
+            const previewUrl = `https://${context.repo.owner}.github.io/${context.repo.repo}/storybook/preview-${context.issue.number}`
+            github.rest.issues.createComment({
+              issue_number: context.issue.number,
+              owner: context.repo.owner,
+              repo: context.repo.repo,
+              body: `📚 Storybook preview deployed to: [Visit Storybook Preview](${previewUrl})`
+            })
+
+  cleanup-preview:
+    if: github.event.action == 'closed'
+    runs-on: ubuntu-latest
+
+    permissions:
+      contents: write
+      pull-requests: write
+
+    defaults:
+      run:
+        working-directory: .
+
+    steps:
+      - name: Checkout
+        uses: actions/checkout@v4
+        with:
+          ref: gh-pages
+
+      - name: Delete preview directory
+        run: |
+          if [ -d "storybook/preview-${{ github.event.number }}" ]; then
+            git config --global user.name 'github-actions[bot]'
+            git config --global user.email 'github-actions[bot]@users.noreply.github.com'
+            git rm -rf "storybook/preview-${{ github.event.number }}"
+            git commit -m "docs: remove storybook preview for PR #${{ github.event.number }}"
+            git push origin gh-pages
+          fi
+
+      - name: Comment Cleanup Notification
+        uses: actions/github-script@v6
+        with:
+          script: |
+            github.rest.issues.createComment({
+              issue_number: context.issue.number,
+              owner: context.repo.owner,
+              repo: context.repo.repo,
+              body: `🧹 Storybook preview for PR #${context.issue.number} has been removed.`
+            })
