@@ -6,13 +6,9 @@ export default {
   argTypes: {
     label: {
       control: 'text',
-      description: 'The label displayed above the input field.',
-      defaultValue: 'Label',
     },
     placeholder: {
       control: 'text',
-      description: 'Placeholder text displayed inside the input field.',
-      defaultValue: 'Enter text...',
     },
   },
 };
