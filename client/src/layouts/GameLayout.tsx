@@ -3,7 +3,7 @@ import { Logo } from '@/components/ui/Logo';
 
 const GameLayout = () => {
   return (
-    <div className="to-fuchsia-800 flex min-h-screen flex-col bg-gradient-to-b from-violet-950 via-violet-800">
+    <div className="flex min-h-screen flex-col bg-gradient-to-b from-violet-950 via-violet-800 to-fuchsia-800">
       {/* 상단 헤더 */}
       <header className="flex justify-center p-4">
         <Logo variant="side" className="" />
