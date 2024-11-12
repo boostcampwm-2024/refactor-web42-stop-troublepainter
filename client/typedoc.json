@@ -5,5 +5,11 @@
   "favicon": "./public/favicon.ico",
   "plugin": ["typedoc-plugin-extras"],
   "entryPoints": ["src/utils/*.ts", "src/hooks/*.ts", "src/hooks/*.tsx"],
-  "exclude": ["**/node_modules/**", "**/dist/**"]
+  "exclude": ["**/node_modules/**", "**/dist/**"],
+  "basePath": "/web30-stop-troublepainter/",
+  "navigationLinks": {
+    "Documentation": "./",
+    "Storybook (Main)": "./storybook",
+    "Storybook (Develop)": "./storybook-develop"
+  }
 }
