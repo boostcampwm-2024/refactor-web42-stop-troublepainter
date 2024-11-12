@@ -11,7 +11,7 @@
  * hexToRGBA('#00000', 0);
  *
  * // 불투명한 하얀색
- * hexToRGBA('#ffffff', 0);
+ * hexToRGBA('#ffffff', 255);
  * ```
  *
  * @category Utils
