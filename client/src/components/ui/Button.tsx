@@ -7,7 +7,7 @@ const buttonVariants = cva(
   {
     variants: {
       variant: {
-        proimary: 'border-y-2 border-violet-950 bg-violet-500 hover:bg-violet-600 sm:border-2',
+        primary: 'border-y-2 border-violet-950 bg-violet-500 hover:bg-violet-600 sm:border-2',
         secondary: 'bg-eastbay-900 border-2 border-violet-950 hover:bg-eastbay-950',
         transperent: 'hover:brightness-95',
       },
@@ -17,7 +17,7 @@ const buttonVariants = cva(
       },
     },
     defaultVariants: {
-      variant: 'proimary',
+      variant: 'primary',
       size: 'text',
     },
   },
