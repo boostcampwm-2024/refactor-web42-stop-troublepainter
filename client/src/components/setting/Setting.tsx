@@ -48,7 +48,7 @@ const Setting = ({ className, roundCount = 4, playerCount = 4, timeLimit = 30, t
       <div className="flex min-h-[16.125rem] items-center justify-center bg-violet-200 sm:min-h-[18.56rem] sm:px-6">
         <div className="flex min-h-[13.8rem] w-full flex-col items-center justify-center gap-6 border-y-2 border-violet-950 bg-violet-50 p-4 text-2xl sm:rounded-[0.625rem] sm:border-x-2">
           {SETTING_ITEMS.map(({ label, key, options }) => (
-            <div key={label} className="flex w-full max-w-[15.75rem] items-center justify-between sm:max-w-[70%]">
+            <div key={label} className="flex w-full max-w-80 items-center justify-between sm:max-w-[70%]">
               <span>{label}</span>
               {type === 'participant' ? (
                 <span>{selectedValues[key]}</span>
