@@ -3,6 +3,9 @@ export default {
   content: ['./index.html', './src/**/*.{js,ts,jsx,tsx}'],
   theme: {
     extend: {
+      screens: {
+        xs: '480px', // xs 브레이크포인트 추가
+      },
       fontFamily: {
         // 기본 sans-serif 폰트를 NeoDunggeunmo Pro로 변경
         sans: [
