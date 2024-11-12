@@ -1,10 +1,10 @@
-name: Deploy Storybook Production 
+name: Deploy Storybook Production
 
 on:
   push:
     branches:
       - main
-      - develop 
+      - develop
     paths:
       - client/**
 
@@ -17,7 +17,7 @@ jobs:
     runs-on: ubuntu-latest
     permissions:
       contents: write
-      
+
     steps:
       - name: Checkout
         uses: actions/checkout@v4
@@ -40,10 +40,10 @@ jobs:
 
       - name: Build storybook
         run: pnpm run build-storybook
-        
+
       - name: Deploy
         uses: peaceiris/actions-gh-pages@v3
         with:
           github_token: ${{ secrets.GITHUB_TOKEN }}
           publish_dir: ./client/storybook-static
-					destination_dir: ${{ github.ref == 'refs/heads/main' && 'storybook' || 'storybook-develop' }} 
+          destination_dir: ${{ github.ref == 'refs/heads/main' && 'storybook' || 'storybook-develop' }}

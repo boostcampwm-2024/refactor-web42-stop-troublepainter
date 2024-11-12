@@ -40,7 +40,7 @@ export default {
   tags: ['autodocs'],
 } satisfies Meta<typeof Dropdown>;
 
-const DropdownExample = (args: DropdownProps) => {
+const DefaultExample = (args: DropdownProps) => {
   const [selectedValue, setSelectedValue] = useState(args.selectedValue);
 
   useEffect(() => {
@@ -60,5 +60,5 @@ export const Default: Story = {
     options: sampleOptions,
     selectedValue: sampleOptions[0].value,
   },
-  render: (args) => <DropdownExample {...args} />,
+  render: (args) => <DefaultExample {...args} />,
 };

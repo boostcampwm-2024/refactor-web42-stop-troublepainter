@@ -1,11 +1,11 @@
 import { HTMLAttributes, KeyboardEvent, PropsWithChildren } from 'react';
 import { cn } from '@/utils/cn';
 
-interface ModalProps extends PropsWithChildren<HTMLAttributes<HTMLDivElement>> {
+export interface ModalProps extends PropsWithChildren<HTMLAttributes<HTMLDivElement>> {
   title: string;
   closeModal?: () => void;
   isModalOpened: boolean;
-  handleKeyDown?: (e: KeyboardEvent) => void;
+  handleKeyDown?: (e: KeyboardEvent<Element>) => void;
 }
 
 const Modal = ({ className, handleKeyDown, closeModal, isModalOpened, title, children, ...props }: ModalProps) => {
