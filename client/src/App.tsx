@@ -64,7 +64,7 @@ const App = () => {
         <span className="flex min-h-28 items-center justify-center text-3xl text-violet-950">그림꾼</span>
       </Modal>
 
-      {/* storybook-preview test7 */}
+      {/* storybook-preview test8 */}
     </main>
   );
 };
