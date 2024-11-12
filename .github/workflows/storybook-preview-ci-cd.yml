@@ -20,13 +20,10 @@ defaults:
 jobs:
   deploy-preview:
     if: github.event.action != 'closed'
-
     runs-on: ubuntu-latest
-
     permissions:
       contents: write
       pull-requests: write
-
     steps:
       - name: Checkout
         uses: actions/checkout@v4
@@ -58,18 +55,21 @@ jobs:
           destination_dir: storybook/preview-${{ github.event.number }}
           commit_message: "docs: deploy storybook-preview"
 
-    environment:
-      name: Storybook Preview
-      url: https://${{ github.repository_owner }}.github.io/${{ github.event.repository.name }}/storybook/preview-${{ github.event.number }}
-      transient_environment: true
+      - name: Comment Preview URL
+        uses: actions/github-script@v6
+        with:
+          script: |
+            const previewUrl = `https://${context.repo.owner}.github.io/${context.repo.repo}/storybook/preview-${context.issue.number}`
+            github.rest.issues.createComment({
+              issue_number: context.issue.number,
+              owner: context.repo.owner,
+              repo: context.repo.repo,
+              body: `📚 Storybook preview deployed to: [Visit Storybook Preview](${previewUrl})`
+            })
 
   cleanup-preview:
     if: github.event.action == 'closed'
     runs-on: ubuntu-latest
-
-    defaults:
-      run:
-        working-directory: .
 
     permissions:
       contents: write
