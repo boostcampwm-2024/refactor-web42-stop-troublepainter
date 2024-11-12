@@ -42,7 +42,7 @@ const checkColorisEqual = (nextIndex: number, beforeColor: RGBA, pixelArray: Uin
 };
 
 const searchFillAreaBFS = (offsetX: number, offsetY: number, targetColor: RGBA, pixelArray: Uint8ClampedArray) => {
-  const clickIndex = (offsetY * CANVAS_SIZE_WIDTH + offsetX) * 4;
+  const clickIndex = (offsetY * MAINCANVAS_RESOLUTION_WIDTH + offsetX) * 4;
   const clickColor = {
     r: pixelArray[clickIndex],
     g: pixelArray[clickIndex + 1],
@@ -50,7 +50,9 @@ const searchFillAreaBFS = (offsetX: number, offsetY: number, targetColor: RGBA, 
     a: pixelArray[clickIndex + 3],
   };
 
-  const checkArray = new Array(CANVAS_SIZE_HEIGHT).fill(null).map(() => new Array(CANVAS_SIZE_WIDTH).fill(false));
+  const checkArray = new Array(MAINCANVAS_RESOLUTION_HEIGHT)
+    .fill(null)
+    .map(() => new Array(MAINCANVAS_RESOLUTION_WIDTH).fill(false));
   const searchArray = [[offsetX, offsetY]];
   checkArray[offsetY][offsetX] = true;
   fillTargetColor(clickIndex, targetColor, pixelArray);
@@ -68,12 +70,12 @@ const searchFillAreaBFS = (offsetX: number, offsetY: number, targetColor: RGBA, 
       const [nextX, nextY] = [currentX + move[0], currentY + move[1]];
       if (
         nextX >= 0 &&
-        nextX < CANVAS_SIZE_WIDTH &&
+        nextX < MAINCANVAS_RESOLUTION_WIDTH &&
         nextY >= 0 &&
-        nextY < CANVAS_SIZE_HEIGHT &&
+        nextY < MAINCANVAS_RESOLUTION_HEIGHT &&
         !checkArray[nextY][nextX]
       ) {
-        const nextArrayIndex = (nextY * CANVAS_SIZE_WIDTH + nextX) * 4;
+        const nextArrayIndex = (nextY * MAINCANVAS_RESOLUTION_WIDTH + nextX) * 4;
         if (checkColorisEqual(nextArrayIndex, clickColor, pixelArray)) {
           checkArray[nextY][nextX] = true;
           fillTargetColor(nextArrayIndex, targetColor, pixelArray);
@@ -85,7 +87,7 @@ const searchFillAreaBFS = (offsetX: number, offsetY: number, targetColor: RGBA, 
 };
 
 export const paintCanvas = (offsetX: number, offsetY: number, ctx: CanvasRenderingContext2D, targetColor: RGBA) => {
-  const canvasImageData = ctx.getImageData(0, 0, CANVAS_SIZE_WIDTH, CANVAS_SIZE_HEIGHT);
+  const canvasImageData = ctx.getImageData(0, 0, MAINCANVAS_RESOLUTION_WIDTH, MAINCANVAS_RESOLUTION_HEIGHT);
   const pixelArray = canvasImageData.data;
 
   searchFillAreaBFS(offsetX, offsetY, targetColor, pixelArray);
@@ -95,6 +97,7 @@ export const paintCanvas = (offsetX: number, offsetY: number, ctx: CanvasRenderi
 const MainCanvas = () => {
   const mainCanvasRef = useRef<HTMLCanvasElement>(null);
   const canDrawing = useCanvasStore((state: CanvasStore) => state.canDrawing);
+  const penSetting = useCanvasStore((state: CanvasStore) => state.penSetting);
   const setCanDrawing = useCanvasStore((state: CanvasStore) => state.action.setCanDrawing);
   const coordinateScaleRef = useCoordinateScale(MAINCANVAS_RESOLUTION_WIDTH, mainCanvasRef);
 
@@ -124,7 +127,7 @@ const MainCanvas = () => {
     if (!ctx) return;
 
     try {
-      const [drawX, drawY] = getDrawPoint(e, canvas);
+      const [drawX, drawY] = convertCoordinate(getDrawPoint(e, canvas));
       if (penSetting.mode === PENMODE.PAINTER)
         paintCanvas(Math.floor(drawX), Math.floor(drawY), ctx, hexToRGBA(CV[penSetting.colorNum]));
       else drawStartPath(ctx, drawX, drawY);

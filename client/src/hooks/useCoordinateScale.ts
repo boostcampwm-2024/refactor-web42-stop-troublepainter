@@ -1,5 +1,4 @@
 import { RefObject, useCallback, useEffect, useRef } from 'react';
-import { useEffect, useState } from 'react';
 
 /**
  * 캔버스 크기 변경 시 사용하는 hook입니다.
