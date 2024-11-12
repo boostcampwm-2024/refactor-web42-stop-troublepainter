@@ -26,10 +26,9 @@ const CanvasToolBar = () => {
       <section>
         {CV.map((color, i) => {
           return (
-            // eslint-disable-next-line jsx-a11y/click-events-have-key-events
-            <div key={i} className={`bg-canvas-${i} h-16 w-16`} onClick={() => handleChangeToolColor(i)}>
+            <button key={i} className={`bg-canvas-${i} h-16 w-16`} onClick={() => handleChangeToolColor(i)}>
               {color}
-            </div>
+            </button>
           );
         })}
       </section>
