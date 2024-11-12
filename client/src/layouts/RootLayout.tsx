@@ -1,0 +1,21 @@
+import { Outlet } from 'react-router-dom';
+import helpIcon from '@/assets/help-icon.svg';
+import { Button } from '@/components/ui/Button';
+
+const RootLayout = () => {
+  return (
+    <div className="relative min-h-screen bg-violet-950 bg-fixed antialiased">
+      {/* 상단 네비게이션 영역: Help 아이콘 컴포넌트 */}
+      <nav className="fixed right-4 top-4 z-50 animate-bounce xs:right-8 xs:top-8">
+        <Button variant="transperent" size="icon">
+          <img src={helpIcon} alt="도움말 보기 버튼" />
+        </Button>
+      </nav>
+
+      {/* 메인 컨텐츠 */}
+      <Outlet />
+    </div>
+  );
+};
+
+export default RootLayout;

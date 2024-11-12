@@ -7,8 +7,8 @@ import { cn } from '@/utils/cn';
 const logoVariants = cva('w-auto', {
   variants: {
     variant: {
-      main: 'h-64',
-      side: 'h-24',
+      main: 'h-40 sm:h-64',
+      side: 'h-20 xs:h-24',
     },
   },
   defaultVariants: {
@@ -18,20 +18,24 @@ const logoVariants = cva('w-auto', {
 
 export type LogoVariant = 'main' | 'side';
 
-const logoSources: Record<LogoVariant, string> = {
-  main: mainLogo,
-  side: sideLogo,
-};
+interface LogoInfo {
+  src: string;
+  alt: string;
+  description: string;
+}
 
-const logoAlts: Record<LogoVariant, string> = {
-  main: '메인 로고',
-  side: '보조 로고',
-};
-
-const logoDescriptions: Record<LogoVariant, string> = {
-  main: '우리 프로젝트를 대표하는 메인 로고 이미지입니다',
-  side: '우리 프로젝트를 대표하는 보조 로고 이미지입니다',
-};
+const LOGO_INFO: Record<LogoVariant, LogoInfo> = {
+  main: {
+    src: mainLogo,
+    alt: '메인 로고',
+    description: '우리 프로젝트를 대표하는 메인 로고 이미지입니다',
+  },
+  side: {
+    src: sideLogo,
+    alt: '보조 로고',
+    description: '우리 프로젝트를 대표하는 보조 로고 이미지입니다',
+  },
+} as const;
 
 export interface LogoProps
   extends Omit<React.ImgHTMLAttributes<HTMLImageElement>, 'src' | 'alt' | 'aria-label'>,
@@ -46,9 +50,9 @@ const Logo = React.forwardRef<HTMLImageElement, LogoProps>(
   ({ className, variant = 'main', ariaLabel, ...props }, ref) => {
     return (
       <img
-        src={logoSources[variant as LogoVariant]}
-        alt={logoAlts[variant as LogoVariant]}
-        aria-label={ariaLabel ?? logoDescriptions[variant as LogoVariant]}
+        src={LOGO_INFO[variant as LogoVariant].src}
+        alt={LOGO_INFO[variant as LogoVariant].alt}
+        aria-label={ariaLabel ?? LOGO_INFO[variant as LogoVariant].description}
         className={cn(logoVariants({ variant, className }))}
         ref={ref}
         {...props}
