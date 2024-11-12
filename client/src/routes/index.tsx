@@ -23,7 +23,7 @@ export const router = createBrowserRouter([
             element: <ExamplePage />,
           },
           // {
-          //   path: '/room/:roomId',
+          //   path: '/waiting-room/:roomId',
           //   element: <WaitingRoomPage />,
           // },
           // {
