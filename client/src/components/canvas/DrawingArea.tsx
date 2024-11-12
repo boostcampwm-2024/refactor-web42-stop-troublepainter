@@ -1,7 +1,7 @@
 import CanvasToolBar from './CanvasToolbar';
 import MainCanvas from './MainCanvas';
 
-const DrawingComponent = () => {
+const DrawingArea = () => {
   return (
     <section>
       <MainCanvas />
@@ -10,4 +10,4 @@ const DrawingComponent = () => {
   );
 };
 
-export default DrawingComponent;
+export default DrawingArea;
