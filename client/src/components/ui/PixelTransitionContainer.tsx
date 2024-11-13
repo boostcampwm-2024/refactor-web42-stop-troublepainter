@@ -24,34 +24,28 @@ interface PixelTransitionProps extends PropsWithChildren<HTMLAttributes<HTMLDivE
 }
 
 /**
- * 페이지 페이드 아웃 시 전환 효과를 위한 컨테이너입니다.
+ * 페이지 전환 시 픽셀화 애니메이션 효과를 제공하는 컨테이너 컴포넌트입니다.
+ *
+ * @description
+ * 페이지 전환 시 콘텐츠를 부드럽게 전환하며, 픽셀화되는 효과를 보여줍니다.
+ * `usePageTransition` 훅과 함께 사용해야합니다.
  *
  * @example
  * ```tsx
  * const MyPage = () => {
- *   const [isExiting, setIsExiting] = useState(false);
- *
- *   const handleExit = () => {
- *     setIsExiting(true);
- *     // 애니메이션이 끝난 후 페이지 전환
- *     setTimeout(() => {
- *       // 페이지 전환 로직
- *     }, 1000);
- *   };
+ *   const { isExiting, transitionTo } = usePageTransition();
  *
  *   return (
  *     <PixelTransitionContainer
  *       isExiting={isExiting}
  *       exitDirection="left"
- *       className="h-screen w-screen"
+ *       className="min-h-screen"
  *     >
- *       <main
- *        className={cn(
- *          'h-screen w-screen',
- *          isExiting ? 'bg-transparent' : 'bg-violet-600',
- *        )}
- *       >
- *         내부 페이지 콘텐츠
+ *       <main className={cn(
+ *         'min-h-screen',
+ *         isExiting ? 'bg-transparent' : 'bg-violet-600'
+ *       )}>
+ *         페이지 콘텐츠
  *       </main>
  *     </PixelTransitionContainer>
  *   );
