@@ -7,21 +7,6 @@ import { InkGauge } from '@/components/canvas/InkGauge';
 import { Button } from '@/components/ui/Button';
 import { cn } from '@/utils/cn';
 
-const canvasContainerVariants = cva(
-  'bg-white relative flex flex-col sm:rounded-lg sm:border-4 border-violet-500 sm:shadow-xl',
-  {
-    variants: {
-      size: {
-        default: 'w-full max-w-3xl aspect-[4/3]',
-        fullWidth: 'w-full aspect-[4/3]',
-      },
-    },
-    defaultVariants: {
-      size: 'default',
-    },
-  },
-);
-
 const toolbarVariants = cva('flex items-center justify-center gap-3 border-violet-950 bg-eastbay-400 p-2', {
   variants: {
     position: {
@@ -88,7 +73,7 @@ interface ColorButton {
 
 type DrawingMode = 'pen' | 'fill';
 
-interface CanvasProps extends HTMLAttributes<HTMLDivElement>, VariantProps<typeof canvasContainerVariants> {
+interface CanvasProps extends HTMLAttributes<HTMLDivElement> {
   canvasRef: RefObject<HTMLCanvasElement>;
   isDrawable: boolean;
   colors: ColorButton[];
@@ -109,7 +94,6 @@ const Canvas = forwardRef<HTMLDivElement, CanvasProps>(
   (
     {
       className,
-      size,
       canvasRef,
       isDrawable = true,
       colors = [],
@@ -129,7 +113,14 @@ const Canvas = forwardRef<HTMLDivElement, CanvasProps>(
     ref,
   ) => {
     return (
-      <div ref={ref} className={cn(canvasContainerVariants({ size, className }))} {...props}>
+      <div
+        ref={ref}
+        className={cn(
+          'relative flex aspect-[16/9] w-full flex-col border-violet-500 bg-white sm:rounded-lg sm:border-4 sm:shadow-xl',
+          className,
+        )}
+        {...props}
+      >
         <canvas
           ref={canvasRef}
           className={cn('h-full w-full', isDrawable ? 'touch-none' : 'pointer-events-none')}
@@ -233,7 +224,6 @@ export {
   Canvas,
   type CanvasProps,
   type DrawingMode,
-  canvasContainerVariants,
   toolbarVariants,
   colorButtonVariants,
   controlButtonVariants,

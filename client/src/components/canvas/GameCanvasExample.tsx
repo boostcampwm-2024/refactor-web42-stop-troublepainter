@@ -106,7 +106,6 @@ const GameCanvas = ({ role, maxPixels = 100000 }: GameCanvasProps) => {
   return (
     <Canvas
       canvasRef={canvasRef}
-      className="min-w-[280px]"
       isDrawable={isDrawable}
       colors={isDrawable ? COLORS : []}
       // toolbarPosition="floating"
