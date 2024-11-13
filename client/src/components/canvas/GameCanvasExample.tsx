@@ -1,6 +1,6 @@
 import { MouseEvent as ReactMouseEvent, TouchEvent as ReactTouchEvent, useCallback, useRef } from 'react';
 import { Canvas } from '@/components/canvas/CanvasUI';
-import { MAINCANVAS_RESOLUTION_WIDTH } from '@/constants/canvasConstants';
+import { COLORS_INFO, MAINCANVAS_RESOLUTION_WIDTH } from '@/constants/canvasConstants';
 import { useCoordinateScale } from '@/hooks/useCoordinateScale';
 import { useDrawing } from '@/hooks/useDrawing';
 import { CanvasEventHandlers } from '@/types/canvas.types';
@@ -70,14 +70,9 @@ const GameCanvas = ({ role, maxPixels = 100000 }: GameCanvasProps) => {
     [draw],
   );
 
-  const COLORS = [
-    { color: '검정', backgroundColor: '#000000', isSelected: currentColor === '#000000' },
-    { color: '분홍', backgroundColor: '#FF69B4', isSelected: currentColor === '#FF69B4' },
-    { color: '노랑', backgroundColor: '#FFFF00', isSelected: currentColor === '#FFFF00' },
-    { color: '하늘', backgroundColor: '#87CEEB', isSelected: currentColor === '#87CEEB' },
-    { color: '회색', backgroundColor: '#808080', isSelected: currentColor === '#808080' },
-  ].map((color) => ({
+  const COLORS = COLORS_INFO.map((color) => ({
     ...color,
+    isSelected: currentColor === color.backgroundColor,
     onClick: () => setCurrentColor(color.backgroundColor),
   }));
 

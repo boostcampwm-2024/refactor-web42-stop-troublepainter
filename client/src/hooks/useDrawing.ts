@@ -1,5 +1,6 @@
 import { RefObject, useCallback, useEffect, useRef, useState } from 'react';
 import { DrawingMode } from '@/components/canvas/CanvasUI';
+import { COLORS_INFO } from '@/constants/canvasConstants';
 import { Point } from '@/types/canvas.types';
 
 // 필요한 타입 정의
@@ -41,7 +42,7 @@ const useDrawing = (canvasRef: RefObject<HTMLCanvasElement>, options?: DrawingOp
     isDrawing: false,
     startPoint: null,
   });
-  const [currentColor, setCurrentColor] = useState('#000000');
+  const [currentColor, setCurrentColor] = useState(COLORS_INFO[0].backgroundColor);
   const [brushSize, setBrushSize] = useState(5);
   const [drawingMode, setDrawingMode] = useState<DrawingMode>('pen');
   const [inkRemaining, setInkRemaining] = useState(options?.maxPixels ?? DEFAULT_MAX_PIXELS);

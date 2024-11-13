@@ -11,3 +11,11 @@ export const LINEWIDTH_VARIABLE = {
 
 export const MAINCANVAS_RESOLUTION_WIDTH = 760;
 export const MAINCANVAS_RESOLUTION_HEIGHT = 568;
+
+export const COLORS_INFO = [
+  { color: '검정', backgroundColor: '#000000' },
+  { color: '분홍', backgroundColor: '#FF69B4' },
+  { color: '노랑', backgroundColor: '#FFFF00' },
+  { color: '하늘', backgroundColor: '#87CEEB' },
+  { color: '회색', backgroundColor: '#808080' },
+];
