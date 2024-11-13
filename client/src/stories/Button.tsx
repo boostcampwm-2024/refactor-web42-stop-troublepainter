@@ -24,6 +24,7 @@ export const Button = ({ primary = false, size = 'medium', backgroundColor, labe
       {...props}
     >
       {label}
+      {/* storybook workflow test */}
     </button>
   );
 };

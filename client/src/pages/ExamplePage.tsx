@@ -38,7 +38,7 @@ const ExamplePage = () => {
             <UserInfoCard username="미라" status={isReady ? 'ready' : 'notReady'} />
             <UserInfoCard username="친구" status={'notReady'} />
           </div>
-          <Button onClick={() => setIsReady(!isReady)} variant={isReady ? 'secondary' : 'proimary'} className="w-full">
+          <Button onClick={() => setIsReady(!isReady)} variant={isReady ? 'secondary' : 'primary'} className="w-full">
             {isReady ? '해제' : '준비'}
           </Button>
         </div>

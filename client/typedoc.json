@@ -6,10 +6,9 @@
   "plugin": ["typedoc-plugin-extras"],
   "entryPoints": ["src/utils/*.ts", "src/hooks/*.ts", "src/hooks/*.tsx"],
   "exclude": ["**/node_modules/**", "**/dist/**"],
-  "basePath": "/web30-stop-troublepainter/",
   "navigationLinks": {
-    "Documentation": "./",
-    "Storybook (Main)": "./storybook",
-    "Storybook (Develop)": "./storybook-develop"
+    "Documentation": "/web30-stop-troublepainter/",
+    "Storybook (Main)": "/web30-stop-troublepainter/storybook",
+    "Storybook (Develop)": "/web30-stop-troublepainter/storybook-develop"
   }
 }

@@ -9,10 +9,6 @@ jobs:
   deploy:
     runs-on: ubuntu-latest
 
-    defaults:
-      run:
-        working-directory: ./client
-
     steps:
       - name: Checkout
         uses: actions/checkout@v4
@@ -30,17 +26,51 @@ jobs:
           cache: 'pnpm'
           cache-dependency-path: './client/pnpm-lock.yaml'
 
-      - name: Install dependencies
-        working-directory: ./client
-        run: pnpm install
-
+      # client 디렉토리에서 의존성 설치 및 문서 생성
       - name: Build documentation
-        run: pnpm typedoc
+        run: |
+          cd client
+          if ! pnpm install --frozen-lockfile; then
+            echo "Frozen install failed, trying normal install..."
+            pnpm install
+            git config --global user.name 'GitHub Actions'
+            git config --global user.email 'actions@github.com'
+            git stash
+          fi
+          pnpm typedoc
+
+      # 루트 디렉토리에서 gh-pages 관련 작업
+      - name: Prepare deployment
+        run: |
+          git fetch origin gh-pages
+          git checkout gh-pages || git checkout -b gh-pages
+
+          # storybook 디렉토리 임시 저장
+          if [ -d "storybook" ]; then
+            mv storybook /tmp/storybook
+          fi
+          if [ -d "storybook-develop" ]; then
+            mv storybook-develop /tmp/storybook-develop
+          fi
+
+          # 루트 디렉토리 클리어 (typedoc 관련 파일만 삭제)
+          find . -maxdepth 1 ! -name '.git' ! -name 'storybook' ! -name 'storybook-develop' -exec rm -rf {} +
+
+          # storybook 디렉토리 복원
+          if [ -d "/tmp/storybook" ]; then
+            mv /tmp/storybook storybook
+          fi
+          if [ -d "/tmp/storybook-develop" ]; then
+            mv /tmp/storybook-develop storybook-develop
+          fi
+
+          # 새로운 typedoc 파일 복사
+          cp -r $GITHUB_WORKSPACE/client/docs/* .
 
       - name: Deploy
         uses: peaceiris/actions-gh-pages@v3
         with:
           github_token: ${{ secrets.GITHUB_TOKEN }}
           publish_dir: ./client/docs
-          force_orphan: true
+          destination_dir: ./
           commit_message: 'docs: deploy documentation'
