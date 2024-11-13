@@ -15,6 +15,10 @@ export default {
       control: 'text',
       description: '입력 필드의 플레이스홀더',
     },
+    className: {
+      control: 'text',
+      description: '추가 스타일링',
+    },
   },
   parameters: {
     docs: {

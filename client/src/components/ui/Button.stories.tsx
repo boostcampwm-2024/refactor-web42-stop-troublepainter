@@ -28,6 +28,10 @@ export default {
       control: 'text',
       description: '버튼 내용',
     },
+    className: {
+      control: 'text',
+      description: '추가 스타일링',
+    },
   },
   parameters: {
     docs: {

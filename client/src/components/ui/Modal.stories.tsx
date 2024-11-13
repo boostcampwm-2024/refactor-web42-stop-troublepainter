@@ -31,6 +31,10 @@ export default {
       description: '모달 내부 컨텐츠',
       defaultValue: '모달 내용입니다. 배경을 클릭하거나 focusing된 상태에서 ESC 키로 닫을 수 있습니다.',
     },
+    className: {
+      control: 'text',
+      description: '추가 스타일링',
+    },
   },
   parameters: {
     docs: {

@@ -28,6 +28,10 @@ export default {
       description: '값이 변경될 때 호출되는 함수',
       action: 'changed',
     },
+    className: {
+      control: 'text',
+      description: '추가 스타일링',
+    },
   },
   parameters: {
     docs: {
