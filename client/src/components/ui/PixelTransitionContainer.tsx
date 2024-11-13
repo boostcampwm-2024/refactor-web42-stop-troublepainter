@@ -16,11 +16,40 @@ const contentVariants = cva('transition-transform duration-1000', {
   },
 });
 
+const containerVariants = cva('relative overflow-hidden transition-colors duration-700', {
+  variants: {
+    colorTheme: {
+      violet: 'data-[exiting=true]:bg-violet-950',
+      eastbay: 'data-[exiting=true]:bg-eastbay-950',
+    },
+  },
+  defaultVariants: {
+    colorTheme: 'violet',
+  },
+});
+
+const pixelVariants = cva(
+  'aspect-square border bg-transparent transition-[transform,border-color,background-color] duration-600 border-transparent',
+  {
+    variants: {
+      colorTheme: {
+        violet: 'data-[exiting=true]:border-violet-800 data-[exiting=true]:bg-violet-500',
+        eastbay: 'data-[exiting=true]:border-eastbay-800 data-[exiting=true]:bg-eastbay-500',
+      },
+    },
+    defaultVariants: {
+      colorTheme: 'violet',
+    },
+  },
+);
+
 interface PixelTransitionProps extends PropsWithChildren<HTMLAttributes<HTMLDivElement>> {
-  // 전환 애니메이션의 활성화 상태 제어
+  /** 전환 애니메이션의 활성화 상태를 제어합니다 */
   isExiting?: boolean;
-  // 전환 시 콘텐츠가 이동할 방향 지정
+  /** 전환 시 콘텐츠가 이동할 방향을 지정합니다 */
   exitDirection?: VariantProps<typeof contentVariants>['exitDirection'];
+  /** 컴포넌트의 색상 테마를 지정합니다 */
+  colorTheme?: VariantProps<typeof containerVariants>['colorTheme'];
 }
 
 /**
@@ -39,11 +68,12 @@ interface PixelTransitionProps extends PropsWithChildren<HTMLAttributes<HTMLDivE
  *     <PixelTransitionContainer
  *       isExiting={isExiting}
  *       exitDirection="left"
+ *       colorTheme="eastbay"
  *       className="min-h-screen"
  *     >
  *       <main className={cn(
  *         'min-h-screen',
- *         isExiting ? 'bg-transparent' : 'bg-violet-600'
+ *         isExiting ? 'bg-transparent' : 'bg-eastbay-600'
  *       )}>
  *         페이지 콘텐츠
  *       </main>
@@ -55,17 +85,15 @@ interface PixelTransitionProps extends PropsWithChildren<HTMLAttributes<HTMLDivE
 const PixelTransitionContainer = ({
   isExiting = false,
   exitDirection = 'left',
+  colorTheme = 'violet',
   children,
   className,
   ...props
 }: PixelTransitionProps) => {
   return (
     <div
-      className={cn(
-        'relative overflow-hidden transition-colors duration-700',
-        isExiting ? 'bg-violet-950' : 'bg-transparent',
-        className,
-      )}
+      className={cn(containerVariants({ colorTheme }), className)}
+      data-exiting={isExiting}
       aria-busy={isExiting}
       aria-live="polite"
       {...props}
@@ -82,11 +110,8 @@ const PixelTransitionContainer = ({
         {[...Array(100)].map((_, i) => (
           <div
             key={i}
-            className={cn(
-              'aspect-square border bg-transparent transition-[transform,border-color,background-color]',
-              'duration-600 border-transparent',
-              isExiting ? 'border-violet-800 bg-violet-500' : 'border-transparent bg-transparent',
-            )}
+            data-exiting={isExiting}
+            className={pixelVariants({ colorTheme })}
             style={{
               transitionDelay: `${((i % 7) + Math.floor(i / 7)) * 50}ms`,
               transform: isExiting ? 'scale(0.9) rotate(10deg)' : 'scale(1) rotate(0deg)',
