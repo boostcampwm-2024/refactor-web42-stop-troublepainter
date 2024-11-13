@@ -116,16 +116,23 @@ const Canvas = forwardRef<HTMLDivElement, CanvasProps>(
       <div
         ref={ref}
         className={cn(
-          'relative flex aspect-[16/9] w-full flex-col border-violet-500 bg-white sm:rounded-lg sm:border-4 sm:shadow-xl',
+          'relative flex aspect-[4/3] w-full flex-col border-violet-500 bg-white sm:rounded-lg sm:border-4 sm:shadow-xl',
           className,
         )}
         {...props}
       >
-        <canvas
-          ref={canvasRef}
-          className={cn('h-full w-full', isDrawable ? 'touch-none' : 'pointer-events-none')}
-          aria-label={isDrawable ? '그림판' : '그림 보기'}
-        />
+        <div className="relative h-full w-full">
+          <canvas
+            ref={canvasRef}
+            width={1280}
+            height={720}
+            className={cn(
+              'absolute left-0 top-0 h-full w-full object-contain',
+              isDrawable ? 'touch-none' : 'pointer-events-none',
+            )}
+            aria-label={isDrawable ? '그림판' : '그림 보기'}
+          />
+        </div>
         <div
           className={cn('absolute right-1', toolbarPosition === 'floating' ? 'top-1' : 'bottom-[12%] sm:bottom-[10%]')}
         >
