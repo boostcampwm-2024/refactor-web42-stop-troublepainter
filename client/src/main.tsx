@@ -8,7 +8,7 @@ import { router } from '@/routes';
 createRoot(document.getElementById('root')!).render(
   <StrictMode>
     <App>
-      <RouterProvider router={router} />
+      <RouterProvider router={router} future={{ v7_startTransition: true }} />
     </App>
   </StrictMode>,
 );
