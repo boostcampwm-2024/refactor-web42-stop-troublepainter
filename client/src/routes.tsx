@@ -2,6 +2,7 @@ import { createBrowserRouter } from 'react-router-dom';
 import GameLayout from '@/layouts/GameLayout';
 import RootLayout from '@/layouts/RootLayout';
 import ExamplePage from '@/pages/ExamplePage';
+import GameRoomPage from '@/pages/GameRoomPage';
 import MainPage from '@/pages/MainPage';
 // import WaitingRoomPage from '@/pages/WaitingRoomPage';
 // import GameRoomPage from '@/pages/GameRoomPage';
@@ -19,26 +20,26 @@ export const router = createBrowserRouter([
         element: <GameLayout />,
         children: [
           {
-            path: '/devs',
+            path: '/game-examples',
             element: <ExamplePage />,
           },
           // {
-          //   path: '/waiting-room/:roomId',
+          //   path: '/game-room/:roomId',
           //   element: <WaitingRoomPage />,
           // },
+          {
+            path: '/game-match/:roomId',
+            element: <GameRoomPage />,
+          },
           // {
-          //   path: '/game/:roomId',
-          //   element: <GameRoomPage />,
-          // },
-          // {
-          //   path: '/result/:roomId',
+          //   path: '/game-result/:roomId',
           //   element: <ResultPage />,
           // },
         ],
       },
       // 개발용 페이지
       {
-        path: '/dev',
+        path: '/examples',
         element: <ExamplePage />,
       },
     ],
