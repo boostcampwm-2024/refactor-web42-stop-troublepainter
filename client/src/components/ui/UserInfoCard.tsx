@@ -104,7 +104,7 @@ const UserInfoCard = ({
       <div className="flex flex-col items-center justify-center sm:flex-row sm:gap-3">
         {/* 프로필 이미지 섹션 */}
         <div className="relative">
-          <div className="bg-white/20 flex h-12 w-12 items-center justify-center overflow-hidden rounded-full border-2 border-violet-950 sm:h-14 sm:w-14 sm:rounded-xl">
+          <div className="flex h-12 w-12 items-center justify-center overflow-hidden rounded-full border-2 border-violet-950 bg-white/20 sm:h-14 sm:w-14 sm:rounded-xl">
             <img src={profileImage || profilePlaceholder} alt="사용자 프로필" />
             {/* 모바일 상태 오버레이 */}
             {status !== 'gaming' ? (
@@ -120,8 +120,8 @@ const UserInfoCard = ({
                 {status === 'ready' && <span className="text-xs text-stroke-sm">준비</span>}
               </div>
             ) : (
-              <div className="bg-black/50 absolute inset-0 flex items-center justify-center rounded-full sm:hidden">
-                <span className="text-white text-xl font-bold text-stroke-sm">{score}</span>
+              <div className="absolute inset-0 flex items-center justify-center rounded-full bg-black/50 sm:hidden">
+                <span className="text-xl font-bold text-white text-stroke-sm">{score}</span>
               </div>
             )}
             {/* 왕관 이미지 */}
@@ -141,7 +141,7 @@ const UserInfoCard = ({
             <span className="text-xs text-chartreuseyellow-400 sm:text-2xl">{username}</span>
           </div>
           <div className="h-3 text-stroke-sm sm:h-auto">
-            <span className="text-gray-50 text-[0.625rem] sm:text-base">{role}</span>
+            <span className="text-[0.625rem] text-gray-50 sm:text-base">{role}</span>
           </div>
         </div>
       </div>

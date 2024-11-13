@@ -48,10 +48,3 @@ export const Side: Story = {
     ariaLabel: '로고 설명',
   },
 };
-
-export const WithCustomClass: Story = {
-  args: {
-    variant: 'main',
-    className: 'bg-violet-50',
-  },
-};
