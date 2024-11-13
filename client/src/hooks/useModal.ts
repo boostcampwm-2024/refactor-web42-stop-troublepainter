@@ -25,7 +25,7 @@ import { timer } from '@/utils/timer';
  * @category Hooks
  */
 
-export const useModal = (autoCloseDelay: number) => {
+export const useModal = (autoCloseDelay?: number) => {
   const [isModalOpened, setModalOpened] = useState<boolean>(false);
 
   const closeModal = () => {
