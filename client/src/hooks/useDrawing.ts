@@ -33,6 +33,10 @@ const useDrawing = (canvasRef: RefObject<HTMLCanvasElement>, options?: DrawingOp
   const initCanvas = useCallback(() => {
     const { ctx } = getCanvasContext(canvasRef);
 
+    ctx.strokeStyle = currentColor;
+    ctx.fillStyle = currentColor;
+    ctx.lineWidth = brushSize;
+
     ctx.lineCap = 'round';
     ctx.lineJoin = 'round';
 
