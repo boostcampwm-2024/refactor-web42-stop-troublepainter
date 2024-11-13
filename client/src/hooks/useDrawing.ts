@@ -62,9 +62,6 @@ const useDrawing = (canvasRef: RefObject<HTMLCanvasElement>, options?: DrawingOp
     const container = canvas.parentElement;
     if (!container) return;
 
-    canvas.width = container.clientWidth;
-    canvas.height = container.clientHeight;
-
     ctx.lineCap = 'round';
     ctx.lineJoin = 'round';
 

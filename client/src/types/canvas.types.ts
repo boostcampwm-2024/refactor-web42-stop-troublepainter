@@ -38,5 +38,5 @@ export interface CanvasEventHandlers {
   onTouchStart?: (e: TouchEvent<HTMLCanvasElement>) => void;
   onTouchMove?: (e: TouchEvent<HTMLCanvasElement>) => void;
   onTouchEnd?: (e: TouchEvent<HTMLCanvasElement>) => void;
-  onTouchCancle?: (e: TouchEvent<HTMLCanvasElement>) => void;
+  onTouchCancel?: (e: TouchEvent<HTMLCanvasElement>) => void;
 }

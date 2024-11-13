@@ -1,10 +1,11 @@
-import { forwardRef, HTMLAttributes, RefObject, MouseEvent, TouchEvent } from 'react';
+import { forwardRef, HTMLAttributes, RefObject } from 'react';
 import { cva, type VariantProps } from 'class-variance-authority';
 import bucketIcon from '@/assets/bucket-icon.svg';
 import penIcon from '@/assets/pen-icon.svg';
 import redoIcon from '@/assets/redo-icon.svg';
 import { InkGauge } from '@/components/canvas/InkGauge';
 import { Button } from '@/components/ui/Button';
+import { MAINCANVAS_RESOLUTION_HEIGHT, MAINCANVAS_RESOLUTION_WIDTH } from '@/constants/canvasConstants';
 import { CanvasEventHandlers } from '@/types/canvas.types';
 import { cn } from '@/utils/cn';
 
@@ -135,6 +136,8 @@ const Canvas = forwardRef<HTMLDivElement, CanvasProps>(
       <div ref={ref} className={cn(canvasContainerVariants({ size, className }))} {...props}>
         <canvas
           ref={canvasRef}
+          width={MAINCANVAS_RESOLUTION_WIDTH}
+          height={MAINCANVAS_RESOLUTION_HEIGHT}
           className={cn('h-full w-full', isDrawable ? 'touch-none' : 'pointer-events-none')}
           aria-label={isDrawable ? '그림판' : '그림 보기'}
           {...canvasEvents}
