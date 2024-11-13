@@ -2,6 +2,7 @@ import { RefObject, useCallback, useEffect, useRef, useState } from 'react';
 import { DrawingMode } from '@/components/canvas/CanvasUI';
 import { COLORS_INFO } from '@/constants/canvasConstants';
 import { Point } from '@/types/canvas.types';
+import { getCanvasContext } from '@/utils/getCanvasContext';
 
 // 필요한 타입 정의
 interface DrawingState {
@@ -13,29 +14,7 @@ interface DrawingOptions {
   maxPixels?: number;
 }
 
-interface CanvasContext {
-  canvas: HTMLCanvasElement;
-  ctx: CanvasRenderingContext2D;
-}
-
 const DEFAULT_MAX_PIXELS = 1000; // 기본값 설정
-
-// Canvas 컨텍스트를 안전하게 가져오는 유틸리티 함수
-const getCanvasContext = (canvasRef: RefObject<HTMLCanvasElement>): CanvasContext | null => {
-  const canvas = canvasRef.current;
-  if (!canvas) {
-    console.warn('Canvas 요소를 찾지 못했습니다.');
-    return null;
-  }
-
-  const ctx = canvas.getContext('2d');
-  if (!ctx) {
-    console.warn('2D context를 가져오는데 실패했습니다.');
-    return null;
-  }
-
-  return { canvas, ctx };
-};
 
 const useDrawing = (canvasRef: RefObject<HTMLCanvasElement>, options?: DrawingOptions) => {
   const [drawingState, setDrawingState] = useState<DrawingState>({
@@ -52,12 +31,7 @@ const useDrawing = (canvasRef: RefObject<HTMLCanvasElement>, options?: DrawingOp
   const currentStepRef = useRef(-1);
 
   const initCanvas = useCallback(() => {
-    const context = getCanvasContext(canvasRef);
-    if (!context) return;
-    const { canvas, ctx } = context;
-
-    const container = canvas.parentElement;
-    if (!container) return;
+    const { ctx } = getCanvasContext(canvasRef);
 
     ctx.lineCap = 'round';
     ctx.lineJoin = 'round';
@@ -68,9 +42,7 @@ const useDrawing = (canvasRef: RefObject<HTMLCanvasElement>, options?: DrawingOp
 
   // 드로잉 상태 저장
   const saveDrawingState = useCallback(() => {
-    const context = getCanvasContext(canvasRef);
-    if (!context) return;
-    const { canvas, ctx } = context;
+    const { canvas, ctx } = getCanvasContext(canvasRef);
 
     // 현재 스텝 이후의 기록은 삭제
     drawHistoryRef.current = drawHistoryRef.current.slice(0, currentStepRef.current + 1);

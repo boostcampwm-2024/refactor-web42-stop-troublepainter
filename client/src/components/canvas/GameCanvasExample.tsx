@@ -5,6 +5,7 @@ import { useCoordinateScale } from '@/hooks/useCoordinateScale';
 import { useDrawing } from '@/hooks/useDrawing';
 import { CanvasEventHandlers } from '@/types/canvas.types';
 import { UserRole, PainterRole } from '@/types/userInfo.types';
+import { getCanvasContext } from '@/utils/getCanvasContext';
 
 interface GameCanvasProps {
   role: UserRole;
@@ -21,8 +22,6 @@ const getDrawPoint = (
   e: ReactTouchEvent<HTMLCanvasElement> | ReactMouseEvent<HTMLCanvasElement>,
   canvas: HTMLCanvasElement,
 ) => {
-  if (!canvas) new Error('canvas element가 없습니다.');
-
   if (e.nativeEvent instanceof MouseEvent) return { x: e.nativeEvent.offsetX, y: e.nativeEvent.offsetY };
   else if (e.nativeEvent instanceof TouchEvent) return getTouchPoint(canvas, e.nativeEvent);
   else throw new Error('mouse 혹은 touch 이벤트가 아닙니다.');
@@ -58,14 +57,16 @@ const GameCanvas = ({ role, maxPixels = 100000 }: GameCanvasProps) => {
 
   const handleDrawStart = useCallback(
     (e: ReactMouseEvent<HTMLCanvasElement> | ReactTouchEvent<HTMLCanvasElement>) => {
-      if (canvasRef.current) startDrawing(convertCoordinate(getDrawPoint(e, canvasRef.current)));
+      const { canvas } = getCanvasContext(canvasRef);
+      startDrawing(convertCoordinate(getDrawPoint(e, canvas)));
     },
     [startDrawing],
   );
 
   const handleDrawMove = useCallback(
     (e: ReactMouseEvent<HTMLCanvasElement> | ReactTouchEvent<HTMLCanvasElement>) => {
-      if (canvasRef.current) draw(convertCoordinate(getDrawPoint(e, canvasRef.current)));
+      const { canvas } = getCanvasContext(canvasRef);
+      startDrawing(convertCoordinate(getDrawPoint(e, canvas)));
     },
     [draw],
   );
