@@ -5,7 +5,7 @@ type Story = StoryObj<typeof Logo>;
 
 export default {
   component: Logo,
-  title: 'components/ui/Logo',
+  title: 'components/game/Logo',
   argTypes: {
     variant: {
       control: 'select',

@@ -4,8 +4,8 @@ import Timer from '@/assets/small-timer.png';
 import { cn } from '@/utils/cn';
 
 export interface QuizTitleProps extends HTMLAttributes<HTMLDivElement> {
-  currentRound: string;
-  totalRound: string;
+  currentRound: number;
+  totalRound: number;
   title: string;
   remainingTime: number;
 }
