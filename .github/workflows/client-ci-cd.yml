@@ -1,0 +1,69 @@
+name: Client CI/CD
+
+on:
+  push:
+    branches: [develop]
+    paths:
+      - "client/**"
+      - ".github/workflows/client-ci-cd.yml"
+
+jobs:
+  ci:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+
+      - name: Setup Node.js
+        uses: actions/setup-node@v4
+        with:
+          node-version: "20"
+
+      - name: Setup pnpm
+        uses: pnpm/action-setup@v3
+        with:
+          version: "9"
+
+      - name: Install Dependencies
+        working-directory: ./client
+        run: pnpm install --frozen-lockfile
+
+      - name: Lint
+        working-directory: ./client
+        run: pnpm lint | true
+
+      - name: Test
+        working-directory: ./client
+        run: pnpm test | true
+
+  deploy:
+    needs: ci
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+
+      - name: Setup Node.js
+        uses: actions/setup-node@v4
+        with:
+          node-version: "20"
+
+      - name: Setup pnpm
+        uses: pnpm/action-setup@v3
+        with:
+          version: "9"
+
+      - name: Install Dependencies
+        working-directory: ./client
+        run: pnpm install --frozen-lockfile
+
+      - name: Build
+        working-directory: ./client
+        run: pnpm build
+
+      - name: Upload to Object Storage
+        env:
+          AWS_ACCESS_KEY_ID: ${{ secrets.NCP_ACCESS_KEY }}
+          AWS_SECRET_ACCESS_KEY: ${{ secrets.NCP_SECRET_KEY }}
+        run: |
+          aws s3 sync ./client/dist s3://${{ secrets.NCP_BUCKET }}/ \
+            --endpoint-url https://kr.object.ncloudstorage.com \
+            --region kr-standard
