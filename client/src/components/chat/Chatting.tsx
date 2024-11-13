@@ -1,14 +1,8 @@
 import { HTMLAttributes } from 'react';
 import { Input } from '../ui/Input';
 import { ChatBubble } from './ChatBubbleUI';
+import { Message } from '@/types/chat.types';
 import { cn } from '@/utils/cn';
-
-interface Message {
-  nickname: string;
-  content: string;
-  isOthers: boolean;
-  id: number;
-}
 
 export interface ChattingProps extends HTMLAttributes<HTMLDivElement> {
   messages: Message[];
