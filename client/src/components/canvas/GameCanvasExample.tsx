@@ -1,5 +1,7 @@
 import { MouseEvent as ReactMouseEvent, TouchEvent as ReactTouchEvent, useCallback, useRef } from 'react';
 import { Canvas } from '@/components/canvas/CanvasUI';
+import { MAINCANVAS_RESOLUTION_WIDTH } from '@/constants/canvasConstants';
+import { useCoordinateScale } from '@/hooks/useCoordinateScale';
 import { useDrawing } from '@/hooks/useDrawing';
 import { CanvasEventHandlers } from '@/types/canvas.types';
 import { UserRole, PainterRole } from '@/types/userInfo.types';
@@ -28,6 +30,8 @@ const getDrawPoint = (
 
 const GameCanvas = ({ role, maxPixels = 100000 }: GameCanvasProps) => {
   const canvasRef = useRef<HTMLCanvasElement>(null);
+  const { convertCoordinate } = useCoordinateScale(MAINCANVAS_RESOLUTION_WIDTH, canvasRef);
+
   const {
     currentColor,
     setCurrentColor,
@@ -54,14 +58,14 @@ const GameCanvas = ({ role, maxPixels = 100000 }: GameCanvasProps) => {
 
   const handleDrawStart = useCallback(
     (e: ReactMouseEvent<HTMLCanvasElement> | ReactTouchEvent<HTMLCanvasElement>) => {
-      if (canvasRef.current) startDrawing(getDrawPoint(e, canvasRef.current));
+      if (canvasRef.current) startDrawing(convertCoordinate(getDrawPoint(e, canvasRef.current)));
     },
     [startDrawing],
   );
 
   const handleDrawMove = useCallback(
     (e: ReactMouseEvent<HTMLCanvasElement> | ReactTouchEvent<HTMLCanvasElement>) => {
-      if (canvasRef.current) draw(getDrawPoint(e, canvasRef.current));
+      if (canvasRef.current) draw(convertCoordinate(getDrawPoint(e, canvasRef.current)));
     },
     [draw],
   );

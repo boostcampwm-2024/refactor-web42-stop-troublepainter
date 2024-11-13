@@ -1,12 +1,8 @@
 import { RefObject, useCallback, useEffect, useRef, useState } from 'react';
 import { DrawingMode } from '@/components/canvas/CanvasUI';
+import { Point } from '@/types/canvas.types';
 
 // 필요한 타입 정의
-interface Point {
-  x: number;
-  y: number;
-}
-
 interface DrawingState {
   isDrawing: boolean;
   startPoint: Point | null;
@@ -162,6 +158,7 @@ const useDrawing = (canvasRef: RefObject<HTMLCanvasElement>, options?: DrawingOp
 
       ctx.strokeStyle = currentColor;
       ctx.lineWidth = brushSize;
+      ctx.fillStyle = currentColor;
 
       ctx.beginPath();
       ctx.arc(point.x, point.y, brushSize / 2, 0, Math.PI * 2);

@@ -40,3 +40,8 @@ export interface CanvasEventHandlers {
   onTouchEnd?: (e: TouchEvent<HTMLCanvasElement>) => void;
   onTouchCancel?: (e: TouchEvent<HTMLCanvasElement>) => void;
 }
+
+export interface Point {
+  x: number;
+  y: number;
+}
