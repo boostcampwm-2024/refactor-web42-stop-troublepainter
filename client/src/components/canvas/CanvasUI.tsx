@@ -5,6 +5,7 @@ import penIcon from '@/assets/pen-icon.svg';
 import redoIcon from '@/assets/redo-icon.svg';
 import { InkGauge } from '@/components/canvas/InkGauge';
 import { Button } from '@/components/ui/Button';
+import { CanvasEventHandlers } from '@/types/canvas.types';
 import { cn } from '@/utils/cn';
 
 const canvasContainerVariants = cva(
@@ -87,16 +88,6 @@ interface ColorButton {
 }
 
 type DrawingMode = 'pen' | 'fill';
-
-interface CanvasEventHandlers {
-  onMouseDown?: (e: MouseEvent<HTMLCanvasElement>) => void;
-  onMouseMove?: (e: MouseEvent<HTMLCanvasElement>) => void;
-  onMouseUp?: (e: MouseEvent<HTMLCanvasElement>) => void;
-  onMouseLeave?: (e: MouseEvent<HTMLCanvasElement>) => void;
-  onTouchStart?: (e: TouchEvent<HTMLCanvasElement>) => void;
-  onTouchMove?: (e: TouchEvent<HTMLCanvasElement>) => void;
-  onTouchEnd?: (e: TouchEvent<HTMLCanvasElement>) => void;
-}
 
 interface CanvasProps extends HTMLAttributes<HTMLDivElement>, VariantProps<typeof canvasContainerVariants> {
   canvasRef: RefObject<HTMLCanvasElement>;

@@ -87,7 +87,7 @@ const GameCanvas = ({ role, maxPixels = 100000 }: GameCanvasProps) => {
     onTouchStart: handleDrawStart,
     onTouchMove: handleDrawMove,
     onTouchEnd: stopDrawing,
-    onTouchCancle: stopDrawing,
+    onTouchCancel: stopDrawing,
   };
 
   return (
