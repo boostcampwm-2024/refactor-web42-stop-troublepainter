@@ -1,4 +1,4 @@
-import { forwardRef, HTMLAttributes, RefObject } from 'react';
+import { forwardRef, HTMLAttributes, RefObject, MouseEvent, TouchEvent } from 'react';
 import { cva, type VariantProps } from 'class-variance-authority';
 import bucketIcon from '@/assets/bucket-icon.svg';
 import penIcon from '@/assets/pen-icon.svg';
@@ -88,6 +88,16 @@ interface ColorButton {
 
 type DrawingMode = 'pen' | 'fill';
 
+interface CanvasEventHandlers {
+  onMouseDown?: (e: MouseEvent<HTMLCanvasElement>) => void;
+  onMouseMove?: (e: MouseEvent<HTMLCanvasElement>) => void;
+  onMouseUp?: (e: MouseEvent<HTMLCanvasElement>) => void;
+  onMouseLeave?: (e: MouseEvent<HTMLCanvasElement>) => void;
+  onTouchStart?: (e: TouchEvent<HTMLCanvasElement>) => void;
+  onTouchMove?: (e: TouchEvent<HTMLCanvasElement>) => void;
+  onTouchEnd?: (e: TouchEvent<HTMLCanvasElement>) => void;
+}
+
 interface CanvasProps extends HTMLAttributes<HTMLDivElement>, VariantProps<typeof canvasContainerVariants> {
   canvasRef: RefObject<HTMLCanvasElement>;
   isDrawable: boolean;
@@ -103,6 +113,7 @@ interface CanvasProps extends HTMLAttributes<HTMLDivElement>, VariantProps<typeo
   onDrawingModeChange: (mode: DrawingMode) => void;
   inkRemaining: number;
   maxPixels: number;
+  canvasEvents: CanvasEventHandlers;
 }
 
 const Canvas = forwardRef<HTMLDivElement, CanvasProps>(
@@ -124,6 +135,7 @@ const Canvas = forwardRef<HTMLDivElement, CanvasProps>(
       onDrawingModeChange,
       inkRemaining,
       maxPixels,
+      canvasEvents,
       ...props
     },
     ref,
@@ -134,6 +146,7 @@ const Canvas = forwardRef<HTMLDivElement, CanvasProps>(
           ref={canvasRef}
           className={cn('h-full w-full', isDrawable ? 'touch-none' : 'pointer-events-none')}
           aria-label={isDrawable ? '그림판' : '그림 보기'}
+          {...canvasEvents}
         />
         <div
           className={cn('absolute right-1', toolbarPosition === 'floating' ? 'top-1' : 'bottom-[12%] sm:bottom-[10%]')}
