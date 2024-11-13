@@ -4,8 +4,8 @@ export const PENMODE = {
 };
 
 export const LINEWIDTH_VARIABLE = {
-  MIN_WIDTH: 2,
-  MAX_WIDTH: 10,
+  MIN_WIDTH: 1,
+  MAX_WIDTH: 20,
   STEP_WIDTH: 2,
 };
 

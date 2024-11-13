@@ -1,6 +1,6 @@
 import { RefObject, useCallback, useEffect, useRef, useState } from 'react';
 import { DrawingMode } from '@/components/canvas/CanvasUI';
-import { COLORS_INFO } from '@/constants/canvasConstants';
+import { COLORS_INFO, LINEWIDTH_VARIABLE } from '@/constants/canvasConstants';
 import { Point } from '@/types/canvas.types';
 import { getCanvasContext } from '@/utils/getCanvasContext';
 
@@ -22,7 +22,7 @@ const useDrawing = (canvasRef: RefObject<HTMLCanvasElement>, options?: DrawingOp
     startPoint: null,
   });
   const [currentColor, setCurrentColor] = useState(COLORS_INFO[0].backgroundColor);
-  const [brushSize, setBrushSize] = useState(5);
+  const [brushSize, setBrushSize] = useState(LINEWIDTH_VARIABLE.MIN_WIDTH);
   const [drawingMode, setDrawingMode] = useState<DrawingMode>('pen');
   const [inkRemaining, setInkRemaining] = useState(options?.maxPixels ?? DEFAULT_MAX_PIXELS);
 

@@ -5,7 +5,11 @@ import penIcon from '@/assets/pen-icon.svg';
 import redoIcon from '@/assets/redo-icon.svg';
 import { InkGauge } from '@/components/canvas/InkGauge';
 import { Button } from '@/components/ui/Button';
-import { MAINCANVAS_RESOLUTION_HEIGHT, MAINCANVAS_RESOLUTION_WIDTH } from '@/constants/canvasConstants';
+import {
+  LINEWIDTH_VARIABLE,
+  MAINCANVAS_RESOLUTION_HEIGHT,
+  MAINCANVAS_RESOLUTION_WIDTH,
+} from '@/constants/canvasConstants';
 import { CanvasEventHandlers } from '@/types/canvas.types';
 import { cn } from '@/utils/cn';
 
@@ -121,7 +125,7 @@ const Canvas = forwardRef<HTMLDivElement, CanvasProps>(
       setBrushSize,
       canUndo = false,
       canRedo = false,
-      brushSize = 1,
+      brushSize = LINEWIDTH_VARIABLE.MIN_WIDTH,
       toolbarPosition = 'bottom',
       drawingMode = 'pen',
       onDrawingModeChange,
@@ -171,8 +175,9 @@ const Canvas = forwardRef<HTMLDivElement, CanvasProps>(
                 <div className="flex-1">
                   <input
                     type="range"
-                    min="1"
-                    max="20"
+                    min={LINEWIDTH_VARIABLE.MIN_WIDTH}
+                    max={LINEWIDTH_VARIABLE.MAX_WIDTH}
+                    step={LINEWIDTH_VARIABLE.STEP_WIDTH}
                     value={brushSize}
                     onChange={(e) => setBrushSize(Number(e.target.value))}
                     className="h-2 w-full appearance-none rounded-full bg-violet-200"
