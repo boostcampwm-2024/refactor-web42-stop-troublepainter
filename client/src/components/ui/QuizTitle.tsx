@@ -15,23 +15,23 @@ const QuizTitle = ({ className, currentRound, totalRound, remainingTime, title, 
     <>
       <div
         className={cn(
-          'relative flex w-full items-center justify-center border-violet-950 bg-violet-500 p-1.5 text-stroke-sm sm:rounded-lg sm:border-2 sm:p-3.5',
+          'relative flex w-full items-center justify-center border-violet-950 bg-violet-500 p-1.5 sm:rounded-lg sm:border-2 sm:p-2.5',
           className,
         )}
         {...props}
       >
         {/* 라운드 정보 */}
-        <p className="absolute left-4 text-xs sm:left-3.5 sm:text-xl">
+        <p className="absolute left-4 text-xs text-stroke-sm sm:left-3.5 sm:text-lg">
           <span>{currentRound}</span>
           <span> of </span>
           <span>{totalRound}</span>
         </p>
 
         {/* 제시어 */}
-        <h2 className="text-2xl sm:text-4xl">{title}</h2>
+        <h2 className="text-xl text-stroke-md sm:text-3xl">{title}</h2>
 
         {/* 타이머 */}
-        <div className="absolute -right-0 -top-4 w-[4.25rem] sm:-right-10 sm:-top-11 sm:w-[8.75rem]">
+        <div className="absolute -right-0 -top-5 w-[4.25rem] sm:-right-[1.85rem] sm:-top-7 sm:w-24">
           <div className="relative">
             {remainingTime > 10 ? (
               <img src={Timer} alt="타이머" className="h-full w-full" />

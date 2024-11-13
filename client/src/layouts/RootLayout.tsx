@@ -4,7 +4,7 @@ import { Button } from '@/components/ui/Button';
 
 const RootLayout = () => {
   return (
-    <div className="relative min-h-screen bg-violet-950 bg-fixed antialiased">
+    <div className="relative min-h-screen min-w-80 bg-violet-950 bg-fixed antialiased">
       {/* 상단 네비게이션 영역: Help 아이콘 컴포넌트 */}
       <nav className="fixed right-4 top-4 z-30 animate-bounce xs:right-8 xs:top-8">
         <Button variant="transperent" size="icon">
