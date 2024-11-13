@@ -163,10 +163,15 @@ const useDrawing = (canvasRef: RefObject<HTMLCanvasElement>, options?: DrawingOp
         return;
       }
 
-      ctx.beginPath();
-      ctx.moveTo(point.x, point.y);
       ctx.strokeStyle = currentColor;
       ctx.lineWidth = brushSize;
+
+      ctx.beginPath();
+      ctx.arc(point.x, point.y, brushSize / 2, 0, Math.PI * 2);
+      ctx.fill();
+
+      ctx.beginPath();
+      ctx.moveTo(point.x, point.y);
 
       setDrawingState({
         isDrawing: true,
