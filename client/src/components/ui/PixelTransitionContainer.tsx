@@ -69,7 +69,7 @@ const PixelTransitionContainer = ({
     <div
       className={cn(
         'relative overflow-hidden transition-colors duration-700',
-        isExiting ? 'bg-transparent' : 'bg-violet-950',
+        isExiting ? 'bg-violet-950' : 'bg-transparent',
         className,
       )}
       aria-busy={isExiting}
