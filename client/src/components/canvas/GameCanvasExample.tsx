@@ -6,26 +6,12 @@ import { useDrawing } from '@/hooks/useDrawing';
 import { CanvasEventHandlers } from '@/types/canvas.types';
 import { UserRole, PainterRole } from '@/types/userInfo.types';
 import { getCanvasContext } from '@/utils/getCanvasContext';
+import { getDrawPoint } from '@/utils/getDrawPoint';
 
 interface GameCanvasProps {
   role: UserRole;
   maxPixels?: number;
 }
-
-const getTouchPoint = (canvas: HTMLCanvasElement, e: TouchEvent) => {
-  const { clientX, clientY } = e.touches[0]; //뷰포트 기준
-  const { top, left } = canvas.getBoundingClientRect(); // 캔버스의 뷰포트 기준 위치
-  return { x: clientX - left, y: clientY - top };
-};
-
-const getDrawPoint = (
-  e: ReactTouchEvent<HTMLCanvasElement> | ReactMouseEvent<HTMLCanvasElement>,
-  canvas: HTMLCanvasElement,
-) => {
-  if (e.nativeEvent instanceof MouseEvent) return { x: e.nativeEvent.offsetX, y: e.nativeEvent.offsetY };
-  else if (e.nativeEvent instanceof TouchEvent) return getTouchPoint(canvas, e.nativeEvent);
-  else throw new Error('mouse 혹은 touch 이벤트가 아닙니다.');
-};
 
 const GameCanvas = ({ role, maxPixels = 100000 }: GameCanvasProps) => {
   const canvasRef = useRef<HTMLCanvasElement>(null);
