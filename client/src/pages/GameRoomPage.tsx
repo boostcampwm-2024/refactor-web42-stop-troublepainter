@@ -37,13 +37,13 @@ const GameRoomPage = () => {
     <div
       className={cn(
         // 기본 스타일 (모바일, < 1024px)
-        'relative flex h-[calc(100vh-5rem)] w-screen flex-col items-start justify-start overflow-scroll bg-eastbay-600 xs:h-[calc(100vh-6rem)]',
+        'relative flex h-[calc(100vh-5rem)] min-h-[50rem] w-screen flex-col items-start justify-start bg-eastbay-600 xs:h-[calc(100vh-6rem)]',
         // lg
-        'lg:h-[calc(100vh-10rem)] lg:max-w-screen-lg lg:flex-row lg:rounded-lg lg:px-3',
+        'lg:h-[calc(100vh-10rem)] lg:min-h-[29rem] lg:max-w-screen-lg lg:flex-row lg:rounded-lg lg:px-3',
         // xl
-        'xl:max-w-screen-xl xl:rounded-xl',
+        'xl:min-h-[34rem] xl:max-w-screen-xl xl:rounded-xl',
         // 2xl
-        '2xl:max-w-screen-2xl 2xl:rounded-2xl 2xl:px-5',
+        '2xl:min-h-[35.5rem] 2xl:max-w-screen-2xl 2xl:rounded-2xl 2xl:px-5',
       )}
     >
       {/* 유저 정보 영역 */}
