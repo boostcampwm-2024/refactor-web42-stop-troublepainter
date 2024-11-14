@@ -14,12 +14,12 @@ import { useModal } from '@/hooks/useModal';
 const ExamplePage = () => {
   const [isReady, setIsReady] = useState(false);
   const { isModalOpened, openModal } = useModal(3000);
+  const { isModalOpened: isModalOpened2, openModal: openModal2, closeModal } = useModal();
 
   return (
     <main className="bg-eastbay-600">
       <Logo />
       <Logo variant="side" />
-
       <div className="flex items-center justify-center">
         <GameCanvas role="방해꾼" />
       </div>
@@ -62,6 +62,26 @@ const ExamplePage = () => {
       <button onClick={openModal}>3초 후 사라지는 Role 모달 오픈</button>
       <Modal title="역할 배정" isModalOpened={isModalOpened} className="w-80">
         <span className="flex min-h-28 items-center justify-center text-3xl text-violet-950">그림꾼</span>
+      </Modal>
+
+      {/* 라운드 종료 모달 */}
+      <button onClick={openModal2}>라운드 종료 모달 오픈</button>
+      <Modal
+        title="제시어 : 티라노사우르스"
+        isModalOpened={isModalOpened2}
+        closeModal={closeModal}
+        className="max-w-[26.875rem] sm:max-w-[61.75rem]"
+      >
+        <div className="flex min-h-[12rem] items-center justify-center sm:min-h-[15.75rem]">
+          <p className="text-center text-2xl sm:m-2 sm:text-3xl">
+            구경꾼 <span className="text-violet-600">태연태연</span>이 정답을 맞혔습니다
+          </p>
+        </div>
+        <div className="min-h-[4rem] rounded-md bg-violet-50 p-4 sm:m-2">
+          <p className="text-center text-xl text-violet-950 sm:text-2xl">
+            방해꾼은 <span className="text-violet-600">미라미라</span>였습니다.
+          </p>
+        </div>
       </Modal>
     </main>
   );
