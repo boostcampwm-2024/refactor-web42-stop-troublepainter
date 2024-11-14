@@ -19,8 +19,8 @@ const canvasContainerVariants = cva(
   {
     variants: {
       size: {
-        default: 'w-full max-w-3xl aspect-[4/3]',
-        fullWidth: 'w-full aspect-[4/3]',
+        default: 'w-full max-w-3xl',
+        fullWidth: 'w-full',
       },
     },
     defaultVariants: {
@@ -115,7 +115,6 @@ const Canvas = forwardRef<HTMLDivElement, CanvasProps>(
   (
     {
       className,
-      size,
       canvasRef,
       isDrawable = true,
       colors = [],
@@ -136,15 +135,27 @@ const Canvas = forwardRef<HTMLDivElement, CanvasProps>(
     ref,
   ) => {
     return (
-      <div ref={ref} className={cn(canvasContainerVariants({ size, className }))} {...props}>
-        <canvas
-          ref={canvasRef}
-          width={MAINCANVAS_RESOLUTION_WIDTH}
-          height={MAINCANVAS_RESOLUTION_HEIGHT}
-          className={cn('h-full w-full', isDrawable ? 'touch-none' : 'pointer-events-none')}
-          aria-label={isDrawable ? '그림판' : '그림 보기'}
-          {...canvasEvents}
-        />
+      <div
+        ref={ref}
+        className={cn(
+          'relative flex w-full max-w-screen-sm flex-col border-violet-500 bg-white sm:rounded-lg sm:border-4 sm:shadow-xl',
+          className,
+        )}
+        {...props}
+      >
+        <div className="relative aspect-[16/10]">
+          <canvas
+            ref={canvasRef}
+            width={MAINCANVAS_RESOLUTION_WIDTH}
+            height={MAINCANVAS_RESOLUTION_HEIGHT}
+            className={cn(
+              'absolute left-0 top-0 h-full w-full object-contain',
+              isDrawable ? 'touch-none' : 'pointer-events-none',
+            )}
+            aria-label={isDrawable ? '그림판' : '그림 보기'}
+            {...canvasEvents}
+          />
+        </div>
         <div
           className={cn('absolute right-1', toolbarPosition === 'floating' ? 'top-1' : 'bottom-[12%] sm:bottom-[10%]')}
         >

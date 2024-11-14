@@ -9,8 +9,9 @@ export const LINEWIDTH_VARIABLE = {
   STEP_WIDTH: 2,
 };
 
-export const MAINCANVAS_RESOLUTION_WIDTH = 760;
-export const MAINCANVAS_RESOLUTION_HEIGHT = 570;
+export const MAINCANVAS_RESOLUTION_WIDTH = 1280;
+export const MAINCANVAS_RESOLUTION_HEIGHT = 800;
+//해상도 비율 변경 시 CanvasUI의 aspect-[16/10] 도 수정해야 정상적으로 렌더링됩니다.
 
 export const COLORS_INFO = [
   { color: '검정', backgroundColor: '#000000' },
