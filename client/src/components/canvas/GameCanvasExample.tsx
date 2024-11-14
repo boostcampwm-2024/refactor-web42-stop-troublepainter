@@ -44,7 +44,9 @@ const GameCanvas = ({ role, maxPixels = 100000 }: GameCanvasProps) => {
   const handleDrawStart = useCallback(
     (e: ReactMouseEvent<HTMLCanvasElement> | ReactTouchEvent<HTMLCanvasElement>) => {
       const { canvas } = getCanvasContext(canvasRef);
-      startDrawing(convertCoordinate(getDrawPoint(e, canvas)));
+      const point = getDrawPoint(e, canvas);
+      const convertPoint = convertCoordinate(point);
+      startDrawing(convertPoint);
     },
     [startDrawing],
   );
@@ -52,7 +54,9 @@ const GameCanvas = ({ role, maxPixels = 100000 }: GameCanvasProps) => {
   const handleDrawMove = useCallback(
     (e: ReactMouseEvent<HTMLCanvasElement> | ReactTouchEvent<HTMLCanvasElement>) => {
       const { canvas } = getCanvasContext(canvasRef);
-      draw(convertCoordinate(getDrawPoint(e, canvas)));
+      const point = getDrawPoint(e, canvas);
+      const convertPoint = convertCoordinate(point);
+      draw(convertPoint);
     },
     [draw],
   );
