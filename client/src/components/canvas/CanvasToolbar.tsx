@@ -1,5 +1,5 @@
 import { ChangeEvent } from 'react';
-import { LINEWIDTH_VARIABLE, PENMODE } from '@/constants/canvasConstants';
+import { LINEWIDTH_VARIABLE, DRAWING_MODE } from '@/constants/canvasConstants';
 import { useCanvasStore } from '@/stores/useCanvasStore';
 import { CanvasStore, PenModeType } from '@/types/canvas.types';
 
@@ -43,8 +43,8 @@ const CanvasToolBar = () => {
         />
       </section>
       <section>
-        <button onClick={() => handleChangeToolMode(PENMODE.PEN)}>펜</button>
-        <button onClick={() => handleChangeToolMode(PENMODE.PAINTER)}>페인팅</button>
+        <button onClick={() => handleChangeToolMode(DRAWING_MODE.PEN)}>펜</button>
+        <button onClick={() => handleChangeToolMode(DRAWING_MODE.FILL)}>페인팅</button>
       </section>
     </section>
   );

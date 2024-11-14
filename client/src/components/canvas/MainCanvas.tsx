@@ -1,5 +1,5 @@
 import { useRef, TouchEvent as ReactTouchEvent, MouseEvent as ReactMouseEvent } from 'react';
-import { MAINCANVAS_RESOLUTION_HEIGHT, MAINCANVAS_RESOLUTION_WIDTH, PENMODE } from '@/constants/canvasConstants';
+import { MAINCANVAS_RESOLUTION_HEIGHT, MAINCANVAS_RESOLUTION_WIDTH, DRAWING_MODE } from '@/constants/canvasConstants';
 import { useCoordinateScale } from '@/hooks/useCoordinateScale';
 import { useCanvasStore } from '@/stores/useCanvasStore';
 import { CanvasStore, RGBA } from '@/types/canvas.types';
@@ -11,7 +11,7 @@ const CV = ['#000', '#f257c9', '#e2f724', '#4eb4c2', '#d9d9d9'];
 const getTouchPoint = (canvas: HTMLCanvasElement, e: TouchEvent) => {
   const { clientX, clientY } = e.touches[0]; //뷰포트 기준
   const { top, left } = canvas.getBoundingClientRect(); // 캔버스의 뷰포트 기준 위치
-  return [clientX - left, clientY - top];
+  return { x: clientX - left, y: clientY - top };
 };
 
 const getDrawPoint = (
@@ -20,7 +20,7 @@ const getDrawPoint = (
 ) => {
   if (!canvas) new Error('canvas element가 없습니다.');
 
-  if (e.nativeEvent instanceof MouseEvent) return [e.nativeEvent.offsetX, e.nativeEvent.offsetY];
+  if (e.nativeEvent instanceof MouseEvent) return { x: e.nativeEvent.offsetX, y: e.nativeEvent.offsetY };
   else if (e.nativeEvent instanceof TouchEvent) return getTouchPoint(canvas, e.nativeEvent);
   else throw new Error('mouse 혹은 touch 이벤트가 아닙니다.');
 };
@@ -99,11 +99,7 @@ const MainCanvas = () => {
   const canDrawing = useCanvasStore((state: CanvasStore) => state.canDrawing);
   const penSetting = useCanvasStore((state: CanvasStore) => state.penSetting);
   const setCanDrawing = useCanvasStore((state: CanvasStore) => state.action.setCanDrawing);
-  const coordinateScaleRef = useCoordinateScale(MAINCANVAS_RESOLUTION_WIDTH, mainCanvasRef);
-
-  const convertCoordinate = ([x, y]: number[]): number[] => {
-    return [x * coordinateScaleRef.current, y * coordinateScaleRef.current];
-  };
+  const { convertCoordinate } = useCoordinateScale(MAINCANVAS_RESOLUTION_WIDTH, mainCanvasRef);
 
   const drawStartPath = (ctx: CanvasRenderingContext2D, drawX: number, drawY: number) => {
     ctx.beginPath();
@@ -127,8 +123,8 @@ const MainCanvas = () => {
     if (!ctx) return;
 
     try {
-      const [drawX, drawY] = convertCoordinate(getDrawPoint(e, canvas));
-      if (penSetting.mode === PENMODE.PAINTER)
+      const { x: drawX, y: drawY } = convertCoordinate(getDrawPoint(e, canvas));
+      if (penSetting.mode === DRAWING_MODE.FILL)
         paintCanvas(Math.floor(drawX), Math.floor(drawY), ctx, hexToRGBA(CV[penSetting.colorNum]));
       else drawStartPath(ctx, drawX, drawY);
     } catch (err) {
@@ -139,7 +135,7 @@ const MainCanvas = () => {
   };
 
   const handleDrawingEvent = (e: ReactTouchEvent<HTMLCanvasElement> | ReactMouseEvent<HTMLCanvasElement>) => {
-    if (!canDrawing || penSetting.mode === PENMODE.PAINTER) return;
+    if (!canDrawing || penSetting.mode === DRAWING_MODE.FILL) return;
     if (!mainCanvasRef.current) return;
 
     const canvas = mainCanvasRef.current;
@@ -147,7 +143,7 @@ const MainCanvas = () => {
     if (!ctx) return;
 
     try {
-      const [drawX, drawY] = convertCoordinate(getDrawPoint(e, canvas));
+      const { x: drawX, y: drawY } = convertCoordinate(getDrawPoint(e, canvas));
       ctx.lineTo(drawX, drawY);
       ctx.stroke();
     } catch (err) {
