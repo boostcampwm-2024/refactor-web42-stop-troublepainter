@@ -2,12 +2,6 @@ import { io, Socket } from 'socket.io-client';
 
 const SOCKET_URL = import.meta.env.VITE_SOCKET_URL;
 
-export type SocketResponse<T = unknown> = {
-  success: boolean;
-  data?: T;
-  error?: string;
-};
-
 class SocketManager {
   private static instance: SocketManager;
   private roomSocket: Socket | null = null;
