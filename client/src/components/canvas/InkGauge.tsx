@@ -13,7 +13,7 @@ const InkGauge = ({ remainingPixels, maxPixels, className }: InkGaugeProps) => {
   const ratio = useMemo(() => Math.max(0, Math.min(1, remainingPixels / maxPixels)), [remainingPixels, maxPixels]);
 
   return (
-    <div className={cn('relative h-12 w-4 sm:h-24 sm:w-8', className)}>
+    <div className={cn('relative h-12 w-4 sm:h-14 sm:w-5 xl:h-16 xl:w-6 2xl:h-20 2xl:w-8', className)}>
       <svg
         xmlns="http://www.w3.org/2000/svg"
         viewBox="0 0 28 82"

@@ -1,19 +1,18 @@
 import { cva, type VariantProps } from 'class-variance-authority';
-import clsx from 'clsx';
 import profilePlaceholder from '@/assets/profile-placeholder.png';
 import { ReadyStatus, UserRank } from '@/types/userInfo.types';
 import { cn } from '@/utils/cn';
 import getCrownImage from '@/utils/getCrownImage';
 
-const userInfoCardVariants = cva('flex duration-200 gap-2 sm:transition-colors', {
+const userInfoCardVariants = cva('flex duration-200 gap-2 lg:transition-colors', {
   variants: {
     status: {
       // 대기 상태 - 기본 상태
-      notReady: 'bg-transparent sm:bg-eastbay-400 text-white',
+      notReady: 'bg-transparent lg:bg-eastbay-400 text-white',
       // 준비 완료 상태
-      ready: 'bg-transparent sm:bg-violet-500 text-white',
+      ready: 'bg-transparent lg:bg-violet-500 text-white',
       // 게임 진행 중 상태
-      gaming: 'bg-transparent sm:bg-eastbay-400 text-white',
+      gaming: 'bg-transparent lg:bg-eastbay-400 text-white',
     },
   },
   defaultVariants: {
@@ -96,23 +95,23 @@ const UserInfoCard = ({
     <div
       className={cn(
         userInfoCardVariants({ status }),
-        // 데스트톱
-        'sm:aspect-[3/1] sm:w-full sm:items-center sm:justify-between sm:rounded-lg sm:border-2 sm:border-violet-950 sm:p-3',
         // 모바일
-        'h-20 w-12 items-center justify-between p-2',
+        'h-20 w-20 items-center',
+        // 데스트톱
+        'lg:aspect-[3/1] lg:w-full lg:items-center lg:justify-between lg:rounded-lg lg:border-2 lg:border-violet-950 lg:p-1 xl:p-3',
         className,
       )}
     >
-      <div className="flex flex-col items-center justify-center sm:flex-row sm:gap-3">
+      <div className="flex flex-col items-center justify-center lg:flex-row lg:gap-3">
         {/* 프로필 이미지 섹션 */}
-        <div className="relative">
-          <div className="flex h-12 w-12 items-center justify-center overflow-hidden rounded-full border-2 border-violet-950 bg-white/20 sm:h-14 sm:w-14 sm:rounded-xl">
+        <div className="relative mb-1 lg:m-0">
+          <div className="flex h-12 w-12 items-center justify-center overflow-hidden rounded-full border-2 border-violet-950 bg-white/20 lg:h-14 lg:w-14 lg:rounded-xl">
             <img src={profileImage || profilePlaceholder} alt="사용자 프로필" />
             {/* 모바일 상태 오버레이 */}
             {status !== 'gaming' ? (
               <div
-                className={clsx(
-                  'absolute inset-0 flex items-center justify-center rounded-full transition-all duration-300 sm:hidden',
+                className={cn(
+                  'absolute inset-0 flex items-center justify-center rounded-full transition-all duration-300 lg:hidden',
                   {
                     'bg-violet-500/80 opacity-100': status === 'ready',
                     'bg-transparent opacity-0': status !== 'ready',
@@ -122,7 +121,7 @@ const UserInfoCard = ({
                 {status === 'ready' && <span className="text-xs text-stroke-sm">준비</span>}
               </div>
             ) : (
-              <div className="absolute inset-0 flex items-center justify-center rounded-full bg-black/50 sm:hidden">
+              <div className="absolute inset-0 flex items-center justify-center rounded-full bg-black/50 lg:hidden">
                 <span className="text-xl font-bold text-white text-stroke-sm">{score}</span>
               </div>
             )}
@@ -131,36 +130,52 @@ const UserInfoCard = ({
               <img
                 src={crownImage}
                 alt={`${rank}등 사용자`}
-                className="absolute -right-1 -top-3 h-7 w-auto rotate-[30deg] sm:-right-5 sm:-top-7 sm:h-12"
+                className="absolute -right-1 -top-3 h-7 w-auto rotate-[30deg] lg:-right-5 lg:-top-7 lg:h-12"
               />
             )}
           </div>
         </div>
 
         {/* 사용자 정보 섹션 */}
-        <div className="flex -translate-y-1 flex-col items-center sm:translate-y-0 sm:items-start">
-          <div className="h-3 text-stroke-sm sm:h-auto">
-            <span className="text-xs text-chartreuseyellow-400 sm:text-2xl">{username}</span>
+        <div className="relative flex -translate-y-1 flex-col text-center lg:translate-y-0 lg:items-start">
+          <div className="relative h-3 text-stroke-sm lg:h-auto">
+            <div
+              title={username}
+              className={cn(
+                // 기본 & 모바일 스타일
+                'w-20 truncate text-xs text-chartreuseyellow-400',
+                // 데스크톱
+                'lg:w-auto lg:max-w-28 lg:text-base',
+                'xl:max-w-[9.5rem] xl:text-lg',
+                '2xl:max-w-52 2xl:text-xl',
+              )}
+            >
+              {username}
+            </div>
           </div>
-          <div className="h-3 text-stroke-sm sm:h-auto">
-            <span className="text-[0.625rem] text-gray-50 sm:text-base">{role}</span>
+          <div className="h-3 text-stroke-sm lg:h-auto">
+            <div
+              title={role}
+              className={cn(
+                // 기본 & 모바일 스타일
+                'w-20 truncate text-[0.625rem] text-gray-50',
+                // 데스크톱
+                'lg:w-auto lg:max-w-28 lg:text-sm',
+                'xl:max-w-[9.5rem] xl:text-base',
+                '2xl:max-w-52',
+              )}
+            >
+              {role}
+            </div>
           </div>
         </div>
       </div>
 
       {/* 데스크탑 점수/상태 표시 섹션 */}
-      <div className="hidden items-center gap-2 sm:flex">
+      <div className="hidden items-center gap-2 lg:flex">
         {score !== undefined && (
-          <div
-            className={clsx(
-              'flex h-10 items-center justify-center rounded-lg border-2 border-violet-950 bg-halfbaked-200',
-              {
-                'px-3': score < 10,
-                'px-1.5': score >= 10,
-              },
-            )}
-          >
-            <div className="translate-x-[0.05rem] text-2xl leading-5 text-eastbay-950">{score}</div>
+          <div className="flex aspect-square h-8 items-center justify-center rounded-lg border-2 border-violet-950 bg-halfbaked-200 xl:h-10">
+            <div className="translate-x-[0.05rem] leading-5 text-eastbay-950 lg:text-lg xl:text-2xl">{score}</div>
           </div>
         )}
 

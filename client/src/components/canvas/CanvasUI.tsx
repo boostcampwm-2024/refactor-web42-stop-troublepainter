@@ -116,27 +116,29 @@ const Canvas = forwardRef<HTMLDivElement, CanvasProps>(
       <div
         ref={ref}
         className={cn(
-          'relative flex aspect-[4/3] w-full flex-col border-violet-500 bg-white sm:rounded-lg sm:border-4 sm:shadow-xl',
+          'relative flex w-full max-w-screen-sm flex-col border-violet-500 bg-white sm:rounded-lg sm:border-4 sm:shadow-xl',
           className,
         )}
         {...props}
       >
-        <div className="relative h-full w-full">
-          <canvas
-            ref={canvasRef}
-            width={1280}
-            height={720}
-            className={cn(
-              'absolute left-0 top-0 h-full w-full object-contain',
-              isDrawable ? 'touch-none' : 'pointer-events-none',
-            )}
-            aria-label={isDrawable ? '그림판' : '그림 보기'}
-          />
-        </div>
-        <div
-          className={cn('absolute right-1', toolbarPosition === 'floating' ? 'top-1' : 'bottom-[12%] sm:bottom-[10%]')}
-        >
-          <InkGauge remainingPixels={inkRemaining} maxPixels={maxPixels} />
+        <div className="relative">
+          <div className="aspect-[16/10]">
+            <canvas
+              ref={canvasRef}
+              width={1280}
+              height={800}
+              className={cn(
+                'absolute left-0 top-0 h-full w-full object-contain',
+                isDrawable ? 'touch-none' : 'pointer-events-none',
+              )}
+              aria-label={isDrawable ? '그림판' : '그림 보기'}
+            />
+          </div>
+          {isDrawable && (
+            <div className={cn('absolute bottom-1 right-1')}>
+              <InkGauge remainingPixels={inkRemaining} maxPixels={maxPixels} />
+            </div>
+          )}
         </div>
 
         {isDrawable && colors.length > 0 && (

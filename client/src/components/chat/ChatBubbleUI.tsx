@@ -33,7 +33,7 @@ const ChatBubble = ({ className, variant, content, nickname, ...props }: ChatBub
       className={cn('flex', isOtherUser ? 'flex-col items-start gap-0.5' : 'justify-end')}
     >
       {isOtherUser && (
-        <span className="text-xs text-eastbay-50" aria-hidden="true">
+        <span className="text-sm text-stroke-sm" aria-hidden="true">
           {nickname}
         </span>
       )}
