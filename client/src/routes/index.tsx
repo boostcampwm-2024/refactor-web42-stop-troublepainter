@@ -2,6 +2,7 @@ import { createBrowserRouter } from 'react-router-dom';
 import GameLayout from '@/layouts/GameLayout';
 import RootLayout from '@/layouts/RootLayout';
 import ExamplePage from '@/pages/ExamplePage';
+import ExamplePageCanvasOnly from '@/pages/ExamplePageCanvasOnly';
 import MainPage from '@/pages/MainPage';
 // import WaitingRoomPage from '@/pages/WaitingRoomPage';
 // import GameRoomPage from '@/pages/GameRoomPage';
@@ -40,6 +41,10 @@ export const router = createBrowserRouter([
       {
         path: '/dev',
         element: <ExamplePage />,
+      },
+      {
+        path: '/dev/canvas',
+        element: <ExamplePageCanvasOnly />,
       },
     ],
   },
