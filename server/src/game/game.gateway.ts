@@ -1,5 +1,5 @@
 import { Injectable } from '@nestjs/common';
-import { ConnectedSocket, MessageBody, OnGatewayDisconnect, SubscribeMessage, WebSocketGateway, WebSocketServer } from '@nestjs/websockets';
+import { OnGatewayDisconnect, SubscribeMessage, WebSocketGateway, WebSocketServer } from '@nestjs/websockets';
 import { Server, Socket } from 'socket.io';
 import { DrawingData } from './game.interface';
 import { RoomService } from '../room/room.service';
@@ -17,7 +17,7 @@ export class GameGateway implements OnGatewayDisconnect {
   constructor(private readonly roomService: RoomService) {}
 
   @SubscribeMessage('createRoom')
-  async handleCreateRoom(@ConnectedSocket() client: Socket) {
+  async handleCreateRoom(client: Socket) {
     const result = await this.roomService.createRoom(client.id);
         
     if (result.success && result.data) {
@@ -31,7 +31,7 @@ export class GameGateway implements OnGatewayDisconnect {
   }
 
   @SubscribeMessage('joinRoom')
-  async handleJoinRoom(@ConnectedSocket() client: Socket, roomId: string) {
+  async handleJoinRoom(client: Socket, roomId: string) {
     const result = await this.roomService.joinRoom(roomId, client.id);
 
     if (result.success && result.data) {
@@ -48,9 +48,7 @@ export class GameGateway implements OnGatewayDisconnect {
   }
 
   @SubscribeMessage('draw')
-  async handleDraw(
-    @ConnectedSocket() client: Socket,
-    @MessageBody() data: DrawingData
+  async handleDraw(client: Socket, data: DrawingData
   ) {
     const room = await this.roomService.getRoom(data.roomId);
         
