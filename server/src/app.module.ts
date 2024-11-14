@@ -4,6 +4,7 @@ import { AppService } from './app.service';
 import { RedisModule } from './redis/redis.module';
 import { ConfigModule } from '@nestjs/config';
 import { RoomModule } from './room/room.module';
+import { DrawingModule } from './drawing/drawing.module';
 
 @Module({
   imports: [
@@ -13,8 +14,7 @@ import { RoomModule } from './room/room.module';
     }),
     RedisModule,
     RoomModule,
-  ],
-  controllers: [AppController],
-  providers: [AppService],
+    DrawingModule,
+  ],  
 })
 export class AppModule {}
