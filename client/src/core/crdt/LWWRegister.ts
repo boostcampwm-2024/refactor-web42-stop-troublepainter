@@ -1,4 +1,4 @@
-import { RegisterState } from '../crdt.types.ts';
+import { RegisterState } from '../crdt.types';
 
 export class LWWRegister<T> {
   readonly id: string;
