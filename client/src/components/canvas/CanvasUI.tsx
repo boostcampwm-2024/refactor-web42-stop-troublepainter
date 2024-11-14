@@ -6,11 +6,12 @@ import redoIcon from '@/assets/redo-icon.svg';
 import { InkGauge } from '@/components/canvas/InkGauge';
 import { Button } from '@/components/ui/Button';
 import {
+  DRAWING_MODE,
   LINEWIDTH_VARIABLE,
   MAINCANVAS_RESOLUTION_HEIGHT,
   MAINCANVAS_RESOLUTION_WIDTH,
 } from '@/constants/canvasConstants';
-import { CanvasEventHandlers } from '@/types/canvas.types';
+import { CanvasEventHandlers, DrawingMode } from '@/types/canvas.types';
 import { cn } from '@/utils/cn';
 
 const canvasContainerVariants = cva(
@@ -92,8 +93,6 @@ interface ColorButton {
   onClick: () => void;
 }
 
-type DrawingMode = 'pen' | 'fill';
-
 interface CanvasProps extends HTMLAttributes<HTMLDivElement>, VariantProps<typeof canvasContainerVariants> {
   canvasRef: RefObject<HTMLCanvasElement>;
   isDrawable: boolean;
@@ -155,7 +154,10 @@ const Canvas = forwardRef<HTMLDivElement, CanvasProps>(
         {isDrawable && colors.length > 0 && (
           <>
             <div
-              className={cn(toolbarVariants({ position: toolbarPosition }), `${drawingMode === 'fill' && 'w-auto'}`)}
+              className={cn(
+                toolbarVariants({ position: toolbarPosition }),
+                `${drawingMode === DRAWING_MODE.FILL && 'w-auto'}`,
+              )}
             >
               <div className="flex gap-1.5">
                 {colors.map((color, index) => (
@@ -171,7 +173,7 @@ const Canvas = forwardRef<HTMLDivElement, CanvasProps>(
                 ))}
               </div>
 
-              {drawingMode === 'pen' && (
+              {drawingMode === DRAWING_MODE.PEN && (
                 <div className="flex-1">
                   <input
                     type="range"
@@ -213,20 +215,20 @@ const Canvas = forwardRef<HTMLDivElement, CanvasProps>(
                 <Button
                   size="icon"
                   variant="transperent"
-                  className={cn(modeButtonVariants({ isSelected: drawingMode === 'pen' }))}
-                  onClick={() => onDrawingModeChange('pen')}
+                  className={cn(modeButtonVariants({ isSelected: drawingMode === DRAWING_MODE.PEN }))}
+                  onClick={() => onDrawingModeChange(DRAWING_MODE.PEN)}
                   aria-label="펜 모드"
-                  aria-pressed={drawingMode === 'pen'}
+                  aria-pressed={drawingMode === DRAWING_MODE.PEN}
                 >
                   <img src={penIcon} alt="펜 모드 아이콘" className="h-6 w-6" />
                 </Button>
                 <Button
                   size="icon"
                   variant="transperent"
-                  className={cn(modeButtonVariants({ isSelected: drawingMode === 'fill' }))}
-                  onClick={() => onDrawingModeChange('fill')}
+                  className={cn(modeButtonVariants({ isSelected: drawingMode === DRAWING_MODE.FILL }))}
+                  onClick={() => onDrawingModeChange(DRAWING_MODE.FILL)}
                   aria-label="채우기 모드"
-                  aria-pressed={drawingMode === 'fill'}
+                  aria-pressed={drawingMode === DRAWING_MODE.FILL}
                 >
                   <img src={bucketIcon} alt="채우기 모드 아이콘" className="h-6 w-6" />
                 </Button>
@@ -243,8 +245,6 @@ Canvas.displayName = 'Canvas';
 
 export {
   Canvas,
-  type CanvasProps,
-  type DrawingMode,
   canvasContainerVariants,
   toolbarVariants,
   colorButtonVariants,

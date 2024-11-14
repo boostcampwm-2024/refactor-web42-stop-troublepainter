@@ -1,5 +1,5 @@
 import { MouseEvent, TouchEvent } from 'react';
-import { PENMODE } from '@/constants/canvasConstants';
+import { DRAWING_MODE } from '@/constants/canvasConstants';
 
 interface PenOptions {
   mode: number;
@@ -9,7 +9,7 @@ interface PenOptions {
 
 export type SelectingPenOptions = Partial<PenOptions>;
 
-export type PenModeType = (typeof PENMODE)[keyof typeof PENMODE];
+export type PenModeType = (typeof DRAWING_MODE)[keyof typeof DRAWING_MODE];
 
 export interface CanvasStore {
   canDrawing: boolean;
@@ -29,6 +29,8 @@ export interface RGBA {
 }
 
 //아래 태연님 코드 관련
+
+export type DrawingMode = (typeof DRAWING_MODE)[keyof typeof DRAWING_MODE];
 
 export interface CanvasEventHandlers {
   onMouseDown?: (e: MouseEvent<HTMLCanvasElement>) => void;
