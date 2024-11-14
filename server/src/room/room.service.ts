@@ -81,4 +81,23 @@ export class RoomService {
     async getRoom(roomId: string): Promise<Room | null> {
         return this.redisService.getJson(`room:${roomId}`);
     }
+
+    async findRoomsByPlayerId(playerId: string): Promise<Room[]> {
+        try {
+          const keys = await this.redisService.keys('room:*');
+          const rooms: Room[] = [];
+    
+          for (const key of keys) {
+            const room = await this.redisService.getJson(key);
+            if (room && room.players.includes(playerId)) {
+              rooms.push(room);
+            }
+          }
+    
+          return rooms;
+        } catch (error) {
+          console.error('Error finding rooms:', error);
+          return [];
+        }
+    }
 }
