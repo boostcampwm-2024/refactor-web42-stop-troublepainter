@@ -12,8 +12,8 @@ describe('RoomService', () => {
 
   beforeEach(async () => {
     const mockRedisService = {
-      set: jest.fn(),
-      get: jest.fn(),
+      setJson: jest.fn(),
+      getJson: jest.fn(),
       del: jest.fn(),
     };
 
@@ -44,7 +44,7 @@ describe('RoomService', () => {
         hostId,
       };
 
-      redisService.set.mockResolvedValueOnce(undefined);
+      redisService.setJson.mockResolvedValueOnce(undefined);
 
       const result = await roomService.createRoom(hostId);
 
@@ -52,7 +52,7 @@ describe('RoomService', () => {
         success: true,
         data: expectedRoom,
       });
-      expect(redisService.set).toHaveBeenCalledWith(
+      expect(redisService.setJson).toHaveBeenCalledWith(
         'room:test-room-id',
         expectedRoom
       );
@@ -62,7 +62,7 @@ describe('RoomService', () => {
       const hostId = 'test-host-id';
       const error = new Error('Redis error');
 
-      redisService.set.mockRejectedValueOnce(error);
+      redisService.setJson.mockRejectedValueOnce(error);
 
       const result = await roomService.createRoom(hostId);
 
@@ -87,8 +87,8 @@ describe('RoomService', () => {
         players: [...existingRoom.players, playerId],
       };
 
-      redisService.get.mockResolvedValueOnce(existingRoom);
-      redisService.set.mockResolvedValueOnce(undefined);
+      redisService.getJson.mockResolvedValueOnce(existingRoom);
+      redisService.setJson.mockResolvedValueOnce(undefined);
 
       const result = await roomService.joinRoom(roomId, playerId);
 
@@ -96,14 +96,14 @@ describe('RoomService', () => {
         success: true,
         data: expectedRoom,
       });
-      expect(redisService.set).toHaveBeenCalledWith(
+      expect(redisService.setJson).toHaveBeenCalledWith(
         'room:test-room-id',
         expectedRoom
       );
     });
 
     it('should fail if room does not exist', async () => {
-      redisService.get.mockResolvedValueOnce(null);
+      redisService.getJson.mockResolvedValueOnce(null);
 
       const result = await roomService.joinRoom('non-existent-room', 'player-id');
 
@@ -111,7 +111,7 @@ describe('RoomService', () => {
         success: false,
         error: 'Room not found',
       });
-      expect(redisService.set).not.toHaveBeenCalled();
+      expect(redisService.setJson).not.toHaveBeenCalled();
     });
 
     it('should fail if player is already in room', async () => {
@@ -123,7 +123,7 @@ describe('RoomService', () => {
         hostId: 'host-id',
       };
 
-      redisService.get.mockResolvedValueOnce(existingRoom);
+      redisService.getJson.mockResolvedValueOnce(existingRoom);
 
       const result = await roomService.joinRoom(roomId, playerId);
 
@@ -131,7 +131,7 @@ describe('RoomService', () => {
         success: false,
         error: 'Player already in room',
       });
-      expect(redisService.set).not.toHaveBeenCalled();
+      expect(redisService.setJson).not.toHaveBeenCalled();
     });
   });
 
@@ -145,7 +145,7 @@ describe('RoomService', () => {
         hostId: playerId,
       };
 
-      redisService.get.mockResolvedValueOnce(existingRoom);
+      redisService.getJson.mockResolvedValueOnce(existingRoom);
       redisService.del.mockResolvedValueOnce(undefined);
 
       const result = await roomService.leaveRoom(roomId, playerId);
@@ -172,8 +172,8 @@ describe('RoomService', () => {
         hostId: remainingPlayer,
       };
 
-      redisService.get.mockResolvedValueOnce(existingRoom);
-      redisService.set.mockResolvedValueOnce(undefined);
+      redisService.getJson.mockResolvedValueOnce(existingRoom);
+      redisService.setJson.mockResolvedValueOnce(undefined);
 
       const result = await roomService.leaveRoom(roomId, hostId);
 
@@ -181,14 +181,14 @@ describe('RoomService', () => {
         success: true,
         data: { isDeleted: false, room: expectedRoom },
       });
-      expect(redisService.set).toHaveBeenCalledWith(
+      expect(redisService.setJson).toHaveBeenCalledWith(
         'room:test-room-id',
         expectedRoom
       );
     });
 
     it('should fail if room does not exist', async () => {
-      redisService.get.mockResolvedValueOnce(null);
+      redisService.getJson.mockResolvedValueOnce(null);
 
       const result = await roomService.leaveRoom('non-existent-room', 'player-id');
 
@@ -196,7 +196,7 @@ describe('RoomService', () => {
         success: false,
         error: 'Room not found',
       });
-      expect(redisService.set).not.toHaveBeenCalled();
+      expect(redisService.setJson).not.toHaveBeenCalled();
       expect(redisService.del).not.toHaveBeenCalled();
     });
   });
@@ -210,7 +210,7 @@ describe('RoomService', () => {
         hostId: 'host-id',
       };
 
-      redisService.get.mockResolvedValueOnce(room);
+      redisService.getJson.mockResolvedValueOnce(room);
 
       const result = await roomService.getRoom(roomId);
 
@@ -218,7 +218,7 @@ describe('RoomService', () => {
     });
 
     it('should return null for non-existent room', async () => {
-      redisService.get.mockResolvedValueOnce(null);
+      redisService.getJson.mockResolvedValueOnce(null);
 
       const result = await roomService.getRoom('non-existent-room');
 

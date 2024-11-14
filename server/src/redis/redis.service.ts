@@ -13,11 +13,11 @@ export class RedisService {
         });
     }
 
-    async set(key: string, value: any): Promise<void> {
+    async setJson(key: string, value: any): Promise<void> {
         await this.redis.set(key, JSON.stringify(value));
     }
 
-    async get(key: string): Promise<any> {
+    async getJson(key: string): Promise<any> {
         const value = await this.redis.get(key);
         return value ? JSON.parse(value) : null;
     }

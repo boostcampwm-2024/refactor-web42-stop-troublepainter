@@ -38,7 +38,7 @@
         const key = 'test-key';
         const value = { test: 'data' };
 
-        await service.set(key, value);
+        await service.setJson(key, value);
         const result = await redis.get(key);
 
         expect(JSON.parse(result)).toEqual(value);
@@ -50,7 +50,7 @@
 
         jest.spyOn(redis, 'set').mockRejectedValueOnce(new Error('Redis error'));
 
-        await expect(service.set(key, value)).rejects.toThrow('Redis error');
+        await expect(service.setJson(key, value)).rejects.toThrow('Redis error');
       });
     });
 
@@ -60,20 +60,20 @@
         const value = { test: 'data' };
 
         await redis.set(key, JSON.stringify(value));
-        const result = await service.get(key);
+        const result = await service.getJson(key);
 
         expect(result).toEqual(value);
       });
 
       it('should return null for non-existent key', async () => {
-        const result = await service.get('non-existent-key');
+        const result = await service.getJson('non-existent-key');
         expect(result).toBeNull();
       });
 
       it('should handle errors when getting value', async () => {
         jest.spyOn(redis, 'get').mockRejectedValueOnce(new Error('Redis error'));
 
-        await expect(service.get('test-key')).rejects.toThrow('Redis error');
+        await expect(service.getJson('test-key')).rejects.toThrow('Redis error');
       });
     });
 

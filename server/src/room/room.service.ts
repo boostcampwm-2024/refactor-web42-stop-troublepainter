@@ -15,7 +15,7 @@ export class RoomService {
                 players: [hostId],
                 hostId,
             };
-            await this.redisService.set(`room:${roomId}`, room);
+            await this.redisService.setJson(`room:${roomId}`, room);
             return { success: true, data: room };
         } catch(error) {
             return { 
@@ -38,7 +38,7 @@ export class RoomService {
             }
         
             room.players.push(playerId);
-            await this.redisService.set(`room:${roomId}`, room);
+            await this.redisService.setJson(`room:${roomId}`, room);
             
             return { success: true, data: room };
         } catch (error) {
@@ -64,11 +64,11 @@ export class RoomService {
                 return { success: true, data: { isDeleted: true } };
             }
 
-            if (room.hostId === playerId) {
+            if (room.hostId === playerId && room.players.length > 0) {
                 room.hostId = room.players[0];
             }
         
-            await this.redisService.set(`room:${roomId}`, room);
+            await this.redisService.setJson(`room:${roomId}`, room);
             return { success: true, data: { isDeleted: false, room } };
         } catch (error) {
             return { 
@@ -79,6 +79,6 @@ export class RoomService {
     }
     
     async getRoom(roomId: string): Promise<Room | null> {
-        return this.redisService.get(`room:${roomId}`);
+        return this.redisService.getJson(`room:${roomId}`);
     }
 }
