@@ -33,6 +33,10 @@ export class RoomService {
                 return { success: false, error: 'Room not found' };
             }
 
+            if(room.players.length == 0) {
+                room.hostId = playerId;
+            }
+
             if (room.players.includes(playerId)) {
                 return { success: false, error: 'Player already in room' };
             }
@@ -58,11 +62,6 @@ export class RoomService {
             }
         
             room.players = room.players.filter(id => id !== playerId);
-            
-            if (room.players.length === 0) {
-                await this.redisService.del(`room:${roomId}`);
-                return { success: true, data: { isDeleted: true } };
-            }
 
             if (room.hostId === playerId && room.players.length > 0) {
                 room.hostId = room.players[0];

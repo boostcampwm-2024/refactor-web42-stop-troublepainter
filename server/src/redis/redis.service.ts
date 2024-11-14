@@ -27,6 +27,15 @@ export class RedisService {
     }
 
     async keys(pattern: string): Promise<string[]> {
-        return this.redis.keys(pattern);
+        const keys: string[] = [];
+        let cursor = '0';
+    
+        do {
+            const reply = await this.redis.scan(cursor, 'MATCH', pattern, 'COUNT', '100');
+            cursor = reply[0];
+            keys.push(...reply[1]);
+        } while (cursor !== '0');
+    
+        return keys;
     }
 }
