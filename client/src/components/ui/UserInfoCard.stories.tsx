@@ -1,18 +1,16 @@
 import { UserInfoCard } from './UserInfoCard';
 import type { Meta, StoryObj } from '@storybook/react';
 
-const meta = {
-  title: 'Game/UserInfoCard',
+type Story = StoryObj<typeof UserInfoCard>;
+
+export default {
+  title: 'components/game/UserInfoCard',
   component: UserInfoCard,
-  parameters: {
-    layout: 'centered',
-  },
-  tags: ['autodocs'],
   argTypes: {
     status: {
       control: 'select',
       options: ['notReady', 'ready', 'gaming'],
-      description: '사용자의 현재 상태를 표시',
+      description: '사용자의 현재 상태',
     },
     username: {
       control: 'text',
@@ -27,14 +25,24 @@ const meta = {
       description: '게임 중 획득한 점수',
     },
     role: {
+      control: 'select',
+      options: ['그림꾼', '방해꾼', '구경꾼'],
+      description: '게임에서의 역할',
+    },
+    className: {
       control: 'text',
-      description: '게임에서의 역할 (그림꾼, 방해꾼 등)',
+      description: '추가 스타일링',
+    },
+    profileImage: {
+      control: 'text',
+      description: '사용자의 프로필 이미지',
     },
   },
+  parameters: {
+    layout: 'centered',
+  },
+  tags: ['autodocs'],
 } satisfies Meta<typeof UserInfoCard>;
-
-export default meta;
-type Story = StoryObj<typeof meta>;
 
 export const Default: Story = {
   args: {

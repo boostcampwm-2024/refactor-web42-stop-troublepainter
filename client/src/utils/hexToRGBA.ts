@@ -25,3 +25,20 @@ export function hexToRGBA(hex: string, alpha = 255) {
 
   return { r, g, b, a: alpha };
 }
+
+/* 컬러 기능 확장 시 사용하면 좋을 것 같음.
+class Color {
+  r: number;
+  g: number;
+  b: number;
+  a: number;
+
+  constructor(color: string) {
+    const ctx = document.createElement('canvas').getContext('2d')!;
+    ctx.fillStyle = color;
+    this.r = parseInt(ctx.fillStyle.slice(1, 3), 16);
+    this.g = parseInt(ctx.fillStyle.slice(3, 5), 16);
+    this.b = parseInt(ctx.fillStyle.slice(5, 7), 16);
+  }
+}
+*/

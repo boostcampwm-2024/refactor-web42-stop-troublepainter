@@ -88,7 +88,7 @@ const GameRoomPage = () => {
           'lg:w-6/12 lg:gap-4 lg:py-3 2xl:py-5',
         )}
       >
-        <QuizTitle currentRound="1" totalRound="4" title="뭘까요?뭘까요?뭘까요?뭘까요?" remainingTime={remainingTime} />
+        <QuizTitle currentRound={1} totalRound={4} title="뭘까요?뭘까요?뭘까요?뭘까요?" remainingTime={remainingTime} />
 
         <GameCanvas role="그림꾼" maxPixels={100000} />
       </section>

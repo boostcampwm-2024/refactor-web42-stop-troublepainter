@@ -1,7 +1,7 @@
 /**
  * 타이머 콜백 타입을 정의합니다.
  * `remainingTime`이 주어지면 남은 시간을 받아 처리할 수 있습니다.
- * @param remainingTime - 남은 시간(초) 또는 완료 콜백에서 사용되는 매개변수
+ * @param remainingTime - 남은 시간(초) 또는 완료 콜백에서  사용되는 매개변수
  */
 type TimerCallback = (remainingTime?: number) => void;
 

@@ -1,7 +1,12 @@
-import { MouseEvent, TouchEvent, useCallback, useRef } from 'react';
+import { MouseEvent as ReactMouseEvent, TouchEvent as ReactTouchEvent, useCallback, useRef } from 'react';
 import { Canvas } from '@/components/canvas/CanvasUI';
+import { COLORS_INFO, MAINCANVAS_RESOLUTION_WIDTH } from '@/constants/canvasConstants';
+import { useCoordinateScale } from '@/hooks/useCoordinateScale';
 import { useDrawing } from '@/hooks/useDrawing';
+import { CanvasEventHandlers } from '@/types/canvas.types';
 import { UserRole, PainterRole } from '@/types/userInfo.types';
+import { getCanvasContext } from '@/utils/getCanvasContext';
+import { getDrawPoint } from '@/utils/getDrawPoint';
 
 interface GameCanvasProps {
   role: UserRole;
@@ -10,6 +15,8 @@ interface GameCanvasProps {
 
 const GameCanvas = ({ role, maxPixels = 100000 }: GameCanvasProps) => {
   const canvasRef = useRef<HTMLCanvasElement>(null);
+  const { convertCoordinate } = useCoordinateScale(MAINCANVAS_RESOLUTION_WIDTH, canvasRef);
+
   const {
     currentColor,
     setCurrentColor,
@@ -34,74 +41,44 @@ const GameCanvas = ({ role, maxPixels = 100000 }: GameCanvasProps) => {
     return role === '그림꾼' || role === '방해꾼';
   };
 
-  const handleMouseDown = useCallback(
-    (e: MouseEvent<HTMLElement>) => {
-      const rect = canvasRef.current?.getBoundingClientRect();
-      if (!rect) return;
-
-      startDrawing({
-        x: e.clientX - rect.left,
-        y: e.clientY - rect.top,
-      });
+  const handleDrawStart = useCallback(
+    (e: ReactMouseEvent<HTMLCanvasElement> | ReactTouchEvent<HTMLCanvasElement>) => {
+      const { canvas } = getCanvasContext(canvasRef);
+      const point = getDrawPoint(e, canvas);
+      const convertPoint = convertCoordinate(point);
+      startDrawing(convertPoint);
     },
     [startDrawing],
   );
 
-  const handleMouseMove = useCallback(
-    (e: MouseEvent<HTMLElement>) => {
-      const rect = canvasRef.current?.getBoundingClientRect();
-      if (!rect) return;
-
-      draw({
-        x: e.clientX - rect.left,
-        y: e.clientY - rect.top,
-      });
+  const handleDrawMove = useCallback(
+    (e: ReactMouseEvent<HTMLCanvasElement> | ReactTouchEvent<HTMLCanvasElement>) => {
+      const { canvas } = getCanvasContext(canvasRef);
+      const point = getDrawPoint(e, canvas);
+      const convertPoint = convertCoordinate(point);
+      draw(convertPoint);
     },
     [draw],
   );
 
-  const handleTouchStart = useCallback(
-    (e: TouchEvent<HTMLElement>) => {
-      e.preventDefault();
-      const rect = canvasRef.current?.getBoundingClientRect();
-      if (!rect) return;
-
-      const touch = e.touches[0];
-      startDrawing({
-        x: touch.clientX - rect.left,
-        y: touch.clientY - rect.top,
-      });
-    },
-    [startDrawing],
-  );
-
-  const handleTouchMove = useCallback(
-    (e: TouchEvent<HTMLElement>) => {
-      e.preventDefault();
-      const rect = canvasRef.current?.getBoundingClientRect();
-      if (!rect) return;
-
-      const touch = e.touches[0];
-      draw({
-        x: touch.clientX - rect.left,
-        y: touch.clientY - rect.top,
-      });
-    },
-    [draw],
-  );
-
-  const COLORS = [
-    { color: '검정', backgroundColor: '#000000', isSelected: currentColor === '#000000' },
-    { color: '분홍', backgroundColor: '#FF69B4', isSelected: currentColor === '#FF69B4' },
-    { color: '노랑', backgroundColor: '#FFFF00', isSelected: currentColor === '#FFFF00' },
-    { color: '하늘', backgroundColor: '#87CEEB', isSelected: currentColor === '#87CEEB' },
-    { color: '회색', backgroundColor: '#808080', isSelected: currentColor === '#808080' },
-  ].map((color) => ({
+  const COLORS = COLORS_INFO.map((color) => ({
     ...color,
+    isSelected: currentColor === color.backgroundColor,
     onClick: () => setCurrentColor(color.backgroundColor),
   }));
 
   const isDrawable = isDrawableRole(role);
+
+  const canvasEventHandlers: CanvasEventHandlers = {
+    onMouseDown: handleDrawStart,
+    onMouseMove: handleDrawMove,
+    onMouseUp: stopDrawing,
+    onMouseLeave: stopDrawing,
+    onTouchStart: handleDrawStart,
+    onTouchMove: handleDrawMove,
+    onTouchEnd: stopDrawing,
+    onTouchCancel: stopDrawing,
+  };
 
   return (
     <Canvas
@@ -119,14 +96,12 @@ const GameCanvas = ({ role, maxPixels = 100000 }: GameCanvasProps) => {
       canRedo={canRedo}
       onUndo={undo}
       onRedo={redo}
+      canvasEvents={canvasEventHandlers}
       // canvas 태그 기본 속성
-      onMouseDown={handleMouseDown}
-      onMouseMove={handleMouseMove}
       onMouseUp={stopDrawing}
       onMouseLeave={stopDrawing}
-      onTouchStart={handleTouchStart}
-      onTouchMove={handleTouchMove}
       onTouchEnd={stopDrawing}
+      onTouchCancel={stopDrawing}
     />
   );
 };

@@ -1,4 +1,4 @@
-import { useState } from 'react';
+import { KeyboardEvent, useState } from 'react';
 import { timer } from '@/utils/timer';
 
 /**
@@ -25,7 +25,7 @@ import { timer } from '@/utils/timer';
  * @category Hooks
  */
 
-export const useModal = (autoCloseDelay: number) => {
+export const useModal = (autoCloseDelay?: number) => {
   const [isModalOpened, setModalOpened] = useState<boolean>(false);
 
   const closeModal = () => {
@@ -39,7 +39,7 @@ export const useModal = (autoCloseDelay: number) => {
     }
   };
 
-  const handleKeyDown = (e: KeyboardEvent) => {
+  const handleKeyDown = (e: KeyboardEvent<Element>) => {
     if (e.key === 'Escape') closeModal();
   };
 

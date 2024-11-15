@@ -1,11 +1,11 @@
 import { HTMLAttributes, KeyboardEvent, PropsWithChildren } from 'react';
 import { cn } from '@/utils/cn';
 
-interface ModalProps extends PropsWithChildren<HTMLAttributes<HTMLDivElement>> {
+export interface ModalProps extends PropsWithChildren<HTMLAttributes<HTMLDivElement>> {
   title: string;
   closeModal?: () => void;
   isModalOpened: boolean;
-  handleKeyDown?: (e: KeyboardEvent) => void;
+  handleKeyDown?: (e: KeyboardEvent<Element>) => void;
 }
 
 const Modal = ({ className, handleKeyDown, closeModal, isModalOpened, title, children, ...props }: ModalProps) => {
@@ -38,8 +38,8 @@ const Modal = ({ className, handleKeyDown, closeModal, isModalOpened, title, chi
         tabIndex={0}
         {...props}
       >
-        <div className="flex min-h-16 items-center justify-center border-b-2 border-violet-950 bg-violet-500 px-3 py-3">
-          <h2 className="translate-y-1 text-4xl text-stroke-md">{title}</h2>
+        <div className="flex min-h-16 items-center justify-center border-b-2 border-violet-950 bg-violet-500 px-3 py-3 text-center">
+          <h2 className="translate-y-1 text-3xl text-stroke-md sm:text-4xl">{title}</h2>
         </div>
         <div className="p-5">{children}</div>
       </div>
