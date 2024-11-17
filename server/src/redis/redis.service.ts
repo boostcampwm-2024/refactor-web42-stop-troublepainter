@@ -1,4 +1,4 @@
-import { Injectable, OnModuleDestroy, OnModuleInit } from '@nestjs/common';
+import { Injectable } from '@nestjs/common';
 import { ConfigService } from '@nestjs/config';
 import Redis from 'ioredis';
 
@@ -13,13 +13,18 @@ export class RedisService {
         });
     }
 
-    async setJson(key: string, value: any): Promise<void> {
-        await this.redis.set(key, JSON.stringify(value));
+    async hset(key: string, value: Record<string, any>): Promise<void> {
+        await this.redis.hset(key, value);
     }
 
-    async getJson(key: string): Promise<any> {
-        const value = await this.redis.get(key);
-        return value ? JSON.parse(value) : null;
+    async hget(key: string, field?: string): Promise<any> {
+        if (field) {
+            const value = await this.redis.hget(key, field);
+            return value;
+        } else {
+            const value = await this.redis.hgetall(key);
+            return Object.keys(value).length > 0 ? value : null;
+        }
     }
 
     async del(key: string): Promise<void> {
