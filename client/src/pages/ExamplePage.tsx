@@ -10,6 +10,7 @@ import { Logo } from '@/components/ui/Logo';
 import { Modal } from '@/components/ui/Modal';
 import { UserInfoCard } from '@/components/ui/UserInfoCard';
 import { useModal } from '@/hooks/useModal';
+import { PlayerRole } from '@/types/game.types';
 
 const ExamplePage = () => {
   const [isReady, setIsReady] = useState(false);
@@ -21,7 +22,7 @@ const ExamplePage = () => {
       <Logo />
       <Logo variant="side" />
       <div className="flex items-center justify-center">
-        <GameCanvas role="방해꾼" />
+        <GameCanvas role={PlayerRole.PAINTER} />
       </div>
 
       <h1 className="justify-center">Hello world!</h1>
@@ -35,8 +36,8 @@ const ExamplePage = () => {
         <div className="space-y-4">
           <h2 className="text-lg font-bold">대기방</h2>
           <div className="space-y-2">
-            <UserInfoCard username="미라" status={isReady ? 'ready' : 'notReady'} />
-            <UserInfoCard username="친구" status={'notReady'} />
+            <UserInfoCard username="미라" status={isReady ? 'READY' : 'NOT_READY'} />
+            <UserInfoCard username="친구" status={'NOT_READY'} />
           </div>
           <Button onClick={() => setIsReady(!isReady)} variant={isReady ? 'secondary' : 'primary'} className="w-full">
             {isReady ? '해제' : '준비'}
@@ -47,10 +48,10 @@ const ExamplePage = () => {
         <div className="space-y-4">
           <h2 className="text-lg font-bold">게임방</h2>
           <div className="space-y-2">
-            <UserInfoCard username="미라" status={'gaming'} role="그림꾼" score={80} rank={1} />
-            <UserInfoCard username="친구1" status={'gaming'} role="방해꾼" score={8} rank={2} />
-            <UserInfoCard username="친구2" status={'gaming'} role="그림꾼" score={6} rank={3} />
-            <UserInfoCard username="친구3" status={'gaming'} role="구경꾼" score={4} />
+            <UserInfoCard username="미라" status="PLAYING" role={PlayerRole.PAINTER} score={80} rank={0} />
+            <UserInfoCard username="친구1" status="PLAYING" role={PlayerRole.DEVIL} score={8} rank={1} />
+            <UserInfoCard username="친구2" status="PLAYING" role={PlayerRole.PAINTER} score={6} rank={2} />
+            <UserInfoCard username="친구3" status="PLAYING" role={PlayerRole.GUESSER} score={4} />
           </div>
         </div>
       </div>

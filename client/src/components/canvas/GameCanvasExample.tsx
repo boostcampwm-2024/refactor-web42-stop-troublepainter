@@ -4,12 +4,12 @@ import { COLORS_INFO, MAINCANVAS_RESOLUTION_WIDTH } from '@/constants/canvasCons
 import { useCoordinateScale } from '@/hooks/useCoordinateScale';
 import { useDrawing } from '@/hooks/useDrawing';
 import { CanvasEventHandlers } from '@/types/canvas.types';
-import { UserRole, PainterRole } from '@/types/userInfo.types';
+import { PlayerRole } from '@/types/game.types';
 import { getCanvasContext } from '@/utils/getCanvasContext';
 import { getDrawPoint } from '@/utils/getDrawPoint';
 
 interface GameCanvasProps {
-  role: UserRole;
+  role: PlayerRole;
   maxPixels?: number;
 }
 
@@ -37,8 +37,8 @@ const GameCanvas = ({ role, maxPixels = 100000 }: GameCanvasProps) => {
   });
 
   // PainterRole 타입 가드
-  const isDrawableRole = (role: UserRole): role is PainterRole => {
-    return role === '그림꾼' || role === '방해꾼';
+  const isDrawableRole = (role: PlayerRole): role is PlayerRole.PAINTER | PlayerRole.DEVIL => {
+    return role === 'PAINTER' || role === 'DEVIL';
   };
 
   const handleDrawStart = useCallback(
