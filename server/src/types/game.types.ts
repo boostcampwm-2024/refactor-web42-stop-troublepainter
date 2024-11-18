@@ -1,14 +1,15 @@
 export interface Player {
-    role: PlayerRole;
+    playerId: string;
+    role: PlayerRole | null;
     status: PlayerStatus;
-    nickName: string;
-    userImg: string | null;
+    nickname: string;
+    profileImage: string | null;
     score: number;
 }
   
 export interface Room {
+    roomId: string;
     hostId: string | null;
-    players: Player[];
     status: RoomStatus;
     currentRound?: number;
     totalRounds?: number;

@@ -30,4 +30,25 @@ export class RedisService {
     async del(key: string): Promise<void> {
         await this.redis.del(key);
     }
+
+    async lpush(key: string, value: string): Promise<void> {
+        await this.redis.lpush(key, value);
+    }
+
+    async lrange(key: string, start: number, stop: number): Promise<string[]> {
+        const values = await this.redis.lrange(key, start, stop);
+        return values;
+    }
+
+    async lrangeAll(key: string): Promise<string[]> {
+        return await this.lrange(key, 0, -1);
+    }
+
+    async lrem(key: string, count: number, value: string): Promise<void> {
+        await this.redis.lrem(key, count, value);
+    }
+
+    multi() {
+        return this.redis.multi();
+    }
 }
