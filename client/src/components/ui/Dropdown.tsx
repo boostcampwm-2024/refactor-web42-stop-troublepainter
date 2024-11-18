@@ -4,10 +4,7 @@ import { useDropdown } from '@/hooks/useDropdown';
 import { cn } from '@/utils/cn';
 
 export interface DropdownProps extends HTMLAttributes<HTMLDivElement> {
-  options: {
-    id: number;
-    value: string;
-  }[];
+  options: string[];
   handleChange: (value: string) => void;
   selectedValue: string;
 }
@@ -18,10 +15,10 @@ const Dropdown = ({ options, handleChange, selectedValue, className, ...props }:
   });
 
   return (
-    <div className={cn('relative rounded-lg bg-eastbay-50', className)} ref={dropdownRef} {...props}>
+    <div className={cn('relative rounded-lg bg-eastbay-50 text-2xl', className)} ref={dropdownRef} {...props}>
       <button
         onClick={toggleDropdown}
-        className="flex h-full w-full items-center justify-between rounded-lg border-2 border-violet-950 px-2 text-2xl"
+        className="flex h-full w-full items-center justify-between rounded-lg border-2 border-violet-950 px-2"
       >
         <span className="w-full text-center">{selectedValue}</span>
         <img
@@ -39,15 +36,15 @@ const Dropdown = ({ options, handleChange, selectedValue, className, ...props }:
         )}
       >
         <div className="overflow-hidden rounded-lg">
-          {options.map((option) => (
+          {options.map((option, index) => (
             <button
-              key={option.id}
-              onClick={() => handleOptionClick(option.value)}
+              key={index}
+              onClick={() => handleOptionClick(option)}
               className={cn(
-                'w-full p-2 text-center text-xl transition-colors duration-200 ease-in-out hover:bg-violet-100 focus:bg-violet-200',
+                'w-full p-2 text-center transition-colors duration-200 ease-in-out hover:bg-violet-100 focus:bg-violet-200',
               )}
             >
-              {option.value}
+              {option}
             </button>
           ))}
         </div>
