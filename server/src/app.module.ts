@@ -11,6 +11,6 @@ import { GameModule } from './game/game.module';
     }),
     RedisModule,
     GameModule,
-  ],  
+  ],
 })
 export class AppModule {}

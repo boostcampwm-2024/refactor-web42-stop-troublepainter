@@ -7,6 +7,6 @@ import { RedisModule } from 'src/redis/redis.module';
 @Module({
   imports: [RedisModule],
   providers: [GameService, GameGateway],
-  controllers: [GameController]
+  controllers: [GameController],
 })
 export class GameModule {}
