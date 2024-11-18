@@ -4,7 +4,7 @@ const SOCKET_URL = import.meta.env.VITE_SOCKET_URL;
 
 class SocketManager {
   private static instance: SocketManager;
-  private roomSocket: Socket | null = null;
+  private gameSocket: Socket | null = null;
   private drawingSocket: Socket | null = null;
 
   private constructor() {}
@@ -17,7 +17,7 @@ class SocketManager {
   }
 
   initializeSockets() {
-    this.roomSocket = io(`${SOCKET_URL}/room`, {
+    this.gameSocket = io(`${SOCKET_URL}/game`, {
       transports: ['websocket'],
       autoConnect: false,
       reconnection: true,
@@ -37,7 +37,7 @@ class SocketManager {
   }
 
   private setupErrorHandlers() {
-    const sockets = [this.roomSocket, this.drawingSocket];
+    const sockets = [this.gameSocket, this.drawingSocket];
 
     sockets.forEach((socket) => {
       if (!socket) return;
@@ -56,11 +56,11 @@ class SocketManager {
     });
   }
 
-  getRoomSocket(): Socket {
-    if (!this.roomSocket) {
-      throw new Error('Room socket not initialized');
+  getGameSocket(): Socket {
+    if (!this.gameSocket) {
+      throw new Error('Game socket not initialized');
     }
-    return this.roomSocket;
+    return this.gameSocket;
   }
 
   getDrawingSocket(): Socket {
@@ -71,12 +71,12 @@ class SocketManager {
   }
 
   connectSockets() {
-    if (this.roomSocket) this.roomSocket.connect();
+    if (this.gameSocket) this.gameSocket.connect();
     if (this.drawingSocket) this.drawingSocket.connect();
   }
 
   disconnectSockets() {
-    if (this.roomSocket) this.roomSocket.disconnect();
+    if (this.gameSocket) this.gameSocket.disconnect();
     if (this.drawingSocket) this.drawingSocket.disconnect();
   }
 }

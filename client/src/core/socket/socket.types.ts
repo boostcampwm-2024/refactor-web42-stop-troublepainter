@@ -1,10 +1,12 @@
+import { Socket } from 'socket.io-client';
 import { Player, PlayerRole, RoomSettings, Room } from '@/types/game.types';
 
 // 웹소켓 이벤트의 기본 응답 형식을 정의하는 제네릭 인터페이스
-export interface SocketResponse<T = unknown> {
-  data?: T;
-  error?: SocketError;
-}
+// export interface SocketResponse<T = unknown> {
+//   data?: T;
+//   error?: SocketError;
+// }
+// => 각 응답 타입은 Game Flow Event Specifications에 작성
 
 // 웹소켓 에러 정보를 정의하는 인터페이스
 export interface SocketError {
@@ -43,7 +45,8 @@ export enum SocketErrorCode {
   CONNECTION_CLOSED = 7002,
 }
 
-// ----------------------------------------------------------------
+// 클라이언트 - 서버 구조의 요청 - 응답 타입
+// ----------------------------------------------------------------------------------------------------------------------
 
 // 0. 연결 관리
 export interface ReconnectRequest {
@@ -144,46 +147,42 @@ export interface DrawUpdateResponse {
 }
 
 // Socket.IO 이벤트 타입 정의
-export type ServerToClientEvents = {
-  // 방 입장 관련
+// ----------------------------------------------------------------------------------------------------------------------
+
+// 게임 서버 이벤트 타입 정의
+export type GameServerEvents = {
   joinedRoom: (response: JoinRoomResponse) => void;
   playerJoined: (response: JoinRoomResponse) => void;
   playerLeft: (response: PlayerLeftResponse) => void;
-
-  // 게임 설정 관련
   settingUpdated: (response: UpdateSettingsResponse) => void;
   playerStatusUpdated: (response: ReadyResponse) => void;
   gameStarted: (response: GameStartResponse) => void;
-
-  // 게임 진행 관련
   roundStarted: (response: RoundStartResponse) => void;
-  drawTimeUpdated: (response: RoundTimeUpdateResponse) => void;
   roundEnded: (response: RoundEndResponse) => void;
-
-  // 채팅 관련
   messageReceived: (response: ChatResponse) => void;
-
-  // 그리기 관련
-  drawUpdated: (response: DrawUpdateResponse) => void;
-
-  // 에러 처리
-  error: (error: { message: string }) => void;
+  error: (error: SocketError) => void;
 };
-
-export type ClientToServerEvents = {
-  // 연결 관련
+// 게임 클라이언트 이벤트 타입 정의
+export type GameClientEvents = {
   reconnect: (request: ReconnectRequest) => void;
-
-  // 방 입장 관련
   joinRoom: (request: JoinRoomRequest, callback: (response: JoinRoomResponse) => void) => void;
-
-  // 게임 설정 관련
   updateSettings: (request: UpdateSettingsRequest, callback: (response: UpdateSettingsResponse) => void) => void;
   updatePlayerStatus: (request: ReadyRequest, callback: (response: ReadyResponse) => void) => void;
-
-  // 채팅 관련
   sendMessage: (request: ChatRequest) => void;
+};
 
-  // 그리기 관련
+// 드로잉 서버 이벤트 타입 정의
+export type DrawingServerEvents = {
+  drawTimeUpdated: (response: RoundTimeUpdateResponse) => void;
+  drawUpdated: (response: DrawUpdateResponse) => void;
+  error: (error: SocketError) => void;
+};
+// 드로잉 클라이언트 이벤트 타입 정의
+export type DrawingClientEvents = {
   draw: (request: DrawRequest) => void;
 };
+
+// 소켓 타입 정의
+// ----------------------------------------------------------------------------------------------------------------------
+export type GameSocket = Socket<GameServerEvents, GameClientEvents>;
+export type DrawingSocket = Socket<DrawingServerEvents, DrawingClientEvents>;
