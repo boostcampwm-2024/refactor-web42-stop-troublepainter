@@ -23,20 +23,20 @@ export class GameGateway implements OnGatewayDisconnect {
   async handleJoinRoom(@ConnectedSocket() client: Socket, @MessageBody() data: { roomId: string }) {
     const { room, roomSettings, player } = await this.gameService.joinRoom(data.roomId);
 
-    const players = await this.gameService.getRoomPlayers(data.roomId);
+    const players = (await this.gameService.getRoomPlayers(data.roomId)).reverse();
 
     client.data.playerId = player.playerId;
     client.data.roomId = room.roomId;
 
     await client.join(room.roomId);
 
-    this.server.to(room.roomId).emit('playerJoined', { room, roomSettings, players });
+    client.to(room.roomId).emit('playerJoined', { room, roomSettings, players });
 
-    client.emit('joinedRoom', { room, roomSettings, playerId: player.playerId, players });
+    this.server.to(client.id).emit('joinedRoom', { room, roomSettings, playerId: player.playerId, players });
   }
 
   @SubscribeMessage('reconnect')
-  async handleReconnect(@ConnectedSocket() client: Socket, @MessageBody() data: { playerId: string; roomId: string }) {
+  async handleReconnect(@ConnectedSocket() client: Socket, @MessageBody() data: { roomId: string; playerId: string; }) {
     const { playerId, roomId } = data;
 
     const room = await this.gameService.getRoom(roomId);
@@ -60,14 +60,14 @@ export class GameGateway implements OnGatewayDisconnect {
 
     await client.join(roomId);
 
-    client.emit('joinedRoom', {
+    this.server.to(client.id).emit('joinedRoom', {
       room,
       roomSettings,
       playerId,
       players,
     });
 
-    this.server.to(roomId).emit('playerJoined', {
+    client.to(roomId).emit('playerJoined', {
       room,
       roomSettings,
       players,
@@ -88,9 +88,8 @@ export class GameGateway implements OnGatewayDisconnect {
         if (updatedRoom) {
           const players = await this.gameService.getRoomPlayers(roomId);
           this.server.to(roomId).emit('playerLeft', {
-            room: updatedRoom,
+            leftPlayerId : playerId,
             players,
-            playerId,
           });
         }
       }
