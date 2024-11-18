@@ -1,5 +1,6 @@
 import { UserInfoCard } from './UserInfoCard';
 import type { Meta, StoryObj } from '@storybook/react';
+import { PlayerRole, PlayerStatus } from '@/types/game.types';
 
 type Story = StoryObj<typeof UserInfoCard>;
 
@@ -47,22 +48,22 @@ export default {
 export const Default: Story = {
   args: {
     username: 'Player1',
-    status: 'notReady',
+    status: PlayerStatus.NOT_READY,
   },
 };
 
 export const Ready: Story = {
   args: {
     username: 'Player1',
-    status: 'ready',
+    status: PlayerStatus.READY,
   },
 };
 
 export const Gaming: Story = {
   args: {
     username: 'Player1',
-    status: 'gaming',
-    role: '그림꾼',
+    status: PlayerStatus.PLAYING,
+    role: PlayerRole.PAINTER,
     score: 100,
     rank: 1,
   },
