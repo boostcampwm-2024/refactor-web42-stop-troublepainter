@@ -1,9 +1,10 @@
 import { GameCanvas } from '@/components/canvas/GameCanvasExample';
+import { PlayerRole } from '@/types/game.types';
 
 const ExamplePageCanvasOnly = () => {
   return (
     <div className="flex items-center justify-center">
-      <GameCanvas role="방해꾼" />
+      <GameCanvas role={PlayerRole.DEVIL} />
     </div>
   );
 };

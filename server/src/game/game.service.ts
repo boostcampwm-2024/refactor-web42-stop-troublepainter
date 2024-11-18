@@ -1,7 +1,7 @@
 import { BadRequestException, Injectable, NotFoundException } from '@nestjs/common';
 import { Player, PlayerStatus, Room, RoomSettings, RoomStatus } from 'src/types/game.types';
 import { RedisService } from 'src/redis/redis.service';
-import { generatePlayerId, generateRoomId } from 'src/utils/generateId';
+import { v4 } from 'uuid';
 
 @Injectable()
 export class GameService {
@@ -14,7 +14,7 @@ export class GameService {
   constructor(private readonly redisService: RedisService) {}
 
   async createRoom(): Promise<string> {
-    const roomId = await generateRoomId();
+    const roomId = v4();
     const roomSettingsKey = `room:${roomId}:settings`;
     const roomKey = `room:${roomId}`;
 
@@ -53,7 +53,7 @@ export class GameService {
       throw new BadRequestException('Room is full');
     }
 
-    const playerId = await generatePlayerId();
+    const playerId = v4();
     if (players.length === 0) {
       room.hostId = playerId;
     }

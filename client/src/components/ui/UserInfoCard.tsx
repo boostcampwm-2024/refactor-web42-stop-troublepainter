@@ -1,6 +1,6 @@
 import { cva, type VariantProps } from 'class-variance-authority';
 import profilePlaceholder from '@/assets/profile-placeholder.png';
-import { ReadyStatus, UserRank } from '@/types/userInfo.types';
+import { PlayerRole, PlayerStatus } from '@/types/game.types';
 import { cn } from '@/utils/cn';
 import getCrownImage from '@/utils/getCrownImage';
 
@@ -8,15 +8,15 @@ const userInfoCardVariants = cva('flex duration-200 gap-2 lg:transition-colors',
   variants: {
     status: {
       // 대기 상태 - 기본 상태
-      notReady: 'bg-transparent lg:bg-eastbay-400 text-white',
+      NOT_READY: 'bg-transparent lg:bg-eastbay-400 text-white',
       // 준비 완료 상태
-      ready: 'bg-transparent lg:bg-violet-500 text-white',
+      READY: 'bg-transparent lg:bg-violet-500 text-white',
       // 게임 진행 중 상태
-      gaming: 'bg-transparent lg:bg-eastbay-400 text-white',
+      PLAYING: 'bg-transparent lg:bg-eastbay-400 text-white',
     },
   },
   defaultVariants: {
-    status: 'notReady',
+    status: 'NOT_READY',
   },
 });
 
@@ -27,11 +27,11 @@ interface UserInfoCardProps extends VariantProps<typeof userInfoCardVariants> {
 
   /// 게임방 필수
   // 사용자 순위 (1~3등일 경우 왕관 표시)
-  rank?: UserRank;
+  rank?: 0 | 1 | 2;
   // 사용자 점수 (게임 중일 때만 표시)
   score?: number;
   // 사용자 역할 (그림꾼, 방해꾼 등)
-  role?: string;
+  role?: PlayerRole | null;
 
   /// 공통 선택
   // 추가 스타일링을 위한 className
@@ -64,9 +64,9 @@ const UserInfoCard = ({
   username,
   rank,
   score,
-  role = '???',
+  role = null,
   profileImage,
-  status = 'notReady',
+  status = 'NOT_READY',
   className,
 }: UserInfoCardProps) => {
   // 순위에 따른 Crown Image 렌더링 로직
@@ -75,20 +75,21 @@ const UserInfoCard = ({
 
   // 준비 상태 표시 섹션 재료, 추후 픽셀아트로 디자인 할 예정
   const READY_STATUS_CONFIG: Record<
-    ReadyStatus,
+    PlayerStatus,
     {
       text: string;
       className: string;
-    }
+    } | null
   > = {
-    ready: {
+    READY: {
       text: '준비완료',
       className: 'text-white bg-violet-400',
     },
-    notReady: {
+    NOT_READY: {
       text: '대기중',
       className: 'bg-white/10 text-white/60',
     },
+    PLAYING: null,
   } as const;
 
   return (
@@ -108,17 +109,17 @@ const UserInfoCard = ({
           <div className="flex h-12 w-12 items-center justify-center overflow-hidden rounded-full border-2 border-violet-950 bg-white/20 lg:h-14 lg:w-14 lg:rounded-xl">
             <img src={profileImage || profilePlaceholder} alt="사용자 프로필" />
             {/* 모바일 상태 오버레이 */}
-            {status !== 'gaming' ? (
+            {status !== 'PLAYING' ? (
               <div
                 className={cn(
                   'absolute inset-0 flex items-center justify-center rounded-full transition-all duration-300 lg:hidden',
                   {
-                    'bg-violet-500/80 opacity-100': status === 'ready',
-                    'bg-transparent opacity-0': status !== 'ready',
+                    'bg-violet-500/80 opacity-100': status === 'READY',
+                    'bg-transparent opacity-0': status !== 'READY',
                   },
                 )}
               >
-                {status === 'ready' && <span className="text-xs text-stroke-sm">준비</span>}
+                {status === 'READY' && <span className="text-xs text-stroke-sm">준비</span>}
               </div>
             ) : (
               <div className="absolute inset-0 flex items-center justify-center rounded-full bg-black/50 lg:hidden">
@@ -155,7 +156,7 @@ const UserInfoCard = ({
           </div>
           <div className="h-3 text-stroke-sm lg:h-auto">
             <div
-              title={role}
+              title={role || '???'}
               className={cn(
                 // 기본 & 모바일 스타일
                 'w-20 truncate text-[0.625rem] text-gray-50',
@@ -165,7 +166,7 @@ const UserInfoCard = ({
                 '2xl:max-w-52',
               )}
             >
-              {role}
+              {role || '???'}
             </div>
           </div>
         </div>
@@ -179,14 +180,14 @@ const UserInfoCard = ({
           </div>
         )}
 
-        {status !== 'gaming' && (
+        {status !== 'PLAYING' && (
           <div
             className={cn(
               'rounded-md px-3 py-1 text-sm font-medium',
-              READY_STATUS_CONFIG[status || 'notReady'].className,
+              READY_STATUS_CONFIG[status || 'NOT_READY']?.className,
             )}
           >
-            {READY_STATUS_CONFIG[status || 'notReady'].text}
+            {READY_STATUS_CONFIG[status || 'NOT_READY']?.text}
           </div>
         )}
       </div>

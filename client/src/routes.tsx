@@ -5,8 +5,7 @@ import ExamplePage from '@/pages/ExamplePage';
 import ExamplePageCanvasOnly from '@/pages/ExamplePageCanvasOnly';
 import GameRoomPage from '@/pages/GameRoomPage';
 import MainPage from '@/pages/MainPage';
-// import WaitingRoomPage from '@/pages/WaitingRoomPage';
-// import GameRoomPage from '@/pages/GameRoomPage';
+// import LobbyPage from '@/pages/LobbyPage';
 // import ResultPage from '@/pages/ResultPage';
 
 export const router = createBrowserRouter(
@@ -26,19 +25,19 @@ export const router = createBrowserRouter(
               element: <ExamplePage />,
             },
             // {
-            //   path: '/game-room/:roomId',
-            //   element: <WaitingRoomPage />,
+            //   path: '/lobby/:roomId',
+            //   element: <LobbyPage />,
             // },
             {
-              path: '/game-match/:roomId',
+              path: '/game/:roomId',
               element: <GameRoomPage />,
             },
-            // {
-            //   path: '/game-result/:roomId',
-            //   element: <ResultPage />,
-            // },
           ],
         },
+        // {
+        //   path: '/game/:roomId/result',
+        //   element: <ResultPage />,
+        // },
         // 개발용 페이지
         {
           path: '/examples',
