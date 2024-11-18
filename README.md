@@ -20,8 +20,12 @@
   <a href="https://www.figma.com/design/Gl1naj84mDIWkG7IHZoVpo/%EC%9B%A8%EB%B2%A0%EB%B2%B1-UI-%EB%94%94%EC%9E%90%EC%9D%B8?node-id=71-124&t=acRqurOAstA2WU8J-1">피그마</a>
   &nbsp; | &nbsp; 
   <a href="https://github.com/boostcampwm-2024/web30-stop-troublepainter/wiki">위키</a>
+  <br>
+  <a href="http://troublepainter-bucket.s3-website.kr.object.ncloudstorage.com/game-match/123">배포 링크</a>
   &nbsp; | &nbsp; 
   <a href="https://boostcampwm-2024.github.io/web30-stop-troublepainter/">TypeDoc</a>
+  &nbsp; | &nbsp; 
+  <a href="https://boostcampwm-2024.github.io/web30-stop-troublepainter/storybook-develop/?path=/docs/">Storybook</a>
 </p>
 
 <div align=center>

@@ -1,10 +1,7 @@
 import { Module } from '@nestjs/common';
-import { AppController } from './app.controller';
-import { AppService } from './app.service';
 import { RedisModule } from './redis/redis.module';
 import { ConfigModule } from '@nestjs/config';
-import { RoomModule } from './room/room.module';
-import { DrawingModule } from './drawing/drawing.module';
+import { GameModule } from './game/game.module';
 
 @Module({
   imports: [
@@ -13,8 +10,7 @@ import { DrawingModule } from './drawing/drawing.module';
       envFilePath: '.env',
     }),
     RedisModule,
-    RoomModule,
-    DrawingModule,
-  ],  
+    GameModule,
+  ],
 })
 export class AppModule {}
