@@ -5,11 +5,11 @@ import { cn } from '@/utils/cn';
 
 type SettingKey = keyof RoomSettings;
 
-type RoomSettingItem = {
+interface RoomSettingItem {
   key: SettingKey;
   label: string;
   options: number[];
-};
+}
 
 interface SettingProps extends HTMLAttributes<HTMLDivElement> {
   roomSettings?: RoomSettings;
