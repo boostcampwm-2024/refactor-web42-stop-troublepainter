@@ -29,26 +29,10 @@ const MOCK_MESSAGES: Message[] = [
 ];
 
 const MOCK_PARTICIPANTS: Player[] = [
-  { playerId: 'my-id', nickname: '그림러그림러그그림러그림러그', status: PlayerStatus.NOT_READY, score: 0 },
-  { playerId: 'd4e5f6', nickname: 'TroublepainterTroublepainter', status: PlayerStatus.NOT_READY, score: 0 },
-  { playerId: 'g7h8i9', nickname: 'my-id', status: PlayerStatus.NOT_READY, score: 0 },
-  { playerId: 'j1k2l3', nickname: '구경러2', status: PlayerStatus.NOT_READY, score: 0 },
-  { playerId: 'm4n5o6', nickname: '그림러1', status: PlayerStatus.NOT_READY, score: 0 },
-  { playerId: 'p7q8r9', nickname: '방해러1', status: PlayerStatus.READY, score: 0 },
-  { playerId: 's1t2u3', nickname: '구경러1', status: PlayerStatus.READY, score: 0 },
-  { playerId: 'v4w5x6', nickname: '구경러2', status: PlayerStatus.NOT_READY, score: 0 },
-  { playerId: 'y7z8a1', nickname: '그림러1', status: PlayerStatus.READY, score: 0 },
-  { playerId: 'b2c3d4', nickname: '방해러1', status: PlayerStatus.READY, score: 0 },
-  { playerId: 'e5f6g7', nickname: '구경러1', status: PlayerStatus.READY, score: 0 },
-  { playerId: 'h8i9j1', nickname: '구경러2', status: PlayerStatus.NOT_READY, score: 0 },
-  { playerId: 'k2l3m4', nickname: '그림러1', status: PlayerStatus.READY, score: 0 },
-  { playerId: 'n5o6p7', nickname: '방해러1', status: PlayerStatus.READY, score: 0 },
-  { playerId: 'q8r9s1', nickname: '구경러1', status: PlayerStatus.NOT_READY, score: 0 },
-  { playerId: 't2u3v4', nickname: '구경러2', status: PlayerStatus.READY, score: 0 },
-  { playerId: 'w5x6y7', nickname: '그림러1', status: PlayerStatus.NOT_READY, score: 0 },
-  { playerId: 'z8a1b2', nickname: '방해러1', status: PlayerStatus.READY, score: 0 },
-  { playerId: 'c3d4e5', nickname: '구경러1', status: PlayerStatus.READY, score: 0 },
-  { playerId: 'f6g7h8', nickname: '구경러2', status: PlayerStatus.NOT_READY, score: 0 },
+  { playerId: '1', nickname: '구경러1', status: PlayerStatus.PLAYING, role: PlayerRole.GUESSER, score: 3 },
+  { playerId: '2', nickname: '구경러2', status: PlayerStatus.PLAYING, role: PlayerRole.GUESSER, score: 2 },
+  { playerId: '3', nickname: '그림러1', status: PlayerStatus.PLAYING, role: PlayerRole.PAINTER, score: 50 },
+  { playerId: '4', nickname: '방해러1', status: PlayerStatus.PLAYING, role: PlayerRole.DEVIL, score: 40 },
 ];
 
 const GameRoomPage = () => {
