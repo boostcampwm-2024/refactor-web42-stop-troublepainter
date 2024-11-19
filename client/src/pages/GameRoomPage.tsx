@@ -4,8 +4,9 @@ import Chatting from '@/components/chat/Chatting';
 import { Input } from '@/components/ui/Input';
 import { QuizTitle } from '@/components/ui/QuizTitle';
 import { UserInfoCard } from '@/components/ui/UserInfoCard';
+import { useGameSocketStore } from '@/core/socket/gameSocket.store';
 import { Message } from '@/types/chat.types';
-import { PlayerRole, PlayerStatus } from '@/types/game.types';
+import { PlayerRole } from '@/types/game.types';
 import { cn } from '@/utils/cn';
 
 const MOCK_MESSAGES: Message[] = [
@@ -32,6 +33,9 @@ const MOCK_MESSAGES: Message[] = [
 ];
 
 const GameRoomPage = () => {
+  const { players, room, roomSettings } = useGameSocketStore();
+  console.log(players, room, roomSettings);
+
   const [remainingTime] = useState(30);
 
   return (
@@ -55,7 +59,10 @@ const GameRoomPage = () => {
           'lg:m-0 lg:mr-4 lg:h-full lg:w-3/12 lg:flex-col lg:gap-2 lg:overflow-y-scroll lg:border-r-2 lg:border-dashed lg:border-violet-50 lg:p-0 lg:py-3 lg:pr-4 2xl:-mr-5 2xl:py-5 2xl:pr-5',
         )}
       >
-        <UserInfoCard
+        {players?.map((player) => (
+          <UserInfoCard key={player.playerId} username={player.nickname} status={player.status} score={player.score} />
+        ))}
+        {/* <UserInfoCard
           username="그림러그림러그그림러그림러그"
           status={PlayerStatus.PLAYING}
           role={PlayerRole.PAINTER}
@@ -72,7 +79,7 @@ const GameRoomPage = () => {
         <UserInfoCard username="구경러1" status={PlayerStatus.PLAYING} role={PlayerRole.GUESSER} score={3} />
         <UserInfoCard username="구경러2" status={PlayerStatus.PLAYING} role={PlayerRole.GUESSER} score={2} />
         <UserInfoCard username="그림러1" status={PlayerStatus.PLAYING} role={PlayerRole.PAINTER} rank={0} score={50} />
-        <UserInfoCard username="방해러1" status={PlayerStatus.PLAYING} role={PlayerRole.DEVIL} rank={1} score={40} />
+        <UserInfoCard username="방해러1" status={PlayerStatus.PLAYING} role={PlayerRole.DEVIL} rank={1} score={40} /> */}
       </aside>
 
       {/* 중앙 영역 - 게임 화면 */}

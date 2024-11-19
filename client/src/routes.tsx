@@ -4,8 +4,8 @@ import RootLayout from '@/layouts/RootLayout';
 import ExamplePage from '@/pages/ExamplePage';
 import ExamplePageCanvasOnly from '@/pages/ExamplePageCanvasOnly';
 import GameRoomPage from '@/pages/GameRoomPage';
+import LobbyPage from '@/pages/LobbyPage';
 import MainPage from '@/pages/MainPage';
-// import LobbyPage from '@/pages/LobbyPage';
 // import ResultPage from '@/pages/ResultPage';
 
 export const router = createBrowserRouter(
@@ -24,10 +24,10 @@ export const router = createBrowserRouter(
               path: '/game-examples',
               element: <ExamplePage />,
             },
-            // {
-            //   path: '/lobby/:roomId',
-            //   element: <LobbyPage />,
-            // },
+            {
+              path: '/lobby/:roomId',
+              element: <LobbyPage />,
+            },
             {
               path: '/game/:roomId',
               element: <GameRoomPage />,
