@@ -1,55 +1,48 @@
 import { create } from 'zustand';
 import type { Socket } from 'socket.io-client';
 import {
-  createGameSocket,
-  createDrawingSocket,
-  createChatSocket,
   handleSocketError,
+  SocketNamespace,
+  SocketAuth,
+  NAMESPACE_AUTH_REQUIRED,
+  socketCreators,
 } from '@/core/socket/socket.config';
 
 interface SocketState {
-  sockets: {
-    game: Socket | null;
-    drawing: Socket | null;
-    chat: Socket | null;
-  };
-  connected: {
-    game: boolean;
-    drawing: boolean;
-    chat: boolean;
-  };
+  sockets: Record<SocketNamespace, Socket | null>;
+  connected: Record<SocketNamespace, boolean>;
   actions: {
-    connect: (namespace: keyof SocketState['sockets']) => void;
-    disconnect: (namespace: keyof SocketState['sockets']) => void;
+    connect: (namespace: SocketNamespace, auth?: SocketAuth) => void;
+    disconnect: (namespace: SocketNamespace) => void;
     disconnectAll: () => void;
   };
 }
 
-const socketCreators = {
-  game: createGameSocket,
-  drawing: createDrawingSocket,
-  chat: createChatSocket,
-};
-
 export const useSocketStore = create<SocketState>((set, get) => ({
   sockets: {
-    game: null,
-    drawing: null,
-    chat: null,
+    [SocketNamespace.GAME]: null,
+    [SocketNamespace.DRAWING]: null,
+    [SocketNamespace.CHAT]: null,
   },
   connected: {
-    game: false,
-    drawing: false,
-    chat: false,
+    [SocketNamespace.GAME]: false,
+    [SocketNamespace.DRAWING]: false,
+    [SocketNamespace.CHAT]: false,
   },
   actions: {
-    connect: (namespace) => {
+    connect: (namespace: SocketNamespace, auth?: SocketAuth) => {
       const currentSocket = get().sockets[namespace];
       if (currentSocket?.connected) return;
 
-      const newSocket = socketCreators[namespace]();
+      // auth 필요 여부 체크
+      if (NAMESPACE_AUTH_REQUIRED[namespace] && !auth) {
+        console.error(`Auth is required for ${namespace} socket connection`);
+        return;
+      }
 
-      newSocket.on('connect', () => {
+      const socket = socketCreators[namespace](auth);
+
+      socket.on('connect', () => {
         set((state) => ({
           connected: {
             ...state.connected,
@@ -58,7 +51,7 @@ export const useSocketStore = create<SocketState>((set, get) => ({
         }));
       });
 
-      newSocket.on('disconnect', () => {
+      socket.on('disconnect', () => {
         set((state) => ({
           connected: {
             ...state.connected,
@@ -67,20 +60,21 @@ export const useSocketStore = create<SocketState>((set, get) => ({
         }));
       });
 
-      newSocket.on('error', (error) => {
+      socket.on('error', (error) => {
         handleSocketError(error, namespace);
       });
 
-      newSocket.connect();
+      socket.connect();
 
       set((state) => ({
         sockets: {
           ...state.sockets,
-          [namespace]: newSocket,
+          [namespace]: socket,
         },
       }));
     },
-    disconnect: (namespace) => {
+
+    disconnect: (namespace: SocketNamespace) => {
       const socket = get().sockets[namespace];
       if (socket) {
         socket.disconnect();
@@ -96,9 +90,10 @@ export const useSocketStore = create<SocketState>((set, get) => ({
         }));
       }
     },
+
     disconnectAll: () => {
-      Object.keys(get().sockets).forEach((namespace) => {
-        get().actions.disconnect(namespace as keyof SocketState['sockets']);
+      Object.values(SocketNamespace).forEach((namespace) => {
+        get().actions.disconnect(namespace);
       });
     },
   },

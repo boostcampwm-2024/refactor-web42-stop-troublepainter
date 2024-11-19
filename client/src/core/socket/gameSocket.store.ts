@@ -1,7 +1,7 @@
 import { create } from 'zustand';
 import { devtools } from 'zustand/middleware';
 import { useSocketStore } from './socket.store';
-import type { JoinRoomRequest, JoinRoomResponse, ReconnectRequest, SocketError } from '@/core/socket/socket.types';
+import type { JoinRoomRequest, JoinRoomResponse, ReconnectRequest } from '@/core/socket/socket.types';
 import { Player, Room, RoomSettings } from '@/types/game.types';
 
 export const STORAGE_KEYS = {
@@ -24,7 +24,6 @@ interface GameState {
   roomSettings: RoomSettings | null;
   players: Player[];
   currentPlayerId: string | null;
-  error: SocketError | null;
 }
 
 interface GameActions {
@@ -33,7 +32,6 @@ interface GameActions {
   updateRoomSettings: (settings: RoomSettings) => void;
   updatePlayers: (players: Player[]) => void;
   removePlayer: (playerId: string) => void;
-  setError: (error: SocketError | null) => void;
 
   // 소켓 요청 액션
   joinRoom: (request: JoinRoomRequest) => Promise<JoinRoomResponse>;
@@ -51,7 +49,6 @@ const initialState: GameState = {
   roomSettings: null,
   players: [],
   currentPlayerId: null,
-  error: null,
 };
 
 export const useGameSocketStore = create<GameState & { actions: GameActions }>()(
@@ -79,10 +76,6 @@ export const useGameSocketStore = create<GameState & { actions: GameActions }>()
           }));
         },
 
-        setError: (error) => {
-          set({ error });
-        },
-
         // 소켓 요청 액션들
         joinRoom: async (request) => {
           const socket = useSocketStore.getState().sockets.game;
@@ -97,7 +90,6 @@ export const useGameSocketStore = create<GameState & { actions: GameActions }>()
                 roomSettings,
                 players,
                 currentPlayerId: playerId || null,
-                error: null,
               });
 
               if (playerId) {
@@ -125,7 +117,6 @@ export const useGameSocketStore = create<GameState & { actions: GameActions }>()
                 roomSettings,
                 players,
                 currentPlayerId: request.playerId,
-                error: null,
               });
 
               socket.off('reconnected', handleReconnected);

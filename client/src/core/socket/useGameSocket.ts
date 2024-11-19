@@ -1,6 +1,7 @@
 import { useEffect } from 'react';
 import { useParams } from 'react-router-dom';
 import { playerIdStorageUtils, useGameSocketStore } from './gameSocket.store';
+import { SocketNamespace } from './socket.config';
 import { useSocketStore } from './socket.store';
 import type { JoinRoomResponse, PlayerLeftResponse } from './socket.types';
 
@@ -9,13 +10,13 @@ export const useGameSocket = () => {
   const { sockets, connected, actions: socketActions } = useSocketStore();
   const { actions: gameActions } = useGameSocketStore();
 
-  // 재연결 시도
+  // 연결 + 재연결 시도
   useEffect(() => {
     // roomId가 없으면 연결하지 않음
     if (!roomId) return;
 
     // 소켓 연결
-    socketActions.connect('game');
+    socketActions.connect(SocketNamespace.GAME);
 
     // 현재 방의 연결 정보 처리
     const savedPlayerId = playerIdStorageUtils.getPlayerId(roomId);
@@ -35,7 +36,7 @@ export const useGameSocket = () => {
 
     // 연결 해제 시 현재 방의 playerId만 제거
     return () => {
-      socketActions.disconnect('game');
+      socketActions.disconnect(SocketNamespace.GAME);
       playerIdStorageUtils.removePlayerId(roomId);
     };
   }, [roomId]);

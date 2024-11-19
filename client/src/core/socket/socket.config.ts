@@ -1,24 +1,76 @@
 import { io } from 'socket.io-client';
 import type { ChatSocket, DrawingSocket, GameSocket, SocketError } from '@/core/socket/socket.types';
 
-const SOCKET_CONFIG = {
+// 기본 auth 관련 타입 정의
+export interface SocketAuth {
+  roomId: string;
+  playerId: string;
+}
+
+// Socket 네임스페이스 타입
+export enum SocketNamespace {
+  GAME = 'game',
+  DRAWING = 'drawing',
+  CHAT = 'chat',
+}
+
+// Socket 연결 설정 타입
+export interface SocketConnectionConfig {
+  namespace: SocketNamespace;
+  auth?: SocketAuth;
+}
+
+// 인증 요구사항 명시화: 네임스페이스별 Auth 필요 여부
+export const NAMESPACE_AUTH_REQUIRED: Record<SocketNamespace, boolean> = {
+  [SocketNamespace.GAME]: false,
+  [SocketNamespace.DRAWING]: true,
+  [SocketNamespace.CHAT]: true,
+} as const;
+
+// 설정 중앙화: 소켓 설정
+export const SOCKET_CONFIG = {
   URL: import.meta.env.VITE_SOCKET_URL || 'http://localhost:3000',
-  OPTIONS: {
+  BASE_OPTIONS: {
     autoConnect: false,
     reconnection: true,
     reconnectionAttempts: 5,
     reconnectionDelay: 1000,
   },
+  PATHS: {
+    [SocketNamespace.GAME]: '/game',
+    [SocketNamespace.DRAWING]: '/drawing',
+    [SocketNamespace.CHAT]: '/chat',
+  },
+} as const;
+
+// 소켓 타입 유니온
+type SocketType = GameSocket | DrawingSocket | ChatSocket;
+
+// 네임스페이스별 소켓 타입 매핑
+type NamespaceSocketMap = {
+  [SocketNamespace.GAME]: GameSocket;
+  [SocketNamespace.DRAWING]: DrawingSocket;
+  [SocketNamespace.CHAT]: ChatSocket;
 };
 
-// 게임 소켓
-export const createGameSocket = () => io(`${SOCKET_CONFIG.URL}/game`, SOCKET_CONFIG.OPTIONS) as GameSocket;
+// 타입별 소켓 생성 함수 타입
+type SocketCreator<T extends SocketType> = (auth?: SocketAuth) => T;
 
-// 드로잉 소켓
-export const createDrawingSocket = () => io(`${SOCKET_CONFIG.URL}/drawing`, SOCKET_CONFIG.OPTIONS) as DrawingSocket;
+// 제네릭 소켓 생성 함수
+const createSocket = <T extends SocketType>(namespace: SocketNamespace, auth?: SocketAuth): T => {
+  const options = auth ? { ...SOCKET_CONFIG.BASE_OPTIONS, auth } : SOCKET_CONFIG.BASE_OPTIONS;
 
-// 채팅 소켓
-export const createChatSocket = () => io(`${SOCKET_CONFIG.URL}/chat`, SOCKET_CONFIG.OPTIONS) as ChatSocket;
+  return io(`${SOCKET_CONFIG.URL}${SOCKET_CONFIG.PATHS[namespace]}`, options) as T;
+};
+
+// 타입 안전한 소켓 생성 함수들
+export const socketCreators: {
+  [K in SocketNamespace]: SocketCreator<NamespaceSocketMap[K]>;
+} = {
+  [SocketNamespace.GAME]: () => createSocket<GameSocket>(SocketNamespace.GAME),
+  [SocketNamespace.DRAWING]: (auth) => createSocket<DrawingSocket>(SocketNamespace.DRAWING, auth),
+  [SocketNamespace.CHAT]: (auth) => createSocket<ChatSocket>(SocketNamespace.CHAT, auth),
+};
 
 // 공통 에러 핸들러
 export const handleSocketError = (error: SocketError, namespace: string) => {
