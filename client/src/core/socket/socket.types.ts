@@ -63,12 +63,12 @@ export interface JoinRoomResponse {
   room: Room;
   roomSettings: RoomSettings;
   playerId?: string;
-  player: Player[];
+  players: Player[];
 }
 
 export interface PlayerLeftResponse {
   leftPlayerId: string;
-  player: Player[];
+  players: Player[];
 }
 
 // 2. 대기방 설정
@@ -159,7 +159,6 @@ export type GameServerEvents = {
   gameStarted: (response: GameStartResponse) => void;
   roundStarted: (response: RoundStartResponse) => void;
   roundEnded: (response: RoundEndResponse) => void;
-  messageReceived: (response: ChatResponse) => void;
   error: (error: SocketError) => void;
 };
 // 게임 클라이언트 이벤트 타입 정의
@@ -168,7 +167,6 @@ export type GameClientEvents = {
   joinRoom: (request: JoinRoomRequest, callback: (response: JoinRoomResponse) => void) => void;
   updateSettings: (request: UpdateSettingsRequest, callback: (response: UpdateSettingsResponse) => void) => void;
   updatePlayerStatus: (request: ReadyRequest, callback: (response: ReadyResponse) => void) => void;
-  sendMessage: (request: ChatRequest) => void;
 };
 
 // 드로잉 서버 이벤트 타입 정의
@@ -179,10 +177,23 @@ export type DrawingServerEvents = {
 };
 // 드로잉 클라이언트 이벤트 타입 정의
 export type DrawingClientEvents = {
+  connect: (request: ReconnectRequest) => void;
+  reconnect: (request: ReconnectRequest) => void;
   draw: (request: DrawRequest) => void;
+};
+
+// 채팅 서버 이벤트 타입 정의
+export type ChatServerEvents = {
+  messageReceived: (response: ChatResponse) => void;
+  error: (error: SocketError) => void;
+};
+// 채팅 클라이언트 이벤트 타입 정의
+export type ChatClientEvents = {
+  sendMessage: (request: ChatRequest) => void;
 };
 
 // 소켓 타입 정의
 // ----------------------------------------------------------------------------------------------------------------------
 export type GameSocket = Socket<GameServerEvents, GameClientEvents>;
 export type DrawingSocket = Socket<DrawingServerEvents, DrawingClientEvents>;
+export type ChatSocket = Socket<ChatServerEvents, ChatClientEvents>;
