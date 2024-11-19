@@ -1,5 +1,5 @@
 import { HTMLAttributes, useState } from 'react';
-import Dropdown from '../ui/Dropdown';
+import Dropdown from '@/components/ui/Dropdown';
 import { RoomSettings } from '@/types/game.types';
 import { cn } from '@/utils/cn';
 

@@ -1,10 +1,10 @@
 import { createBrowserRouter } from 'react-router-dom';
-import LobbyPage from './pages/LobbyPage';
 import GameLayout from '@/layouts/GameLayout';
 import RootLayout from '@/layouts/RootLayout';
 import ExamplePage from '@/pages/ExamplePage';
 import ExamplePageCanvasOnly from '@/pages/ExamplePageCanvasOnly';
 import GameRoomPage from '@/pages/GameRoomPage';
+import LobbyPage from '@/pages/LobbyPage';
 import MainPage from '@/pages/MainPage';
 // import ResultPage from '@/pages/ResultPage';
 

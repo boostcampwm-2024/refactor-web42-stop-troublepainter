@@ -1,4 +1,4 @@
-import { ChatBubble } from './ChatBubbleUI';
+import { ChatBubble } from '@/components/chat/ChatBubbleUI';
 import { Message } from '@/types/chat.types';
 import { cn } from '@/utils/cn';
 
