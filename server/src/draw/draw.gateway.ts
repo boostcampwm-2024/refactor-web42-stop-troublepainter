@@ -24,15 +24,22 @@ export class DrawGateway implements OnGatewayConnection {
   @SubscribeMessage('draw')
   async handleDraw(
     @ConnectedSocket() client: Socket,
-    @MessageBody() data: any,
+    @MessageBody() data: { drawingData: any },
   ) {
     const roomId = client.data.roomId;
 
     if (!roomId) return;
 
+    console.log('draw', data.drawingData);
+
     client.to(roomId).emit('drawUpdated', {
       playerId: client.data.playerId,
-      data: data,
+      drawingData: data.drawingData,
+    });
+
+    this.server.to(client.id).emit('drawUpdated', {
+      playerId: client.data.playerId,
+      drawingData: data.drawingData,
     });
   }
 }
