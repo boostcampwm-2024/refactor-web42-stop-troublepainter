@@ -1,9 +1,7 @@
 import { useEffect, useState } from 'react';
-import Chatting from '@/components/chat/Chatting';
-import { Setting } from '@/components/setting/Setting';
+import { Setting } from '@/components/game/Setting';
 import { Button } from '@/components/ui/Button';
-import { Input } from '@/components/ui/Input';
-import { UserInfoCard } from '@/components/ui/UserInfoCard';
+import GamePlayLayout from '@/layouts/GamePlayLayout';
 import { Message } from '@/types/chat.types';
 import { Player, PlayerStatus } from '@/types/game.types';
 import { cn } from '@/utils/cn';
@@ -58,14 +56,10 @@ const LobbyPage = () => {
   const [myId, setMyId] = useState('');
   const [hostId, setHostId] = useState('');
   const [isReady, setIsReady] = useState(false);
-  const [messages, setMessages] = useState<Message[]>([]);
-  const [players, setPlayers] = useState<Player[]>([]);
 
   useEffect(() => {
-    setMyId('my-id');
+    setMyId('host-id');
     setHostId('host-id');
-    setMessages(MOCK_MESSAGES);
-    setPlayers(MOCK_PARTICIPANTS);
   }, []);
 
   const handleClickReadyButton = () => {
@@ -73,84 +67,38 @@ const LobbyPage = () => {
   };
 
   return (
-    <div
-      className={cn(
-        // 기본 스타일 (모바일, < 1024px)
-        'relative flex h-[calc(100vh-5rem)] min-h-[50rem] w-screen flex-col items-start justify-start bg-eastbay-600 xs:h-[calc(100vh-6rem)]',
-        // lg
-        'lg:h-[calc(100vh-10rem)] lg:min-h-[29rem] lg:max-w-screen-lg lg:flex-row lg:rounded-lg lg:px-3',
-        // xl
-        'xl:min-h-[34rem] xl:max-w-screen-xl xl:rounded-xl',
-        // 2xl
-        '2xl:min-h-[35.5rem] 2xl:max-w-screen-2xl 2xl:rounded-2xl 2xl:px-5',
-      )}
-    >
-      {/* 유저 정보 영역 */}
-      <aside
-        className={cn(
-          'flex h-24 w-full gap-0.5 overflow-x-scroll px-2 pt-2',
-          // 데스크탑
-          'lg:m-0 lg:mr-4 lg:h-full lg:w-3/12 lg:flex-col lg:gap-2 lg:overflow-y-scroll lg:border-r-2 lg:border-dashed lg:border-violet-50 lg:p-0 lg:py-3 lg:pr-4 2xl:-mr-5 2xl:py-5 2xl:pr-5',
-        )}
-      >
-        {players.map((participant) => {
-          const { nickname, status, role, score, playerId } = participant;
-          return <UserInfoCard key={playerId} username={nickname} status={status} role={role} score={score} />;
-        })}
-      </aside>
+    <GamePlayLayout messages={MOCK_MESSAGES} players={MOCK_PARTICIPANTS}>
+      {/* 중앙 영역 - 대기 화면 */}
+      <div className="flex w-full flex-col gap-0 sm:max-w-[39.5rem] sm:gap-4">
+        <p className="mb-3 text-center text-xl text-eastbay-50 sm:mb-0 sm:text-2xl lg:text-3xl">
+          Get Ready for the next battle
+        </p>
 
-      {/* 중앙 영역 - 설정 화면 */}
-      <section
-        className={cn(
-          'flex w-full flex-col items-center justify-center sm:gap-2',
-          // 데스크톱
-          'lg:w-6/12 lg:gap-4 lg:py-3 2xl:py-5',
-        )}
-      >
-        <div className="flex w-full flex-col gap-0 sm:max-w-[39.5rem] sm:gap-4">
-          <p className="mb-3 text-center text-xl text-eastbay-50 sm:mb-0 sm:text-2xl lg:text-3xl">
-            Get Ready for the next battle
-          </p>
-
-          {<Setting type={myId === hostId ? 'host' : 'participant'} />}
-          <div className="flex h-11 w-full gap-0 sm:h-14 sm:gap-8">
-            <Button
-              variant={isReady ? 'secondary' : 'primary'}
-              onClick={handleClickReadyButton}
-              className={cn(
-                'h-full rounded-none border-0 text-xl',
-                // 데스크톱 ,
-                'sm:rounded-2xl sm:border-2 lg:text-2xl',
-              )}
-            >
-              {isReady ? '해제' : '준비'}
-            </Button>
-            <Button
-              className={cn(
-                'h-full rounded-none border-0 bg-halfbaked-400 text-xl hover:bg-halfbaked-500',
-                // 데스크톱
-                'sm:rounded-2xl sm:border-2 lg:text-2xl',
-              )}
-            >
-              초대
-            </Button>
-          </div>
+        {<Setting type={myId === hostId ? 'host' : 'participant'} />}
+        <div className="flex h-11 w-full gap-0 sm:h-14 sm:gap-8">
+          <Button
+            variant={isReady ? 'secondary' : 'primary'}
+            onClick={handleClickReadyButton}
+            className={cn(
+              'h-full rounded-none border-0 text-xl',
+              // 데스크톱 ,
+              'sm:rounded-2xl sm:border-2 lg:text-2xl',
+            )}
+          >
+            {isReady ? '해제' : '준비'}
+          </Button>
+          <Button
+            className={cn(
+              'h-full rounded-none border-0 bg-halfbaked-400 text-xl hover:bg-halfbaked-500',
+              // 데스크톱
+              'sm:rounded-2xl sm:border-2 lg:text-2xl',
+            )}
+          >
+            초대
+          </Button>
         </div>
-      </section>
-
-      {/* 채팅 영역 */}
-      <aside
-        className={cn(
-          'relative flex min-h-0 w-full flex-1 flex-col items-end px-2 pb-2 sm:h-full',
-          // 데스크탑
-          'lg:ml-4 lg:h-full lg:w-3/12 lg:border-l-2 lg:border-dashed lg:border-violet-50 lg:py-3 lg:pl-2',
-          '2xl:-ml-5 2xl:py-5 2xl:pl-5',
-        )}
-      >
-        <Chatting messages={messages} />
-        <Input placeholder="답을 입력해주세요." className="mt-1 w-full" />
-      </aside>
-    </div>
+      </div>
+    </GamePlayLayout>
   );
 };
 
