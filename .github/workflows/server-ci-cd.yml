@@ -4,8 +4,9 @@ on:
   push:
     branches: [develop]
     paths:
-      - "server/**"
-      - ".github/workflows/server-ci-cd.yml"
+      - 'server/**'
+      - 'core/**'
+      - '.github/workflows/server-ci-cd.yml'
 
 jobs:
   ci:
@@ -17,17 +18,14 @@ jobs:
       - name: Setup Node.js
         uses: actions/setup-node@v4
         with:
-          node-version: "20"
-
+          node-version: '20'
       - name: Setup pnpm
         uses: pnpm/action-setup@v3
         with:
-          version: "9"
+          version: '9'
 
       - name: Install dependencies
-        working-directory: ./server
         run: pnpm install --frozen-lockfile
-
       - name: Create .env file
         working-directory: ./server
         run: |
@@ -35,8 +33,7 @@ jobs:
           echo "REDIS_PORT=${{ secrets.REDIS_PORT }}" >> .env
 
       - name: Run tests
-        working-directory: ./server
-        run: pnpm test | true
+        run: pnpm --filter server test | true
 
   docker-deploy:
     needs: ci
@@ -58,7 +55,8 @@ jobs:
       - name: Build and Push Docker Image
         uses: docker/build-push-action@v5
         with:
-          context: ./server
+          context: .
+          file: ./Dockerfile
           push: true
           tags: ${{ secrets.DOCKERHUB_USERNAME }}/troublepainter:latest
           build-args: |
