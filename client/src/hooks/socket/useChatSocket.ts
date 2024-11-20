@@ -7,6 +7,28 @@ import { SocketNamespace } from '@/stores/socket/socket.config';
 import { useSocketStore } from '@/stores/socket/socket.store';
 import { playerIdStorageUtils } from '@/utils/playerIdStorage';
 
+/**
+ * 채팅 소켓 연결과 메시지 처리를 관리하는 커스텀 훅입니다.
+ *
+ * @remarks
+ * - 소켓 연결 생명주기 관리
+ * - 메시지 송수신 처리
+ * - 메시지 영속성을 위한 채팅 스토어 통합
+ *
+ * @returns
+ * - `messages` - 채팅 메시지 배열
+ * - `isConnected` - 소켓 연결 상태
+ * - `currentPlayerId` - 현재 사용자 ID
+ * - `sendMessage` - 새 메시지 전송 함수
+ *
+ * @example
+ * ```typescript
+ * const { messages, isConnected, sendMessage } = useChatSocket();
+ *
+ * // 메시지 전송
+ * sendMessage("안녕하세요");
+ * ```
+ */
 export const useChatSocket = () => {
   const { roomId } = useParams<{ roomId: string }>();
   const { sockets, connected, actions: socketActions } = useSocketStore();
