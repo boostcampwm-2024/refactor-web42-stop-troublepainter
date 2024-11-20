@@ -12,8 +12,8 @@ import crownFirst from '@/assets/crown-first.png';
  *
  * @example
  * ```tsx
- * // UserInfoCard.tsx에서의 사용 예시
- * const UserInfoCard = ({ username, rank }) => {
+ * // PlayerCard.tsx에서의 사용 예시
+ * const PlayerCard = ({ username, rank }) => {
  *   const crownImage = rank <= 2 ? getCrownImage(rank) : null;
  *
  *   return (

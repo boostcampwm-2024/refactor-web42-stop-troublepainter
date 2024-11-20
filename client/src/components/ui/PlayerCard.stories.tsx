@@ -1,19 +1,19 @@
 import { PlayerRole, PlayerStatus } from '@troublepainter/core';
-import { UserInfoCard } from './UserInfoCard';
+import { PlayerCard } from './PlayerCard';
 import type { Meta, StoryObj } from '@storybook/react';
 
-type Story = StoryObj<typeof UserInfoCard>;
+type Story = StoryObj<typeof PlayerCard>;
 
 export default {
-  title: 'components/game/UserInfoCard',
-  component: UserInfoCard,
+  title: 'components/game/PlayerCard',
+  component: PlayerCard,
   argTypes: {
     status: {
       control: 'select',
       options: ['notReady', 'ready', 'gaming'],
       description: '사용자의 현재 상태',
     },
-    username: {
+    nickname: {
       control: 'text',
       description: '사용자 이름',
     },
@@ -43,25 +43,25 @@ export default {
     layout: 'centered',
   },
   tags: ['autodocs'],
-} satisfies Meta<typeof UserInfoCard>;
+} satisfies Meta<typeof PlayerCard>;
 
 export const Default: Story = {
   args: {
-    username: 'Player1',
+    nickname: 'Player1',
     status: PlayerStatus.NOT_READY,
   },
 };
 
 export const Ready: Story = {
   args: {
-    username: 'Player1',
+    nickname: 'Player1',
     status: PlayerStatus.READY,
   },
 };
 
 export const Gaming: Story = {
   args: {
-    username: 'Player1',
+    nickname: 'Player1',
     status: PlayerStatus.PLAYING,
     role: PlayerRole.PAINTER,
     score: 100,

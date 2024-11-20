@@ -4,7 +4,7 @@ import profilePlaceholder from '@/assets/profile-placeholder.png';
 import { cn } from '@/utils/cn';
 import getCrownImage from '@/utils/getCrownImage';
 
-const userInfoCardVariants = cva('flex duration-200 gap-2 lg:transition-colors', {
+const playerCardVariants = cva('flex duration-200 gap-2 lg:transition-colors', {
   variants: {
     status: {
       // 대기 상태 - 기본 상태
@@ -20,10 +20,10 @@ const userInfoCardVariants = cva('flex duration-200 gap-2 lg:transition-colors',
   },
 });
 
-interface UserInfoCardProps extends VariantProps<typeof userInfoCardVariants> {
+interface PlayerCardProps extends VariantProps<typeof playerCardVariants> {
   /// 공통 필수
   // 사용자 이름
-  username: string;
+  nickname: string;
 
   /// 게임방 필수
   // 사용자 순위 (1~3등일 경우 왕관 표시)
@@ -46,29 +46,29 @@ interface UserInfoCardProps extends VariantProps<typeof userInfoCardVariants> {
  * @component
  * @example
  * // 대기 상태의 사용자
- * <UserInfoCard
- *   username="Player1"
+ * <PlayerCard
+ *   nickname="Player1"
  *   status="notReady"
  * />
  *
  * // 게임 중인 1등 사용자
- * <UserInfoCard
- *   username="Player1"
+ * <PlayerCard
+ *   nickname="Player1"
  *   role="그림꾼"
  *   score={100}
  *   rank={1}
  *   status="gaming"
  * />
  */
-const UserInfoCard = ({
-  username,
+const PlayerCard = ({
+  nickname,
   rank,
   score,
   role = null,
   profileImage,
   status = 'NOT_READY',
   className,
-}: UserInfoCardProps) => {
+}: PlayerCardProps) => {
   // 순위에 따른 Crown Image 렌더링 로직
   const showCrown = rank !== undefined && rank <= 3;
   const crownImage = showCrown ? getCrownImage(rank) : null;
@@ -95,7 +95,7 @@ const UserInfoCard = ({
   return (
     <div
       className={cn(
-        userInfoCardVariants({ status }),
+        playerCardVariants({ status }),
         // 모바일
         'h-20 w-20 items-center',
         // 데스트톱
@@ -141,7 +141,7 @@ const UserInfoCard = ({
         <div className="relative flex -translate-y-1 flex-col text-center lg:translate-y-0 lg:items-start">
           <div className="relative h-3 text-stroke-sm lg:h-auto">
             <div
-              title={username}
+              title={nickname}
               className={cn(
                 // 기본 & 모바일 스타일
                 'w-20 truncate text-xs text-chartreuseyellow-400',
@@ -151,7 +151,7 @@ const UserInfoCard = ({
                 '2xl:max-w-52 2xl:text-xl',
               )}
             >
-              {username}
+              {nickname}
             </div>
           </div>
           <div className="h-3 text-stroke-sm lg:h-auto">
@@ -195,4 +195,4 @@ const UserInfoCard = ({
   );
 };
 
-export { UserInfoCard, userInfoCardVariants };
+export { PlayerCard, playerCardVariants };

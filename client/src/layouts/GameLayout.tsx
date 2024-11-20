@@ -1,7 +1,7 @@
 import { Outlet } from 'react-router-dom';
 import { Chat } from '@/components/chat/Chat';
 import { Logo } from '@/components/ui/Logo';
-import { UserInfoCard } from '@/components/ui/UserInfoCard';
+import { PlayerCard } from '@/components/ui/PlayerCard';
 import { useGameSocket } from '@/hooks/socket/useGameSocket';
 import { useGameSocketStore } from '@/stores/socket/gameSocket.store';
 import { cn } from '@/utils/cn';
@@ -42,7 +42,7 @@ const GameLayout = () => {
             '2xl:min-h-[35.5rem] 2xl:max-w-screen-2xl 2xl:rounded-2xl 2xl:px-5',
           )}
         >
-          {/* 유저 정보 영역 */}
+          {/* 플레이어 정보 영역 */}
           <aside
             className={cn(
               'flex h-24 w-full gap-0.5 overflow-x-scroll px-2 pt-2',
@@ -52,9 +52,9 @@ const GameLayout = () => {
           >
             {/* 임시 데이터 */}
             {players?.map((player) => (
-              <UserInfoCard
+              <PlayerCard
                 key={player.playerId}
-                username={player.nickname}
+                nickname={player.nickname}
                 status={player.status}
                 score={player.score}
               />
