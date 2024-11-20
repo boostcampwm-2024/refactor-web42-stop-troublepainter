@@ -32,8 +32,6 @@ export class GameGateway implements OnGatewayDisconnect {
     await client.join(room.roomId);
 
     client.to(room.roomId).emit('playerJoined', { room, roomSettings, players });
-    //
-    this.server.to(client.id).emit('playerJoined', { room, roomSettings, players });
 
     this.server.to(client.id).emit('joinedRoom', { room, roomSettings, playerId: player.playerId, players });
   }
@@ -55,9 +53,6 @@ export class GameGateway implements OnGatewayDisconnect {
       playerId,
       players,
     });
-
-    //
-    this.server.to(client.id).emit('playerJoined', { room, roomSettings, players });
 
     client.to(roomId).emit('playerJoined', {
       room,

@@ -41,7 +41,5 @@ export class ChatGateway {
     const chatResponse = await this.chatService.sendMessage(roomId, playerId, data.message);
 
     client.to(roomId).emit('messageReceived', chatResponse);
-
-    this.server.to(client.id).emit('messageReceived', chatResponse);
   }
 }

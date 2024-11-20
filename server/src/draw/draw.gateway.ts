@@ -37,11 +37,5 @@ export class DrawGateway implements OnGatewayConnection {
       playerId: client.data.playerId,
       drawingData: data.drawingData,
     });
-
-    //
-    this.server.to(client.id).emit('drawUpdated', {
-      playerId: client.data.playerId,
-      drawingData: data.drawingData,
-    });
   }
 }
