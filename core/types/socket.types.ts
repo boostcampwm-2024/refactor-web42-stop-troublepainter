@@ -124,12 +124,10 @@ export interface ChatRequest {
 }
 
 export interface ChatResponse {
-  id: string;
   playerId: string;
   nickname: string;
   message: string;
-  timestamp: number;
-  isCorrectAnswer?: boolean;
+  createdAt: Date; // Redis X
 }
 
 export interface DrawRequest {
@@ -159,18 +157,9 @@ export type GameServerEvents = {
 // 게임 클라이언트 이벤트 타입 정의
 export type GameClientEvents = {
   reconnect: (request: ReconnectRequest) => void;
-  joinRoom: (
-    request: JoinRoomRequest,
-    callback: (response: JoinRoomResponse) => void
-  ) => void;
-  updateSettings: (
-    request: UpdateSettingsRequest,
-    callback: (response: UpdateSettingsResponse) => void
-  ) => void;
-  updatePlayerStatus: (
-    request: ReadyRequest,
-    callback: (response: ReadyResponse) => void
-  ) => void;
+  joinRoom: (request: JoinRoomRequest, callback: (response: JoinRoomResponse) => void) => void;
+  updateSettings: (request: UpdateSettingsRequest, callback: (response: UpdateSettingsResponse) => void) => void;
+  updatePlayerStatus: (request: ReadyRequest, callback: (response: ReadyResponse) => void) => void;
 };
 
 // 드로잉 서버 이벤트 타입 정의
