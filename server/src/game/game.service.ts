@@ -2,7 +2,12 @@ import { Injectable } from '@nestjs/common';
 import { Player, Room, RoomSettings } from 'src/common/types/game.types';
 import { v4 } from 'uuid';
 import { GameRepository } from './game.repository';
-import { PlayerNotFoundException, RoomFullException, RoomNotFoundException } from 'src/exceptions/game.exception';
+import {
+  PlayerNotFoundException,
+  RoomFullException,
+  RoomNotFoundException,
+  BadRequestException,
+} from 'src/exceptions/game.exception';
 import { RoomStatus, PlayerStatus } from 'src/common/enums/game.status.enum';
 
 @Injectable()
@@ -106,5 +111,18 @@ export class GameService {
     await this.gameRepository.removePlayerFromRoom(roomId, playerId);
 
     return remainingPlayers;
+  }
+
+  async updateSettings(roomId: string, playerId: string, data: Partial<RoomSettings>) {
+    const room = await this.gameRepository.getRoom(roomId);
+    if (!room) throw new RoomNotFoundException('Room not found');
+    if (room.hostId !== playerId) throw new BadRequestException('Player is not the host');
+
+    const roomSettings = await this.gameRepository.getRoomSettings(roomId);
+
+    const updatedSettings = { ...roomSettings, ...data };
+    await this.gameRepository.updateRoomSettings(roomId, updatedSettings);
+
+    return updatedSettings;
   }
 }

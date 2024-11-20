@@ -41,6 +41,7 @@ export class GameRepository {
 
   async getRoomSettings(roomId: string) {
     const settings = await this.redisService.hgetall(`room:${roomId}:settings`);
+
     return {
       maxPlayers: parseInt(settings.maxPlayers, 10),
       totalRounds: parseInt(settings.totalRounds, 10),
@@ -79,5 +80,9 @@ export class GameRepository {
     multi.lrem(`room:${roomId}:players`, 0, playerId);
     multi.del(`room:${roomId}:players:${playerId}`);
     await multi.exec();
+  }
+
+  async updateRoomSettings(roomId: string, settings: RoomSettings) {
+    await this.redisService.hset(`room:${roomId}:settings`, settings);
   }
 }

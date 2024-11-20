@@ -10,6 +10,8 @@ import { Server, Socket } from 'socket.io';
 import { GameService } from './game.service';
 import { UseFilters } from '@nestjs/common';
 import { WsExceptionFilter } from 'src/filters/ws-exception.filter';
+import { RoomSettings } from 'src/common/types/game.types';
+import { BadRequestException } from 'src/exceptions/game.exception';
 
 @WebSocketGateway({
   cors: '*',
@@ -61,9 +63,20 @@ export class GameGateway implements OnGatewayDisconnect {
     });
   }
 
+  @SubscribeMessage('updateSettings')
+  async handleSettings(@ConnectedSocket() client: Socket, @MessageBody() data: Partial<RoomSettings>) {
+    const { playerId, roomId } = client.data;
+    if (!playerId || !roomId) throw new BadRequestException('Room ID and Player ID are required');
+
+    const updatedSettings = await this.gameService.updateSettings(roomId, playerId, data);
+
+    client.to(roomId).emit('settingsUpdated', updatedSettings);
+    this.server.to(client.id).emit('settingsUpdated', updatedSettings);
+  }
+
   async handleDisconnect(client: Socket) {
     const { playerId, roomId } = client.data;
-    if (!playerId || !roomId) return;
+    if (!playerId || !roomId) throw new BadRequestException('Room ID and Player ID are required');
 
     setTimeout(async () => {
       const sockets = await this.server.fetchSockets();
