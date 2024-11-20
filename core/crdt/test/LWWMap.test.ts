@@ -1,8 +1,11 @@
-import { LWWMap } from '../crdt/LWWMap';
+import { LWWMap } from '../LWWMap';
 import { Stroke, MapState, RegisterState } from '../crdt.types';
 
 describe('LWWMap', () => {
-  const createTestStroke = (color: string = '#000000', width: number = 2): Stroke => ({
+  const createTestStroke = (
+    color: string = '#000000',
+    width: number = 2
+  ): Stroke => ({
     points: [
       { x: 0, y: 0 },
       { x: 2, y: 2 },
@@ -150,7 +153,11 @@ describe('LWWMap', () => {
       const modifyTime = deleteTime + 1000;
       vi.setSystemTime(modifyTime);
       const modifiedStroke = createTestStroke('#0000ff');
-      const modifiedState: RegisterState<Stroke | null> = ['peer2', modifyTime, modifiedStroke];
+      const modifiedState: RegisterState<Stroke | null> = [
+        'peer2',
+        modifyTime,
+        modifiedStroke,
+      ];
       map2.mergeRegister(id, modifiedState);
 
       // 양방향 동기화

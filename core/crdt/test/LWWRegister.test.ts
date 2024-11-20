@@ -1,8 +1,11 @@
-import { LWWRegister } from '../crdt/LWWRegister';
+import { LWWRegister } from '../LWWRegister';
 import { Stroke, RegisterState } from '../crdt.types';
 
 describe('LWWRegister', () => {
-  const createTestStroke = (color: string = '#000000', width: number = 2): Stroke => ({
+  const createTestStroke = (
+    color: string = '#000000',
+    width: number = 2
+  ): Stroke => ({
     points: [
       { x: 0, y: 0 },
       { x: 2, y: 2 },
@@ -18,7 +21,11 @@ describe('LWWRegister', () => {
 
   beforeEach(() => {
     const initialStroke = createTestStroke();
-    const initialState: RegisterState<Stroke> = ['peer1', Date.now(), initialStroke];
+    const initialState: RegisterState<Stroke> = [
+      'peer1',
+      Date.now(),
+      initialStroke,
+    ];
     register = new LWWRegister('peer1', initialState);
   });
 
@@ -73,7 +80,11 @@ describe('LWWRegister', () => {
       const newTime = oldTime + 1000;
       vi.setSystemTime(newTime);
       const remoteStroke = createTestStroke('#00ff00');
-      const remoteState: RegisterState<Stroke> = ['peer2', newTime, remoteStroke];
+      const remoteState: RegisterState<Stroke> = [
+        'peer2',
+        newTime,
+        remoteStroke,
+      ];
 
       const updated = register.merge(remoteState);
 
@@ -99,7 +110,11 @@ describe('LWWRegister', () => {
       // 더 오래된 타임스탬프로 원격 상태 생성
       const oldTime = newTime - 1000;
       const remoteStroke = createTestStroke('#00ff00');
-      const remoteState: RegisterState<Stroke> = ['peer2', oldTime, remoteStroke];
+      const remoteState: RegisterState<Stroke> = [
+        'peer2',
+        oldTime,
+        remoteStroke,
+      ];
 
       const updated = register.merge(remoteState);
 
@@ -116,12 +131,20 @@ describe('LWWRegister', () => {
       // 동일한 타임스탬프에서의 충돌 해결 테스트
       const timestamp = Date.now();
       const localStroke = createTestStroke('#ff0000');
-      const localState: RegisterState<Stroke> = ['peer1', timestamp, localStroke];
+      const localState: RegisterState<Stroke> = [
+        'peer1',
+        timestamp,
+        localStroke,
+      ];
       const localRegister = new LWWRegister('peer1', localState);
 
       // 동일한 타임스탬프지만 더 높은 peer ID를 가진 원격 상태 생성
       const remoteStroke = createTestStroke('#00ff00');
-      const remoteState: RegisterState<Stroke> = ['peer2', timestamp, remoteStroke];
+      const remoteState: RegisterState<Stroke> = [
+        'peer2',
+        timestamp,
+        remoteStroke,
+      ];
 
       const updated = localRegister.merge(remoteState);
 
@@ -133,7 +156,11 @@ describe('LWWRegister', () => {
     it('should handle null values in merge', () => {
       const timestamp = Date.now();
       // null 값을 포함한 원격 상태 생성
-      const remoteState: RegisterState<Stroke | null> = ['peer2', timestamp + 1000, null];
+      const remoteState: RegisterState<Stroke | null> = [
+        'peer2',
+        timestamp + 1000,
+        null,
+      ];
 
       const updated = register.merge(remoteState);
 

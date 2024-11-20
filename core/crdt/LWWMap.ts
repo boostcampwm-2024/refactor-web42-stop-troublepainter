@@ -1,5 +1,5 @@
-import { MapState, RegisterState, Stroke } from '../crdt.types.ts';
-import { LWWRegister } from './LWWRegister.ts';
+import { MapState, RegisterState, Stroke } from './crdt.types';
+import { LWWRegister } from './LWWRegister';
 
 export class LWWMap {
   readonly id: string;
@@ -37,7 +37,11 @@ export class LWWMap {
   addStroke(stroke: Stroke): string {
     const timestamp = Date.now();
     const id = `${this.id}-${timestamp}-${Math.random().toString(36).substring(2, 9)}`;
-    const register = new LWWRegister<Stroke | null>(this.id, [this.id, timestamp, stroke]);
+    const register = new LWWRegister<Stroke | null>(this.id, [
+      this.id,
+      timestamp,
+      stroke,
+    ]);
     this.#data.set(id, register);
     return id;
   }
@@ -75,7 +79,10 @@ export class LWWMap {
   }
 
   // 단일 레지스터 업데이트
-  mergeRegister(key: string, remoteRegisterState: RegisterState<Stroke | null>): boolean {
+  mergeRegister(
+    key: string,
+    remoteRegisterState: RegisterState<Stroke | null>
+  ): boolean {
     const localRegister = this.#data.get(key);
 
     if (localRegister) {
