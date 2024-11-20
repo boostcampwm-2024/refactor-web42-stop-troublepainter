@@ -6,7 +6,7 @@ import {
   SocketAuth,
   NAMESPACE_AUTH_REQUIRED,
   socketCreators,
-} from '@/core/socket/socket.config';
+} from '@/stores/socket/socket.config';
 
 interface SocketState {
   sockets: Record<SocketNamespace, Socket | null>;

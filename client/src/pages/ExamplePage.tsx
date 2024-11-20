@@ -10,7 +10,7 @@ import { Logo } from '@/components/ui/Logo';
 import { Modal } from '@/components/ui/Modal';
 import { UserInfoCard } from '@/components/ui/UserInfoCard';
 import { useModal } from '@/hooks/useModal';
-import { PlayerRole } from '@/types/game.types';
+import { PlayerRole } from '@/types/gameShared.types';
 
 const ExamplePage = () => {
   const [isReady, setIsReady] = useState(false);

@@ -1,5 +1,5 @@
 import { GameCanvas } from '@/components/canvas/GameCanvasExample';
-import { PlayerRole } from '@/types/game.types';
+import { PlayerRole } from '@/types/gameShared.types';
 
 const ExamplePageCanvasOnly = () => {
   return (

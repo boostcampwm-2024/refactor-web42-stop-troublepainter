@@ -1,6 +1,6 @@
 import { useNavigate, useParams } from 'react-router-dom';
 import { Button } from '@/components/ui/Button';
-import { useGameSocketStore } from '@/core/socket/gameSocket.store';
+import { useGameSocketStore } from '@/stores/socket/gameSocket.store';
 
 const LobbyPage = () => {
   const { roomId } = useParams<{ roomId: string }>();

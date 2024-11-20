@@ -1,6 +1,5 @@
-import { Socket } from 'socket.io-client';
-import { DrawingData } from '@/types/canvas.types';
-import { Player, PlayerRole, RoomSettings, Room } from '@/types/game.types';
+import { DrawingData } from '@/types/drawingShared.types';
+import { Player, PlayerRole, Room, RoomSettings } from '@/types/gameShared.types';
 
 // 웹소켓 이벤트의 기본 응답 형식을 정의하는 제네릭 인터페이스
 // export interface SocketResponse<T = unknown> {
@@ -187,9 +186,3 @@ export type ChatServerEvents = {
 export type ChatClientEvents = {
   sendMessage: (request: ChatRequest) => void;
 };
-
-// 소켓 타입 정의
-// ----------------------------------------------------------------------------------------------------------------------
-export type GameSocket = Socket<GameServerEvents, GameClientEvents>;
-export type DrawingSocket = Socket<DrawingServerEvents, DrawingClientEvents>;
-export type ChatSocket = Socket<ChatServerEvents, ChatClientEvents>;

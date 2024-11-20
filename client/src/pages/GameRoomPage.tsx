@@ -4,9 +4,9 @@ import Chatting from '@/components/chat/Chatting';
 import { Input } from '@/components/ui/Input';
 import { QuizTitle } from '@/components/ui/QuizTitle';
 import { UserInfoCard } from '@/components/ui/UserInfoCard';
-import { useGameSocketStore } from '@/core/socket/gameSocket.store';
+import { useGameSocketStore } from '@/stores/socket/gameSocket.store';
 import { Message } from '@/types/chat.types';
-import { PlayerRole } from '@/types/game.types';
+import { PlayerRole } from '@/types/gameShared.types';
 import { cn } from '@/utils/cn';
 
 const MOCK_MESSAGES: Message[] = [

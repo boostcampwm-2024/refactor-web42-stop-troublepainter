@@ -2,11 +2,11 @@
 // 특정 기능(드로잉)에 집중된 이벤트 핸들링
 import { useCallback, useEffect } from 'react';
 import { useParams } from 'react-router-dom';
-import type { DrawUpdateResponse } from '@/core/socket/socket.types';
-import type { DrawingData } from '@/types/canvas.types';
-import { playerIdStorageUtils } from '@/core/socket/gameSocket.store';
-import { SocketNamespace } from '@/core/socket/socket.config';
-import { useSocketStore } from '@/core/socket/socket.store';
+import type { DrawingData } from '@/types/drawingShared.types';
+import type { DrawUpdateResponse } from '@/types/socketShared.types';
+import { playerIdStorageUtils } from '@/stores/socket/gameSocket.store';
+import { SocketNamespace } from '@/stores/socket/socket.config';
+import { useSocketStore } from '@/stores/socket/socket.store';
 
 interface UseDrawingSocketProps {
   onDrawUpdate?: (response: DrawUpdateResponse) => void;

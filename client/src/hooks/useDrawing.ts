@@ -1,6 +1,7 @@
 import { RefObject, useCallback, useEffect, useRef, useState } from 'react';
+import type { DrawingMode, RGBA } from '@/types/canvas.types';
+import type { DrawingData, Point, StrokeStyle } from '@/types/drawingShared.types';
 import { DEFAULT_MAX_PIXELS, COLORS_INFO, DRAWING_MODE, LINEWIDTH_VARIABLE } from '@/constants/canvasConstants';
-import { DrawingMode, Point, DrawingData, StrokeStyle, RGBA } from '@/types/canvas.types';
 import { getCanvasContext } from '@/utils/getCanvasContext';
 import { hexToRGBA } from '@/utils/hexToRGBA';
 

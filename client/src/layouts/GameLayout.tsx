@@ -1,6 +1,6 @@
 import { Outlet } from 'react-router-dom';
 import { Logo } from '@/components/ui/Logo';
-import { useGameSocket } from '@/core/socket/useGameSocket';
+import { useGameSocket } from '@/hooks/socket/useGameSocket';
 
 const GameLayout = () => {
   const { isConnected } = useGameSocket();

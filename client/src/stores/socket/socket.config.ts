@@ -1,5 +1,6 @@
 import { io } from 'socket.io-client';
-import type { ChatSocket, DrawingSocket, GameSocket, SocketError } from '@/core/socket/socket.types';
+import { ChatSocket, DrawingSocket, GameSocket } from '@/types/socket.types';
+import { SocketError } from '@/types/socketShared.types';
 
 // 기본 auth 관련 타입 정의
 export interface SocketAuth {

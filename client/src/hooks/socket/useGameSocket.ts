@@ -1,9 +1,9 @@
 import { useEffect } from 'react';
 import { useParams } from 'react-router-dom';
-import type { JoinRoomResponse, PlayerLeftResponse } from '@/core/socket/socket.types';
-import { playerIdStorageUtils, useGameSocketStore } from '@/core/socket/gameSocket.store';
-import { SocketNamespace } from '@/core/socket/socket.config';
-import { useSocketStore } from '@/core/socket/socket.store';
+import type { JoinRoomResponse, PlayerLeftResponse } from '@/types/socketShared.types';
+import { playerIdStorageUtils, useGameSocketStore } from '@/stores/socket/gameSocket.store';
+import { SocketNamespace } from '@/stores/socket/socket.config';
+import { useSocketStore } from '@/stores/socket/socket.store';
 
 /**
  * 게임 진행에 필요한 소켓 연결과 상태를 관리하는 Hook입니다.

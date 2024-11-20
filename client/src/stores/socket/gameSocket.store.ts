@@ -1,8 +1,8 @@
 import { create } from 'zustand';
 import { devtools } from 'zustand/middleware';
 import { useSocketStore } from './socket.store';
-import type { JoinRoomRequest, JoinRoomResponse, ReconnectRequest } from '@/core/socket/socket.types';
-import { Player, Room, RoomSettings } from '@/types/game.types';
+import { Player, Room, RoomSettings } from '@/types/gameShared.types';
+import { JoinRoomRequest, JoinRoomResponse, ReconnectRequest } from '@/types/socketShared.types';
 
 export const STORAGE_KEYS = {
   PLAYER_ID: (roomId: string) => `playerId_${roomId}`,

@@ -1,4 +1,4 @@
-import { SettingOption, Setting, SettingKey } from '@/types/setting.types';
+import { SettingOption, Setting, SettingKey } from '@/types/setting';
 
 export const OPTIONS: Record<SettingKey, SettingOption[]> = {
   roundCount: [
