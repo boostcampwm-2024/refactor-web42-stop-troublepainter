@@ -1,0 +1,9 @@
+{
+  "include": [
+    "./client/src/hooks/**/*.ts",
+    "./client/src/hooks/**/*.tsx",
+    "./client/src/utils/**/*.ts",
+    "./server/src/utils/**/*.ts"
+  ],
+  "exclude": ["**/node_modules", "**/dist"]
+}

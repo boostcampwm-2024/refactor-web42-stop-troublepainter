@@ -1,8 +1,4 @@
 {
   "files": [],
-  "references": [{ "path": "./tsconfig.app.json" }, { "path": "./tsconfig.node.json" }],
-  "typedocOptions": {
-    "entryPoints": ["src/utils/*.ts", "src/hooks/*.ts", "src/hooks/*.tsx"],
-    "out": "docs"
-  }
+  "references": [{ "path": "./tsconfig.app.json" }, { "path": "./tsconfig.node.json" }]
 }

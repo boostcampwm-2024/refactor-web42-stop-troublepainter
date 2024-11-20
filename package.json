@@ -1,0 +1,26 @@
+{
+  "name": "troublepainter-monorepo",
+  "private": true,
+  "scripts": {
+    "typedoc": "typedoc",
+    "dev:client": "pnpm --filter client dev",
+    "dev:server": "pnpm --filter server start:dev",
+    "dev": "pnpm --filter client dev & pnpm --filter server start:dev",
+    "build": "pnpm -r build",
+    "build:core": "pnpm --filter @troublepainter/core build",
+    "build:full": "pnpm build:core && pnpm build",
+    "start": "pnpm -r --parallel start",
+    "start:client": "pnpm --filter client start",
+    "start:server": "pnpm --filter server start",
+    "run:full": "pnpm build:full && pnpm start",
+    "clean": "pnpm -r clean",
+    "test": "pnpm -r test"
+  },
+  "devDependencies": {
+    "typedoc": "^0.26.11",
+    "typedoc-plugin-extras": "^3.1.0"
+  },
+  "dependencies": {
+    "@troublepainter/core": "workspace:*"
+  }
+}

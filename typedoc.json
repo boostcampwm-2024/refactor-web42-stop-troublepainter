@@ -1,0 +1,28 @@
+{
+  "name": "Webebeb Team's Tools Docs",
+  "out": "docs",
+  "entryPointStrategy": "expand",
+  "exclude": [
+    "**/*.stories.tsx",
+    "**/*.test.ts",
+    "**/node_modules/**",
+    "**/dist/**"
+  ],
+  "entryPoints": [
+    "./client/src/utils/**/*.ts",
+    "./client/src/hooks/**/*.ts",
+    "./client/src/hooks/**/*.tsx",
+    "./server/src/utils/**/*.ts"
+  ],
+  "categorizeByGroup": true,
+  "categoryOrder": ["Client Utils", "Client Hooks", "Server Utils"],
+  "navigationLinks": {
+    "Documentation": "/web30-stop-troublepainter/",
+    "Storybook (Main)": "/web30-stop-troublepainter/storybook",
+    "Storybook (Develop)": "/web30-stop-troublepainter/storybook-develop"
+  },
+  "plugin": ["typedoc-plugin-extras"],
+  "favicon": "./client/public/favicon.ico",
+  "skipErrorChecking": true,
+  "tsconfig": "./tsconfig.base.json"
+}

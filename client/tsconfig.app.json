@@ -1,4 +1,5 @@
 {
+  "extends": "../tsconfig.base.json",
   "compilerOptions": {
     "incremental": true,
     "tsBuildInfoFile": "./node_modules/.tmp/tsconfig.app.tsbuildinfo",
@@ -26,8 +27,8 @@
     "baseUrl": ".",
     "paths": {
       "@/*": ["./src/*"]
-    },
-    "types": ["vitest/globals"]
+    }
   },
-  "include": ["src/**/*.ts", "src/**/*.tsx", ".storybook/**/*", "vite.config.ts"]
+  "include": ["src/**/*.ts", "src/**/*.tsx", ".storybook/**/*", "vite.config.ts"],
+  "exclude": ["node_modules", "dist"]
 }
