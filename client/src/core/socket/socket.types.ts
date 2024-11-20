@@ -1,4 +1,5 @@
 import { Socket } from 'socket.io-client';
+import { DrawingData } from '@/types/canvas.types';
 import { Player, PlayerRole, RoomSettings, Room } from '@/types/game.types';
 
 // 웹소켓 이벤트의 기본 응답 형식을 정의하는 제네릭 인터페이스
@@ -133,17 +134,12 @@ export interface ChatResponse {
 }
 
 export interface DrawRequest {
-  type: 'pen' | 'fill';
-  color: string;
-  points?: Array<{ x: number; y: number }>;
-  fillPoint?: { x: number; y: number };
-  brushSize?: number;
+  drauwingData: DrawingData;
 }
 
 export interface DrawUpdateResponse {
   playerId: string;
-  // TODO: 캔버스와 통일 예정
-  // drawingData: DrawingData;
+  drawingData: DrawingData;
 }
 
 // Socket.IO 이벤트 타입 정의

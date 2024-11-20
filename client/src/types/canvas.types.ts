@@ -28,7 +28,7 @@ export interface RGBA {
   a: number;
 }
 
-//아래 태연님 코드 관련
+// 아래 태연님 코드 관련
 
 export type DrawingMode = (typeof DRAWING_MODE)[keyof typeof DRAWING_MODE];
 
@@ -46,4 +46,14 @@ export interface CanvasEventHandlers {
 export interface Point {
   x: number;
   y: number;
+}
+
+export interface StrokeStyle {
+  color: string;
+  width: number;
+}
+
+export interface DrawingData {
+  points: Point[];
+  style: StrokeStyle;
 }
