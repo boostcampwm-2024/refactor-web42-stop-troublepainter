@@ -51,6 +51,36 @@ const initialState: GameState = {
   currentPlayerId: null,
 };
 
+/**
+ * 게임 상태를 관리하는 Store입니다.
+ *
+ * @remarks
+ * 게임의 전역 상태(방, 플레이어, 설정 등)를 저장하고
+ * 소켓 이벤트에 따라 상태를 업데이트합니다.
+ *
+ * @example
+ * ```typescript
+ * const GameComponent = () => {
+ *   const { room, players, actions } = useGameSocketStore();
+ *
+ *   useEffect(() => {
+ *     // 방 입장 처리
+ *     actions.joinRoom({ roomId: "123" });
+ *   }, []);
+ *
+ *   if (!room) return <div>로딩중...</div>;
+ *
+ *   return (
+ *     <div>
+ *       <h1>방 {room.roomId}</h1>
+ *       <PlayerList players={players} />
+ *     </div>
+ *   );
+ * };
+ * ```
+ *
+ * @category Store
+ */
 export const useGameSocketStore = create<GameState & { actions: GameActions }>()(
   devtools(
     (set) => ({

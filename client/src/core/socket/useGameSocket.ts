@@ -1,10 +1,62 @@
 import { useEffect } from 'react';
 import { useParams } from 'react-router-dom';
-import { playerIdStorageUtils, useGameSocketStore } from './gameSocket.store';
-import { SocketNamespace } from './socket.config';
-import { useSocketStore } from './socket.store';
-import type { JoinRoomResponse, PlayerLeftResponse } from './socket.types';
+import type { JoinRoomResponse, PlayerLeftResponse } from '@/core/socket/socket.types';
+import { playerIdStorageUtils, useGameSocketStore } from '@/core/socket/gameSocket.store';
+import { SocketNamespace } from '@/core/socket/socket.config';
+import { useSocketStore } from '@/core/socket/socket.store';
 
+/**
+ * 게임 진행에 필요한 소켓 연결과 상태를 관리하는 Hook입니다.
+ *
+ * @remarks
+ * - store 중심적 구조
+ * - 자동 연결/재연결 처리
+ * - 플레이어 식별자 영속성 관리
+ * - 게임의 전반적인 상태 관리 (room, players, settings 등)
+ * - 여러 게임 상태 이벤트 포괄적인 핸들링
+ *
+ * @example
+ * ```typescript
+ * // GameLayout.tsx에서의 사용 예시
+ * const GameLayout = () => {
+ *   const { isConnected } = useGameSocket();
+ *
+ *   // 연결 상태에 따른 UI 처리
+ *   if (!isConnected) {
+ *     return <LoadingSpinner message="연결 중..." />;
+ *   }
+ *
+ *   return (
+ *     <div>
+ *       <header />
+ *       <Outlet />
+ *     </div>
+ *   );
+ * };
+ *
+ * // GameRoom.tsx에서의 이벤트 처리 예시
+ * const GameRoom = () => {
+ *   const { socket, actions } = useGameSocket();
+ *
+ *   useEffect(() => {
+ *     // 게임 시작 처리
+ *     if (canStartGame) {
+ *       actions.startGame();
+ *     }
+ *   }, [canStartGame]);
+ *
+ *   return <GameUI />;
+ * };
+ * ```
+ *
+ * @returns 게임 소켓 상태와 액션 메소드들
+ * - `socket` - 현재 게임 소켓 인스턴스
+ * - `isConnected` - 연결 상태
+ * - `actions` - 게임 상태 관리 메소드들
+ *
+ * @throws 소켓 연결 실패 시 에러
+ * @category Hooks
+ */
 export const useGameSocket = () => {
   const { roomId } = useParams<{ roomId: string }>();
   const { sockets, connected, actions: socketActions } = useSocketStore();

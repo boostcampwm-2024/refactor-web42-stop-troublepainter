@@ -33,8 +33,8 @@ const MOCK_MESSAGES: Message[] = [
 ];
 
 const GameRoomPage = () => {
-  const { players, room, roomSettings } = useGameSocketStore();
-  console.log(players, room, roomSettings);
+  const { players } = useGameSocketStore();
+  // console.log(players, room, roomSettings);
 
   const [remainingTime] = useState(30);
 

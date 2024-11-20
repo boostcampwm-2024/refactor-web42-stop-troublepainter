@@ -18,6 +18,28 @@ interface SocketState {
   };
 }
 
+/**
+ * 전역 소켓 연결을 관리하는 Store입니다.
+ *
+ * @remarks
+ * 다중 소켓(게임, 채팅, 드로잉)의 연결 상태와 인스턴스를 중앙 관리합니다.
+ * 재사용 가능한 연결 관리 로직을 제공하여 각 네임스페이스별 훅에서 활용합니다.
+ *
+ * @example
+ * ```typescript
+ * const { sockets, connected, actions } = useSocketStore();
+ *
+ * // 특정 네임스페이스 소켓 연결
+ * actions.connect(SocketNamespace.GAME);
+ *
+ * // 연결 상태 확인
+ * if (connected.game) {
+ *   // 소켓 사용
+ * }
+ * ```
+ *
+ * @category Store
+ */
 export const useSocketStore = create<SocketState>((set, get) => ({
   sockets: {
     [SocketNamespace.GAME]: null,
@@ -32,6 +54,7 @@ export const useSocketStore = create<SocketState>((set, get) => ({
   actions: {
     connect: (namespace: SocketNamespace, auth?: SocketAuth) => {
       const currentSocket = get().sockets[namespace];
+
       if (currentSocket?.connected) return;
 
       // auth 필요 여부 체크
@@ -41,8 +64,11 @@ export const useSocketStore = create<SocketState>((set, get) => ({
       }
 
       const socket = socketCreators[namespace](auth);
+      // console.log(socket);
 
       socket.on('connect', () => {
+        // console.log(namespace, '소켓 연결');
+
         set((state) => ({
           connected: {
             ...state.connected,
