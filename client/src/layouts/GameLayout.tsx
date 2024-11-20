@@ -33,9 +33,9 @@ const MOCK_MESSAGES: Message[] = [
 ];
 
 const GameLayout = () => {
-  const { players, room, roomSettings } = useGameSocketStore();
+  const { players } = useGameSocketStore();
   const { isConnected } = useGameSocket();
-  console.log(players, room, roomSettings);
+  // console.log(players, room, roomSettings);
 
   // 연결 상태에 따른 로딩 표시
   if (!isConnected) {
