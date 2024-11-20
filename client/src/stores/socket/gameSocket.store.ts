@@ -3,21 +3,7 @@ import { JoinRoomRequest, JoinRoomResponse, ReconnectRequest } from '@troublepai
 import { create } from 'zustand';
 import { devtools } from 'zustand/middleware';
 import { useSocketStore } from './socket.store';
-
-export const STORAGE_KEYS = {
-  PLAYER_ID: (roomId: string) => `playerId_${roomId}`,
-} as const;
-// PlayerId 관련 로컬스토리지 관리 유틸 함수 추가
-export const playerIdStorageUtils = {
-  getPlayerId: (roomId: string) => localStorage.getItem(STORAGE_KEYS.PLAYER_ID(roomId)),
-  setPlayerId: (roomId: string, playerId: string) => localStorage.setItem(STORAGE_KEYS.PLAYER_ID(roomId), playerId),
-  removePlayerId: (roomId: string) => localStorage.removeItem(STORAGE_KEYS.PLAYER_ID(roomId)),
-  removeAllPlayerIds: () => {
-    Object.keys(localStorage)
-      .filter((key) => key.startsWith('playerId_'))
-      .forEach((key) => localStorage.removeItem(key));
-  },
-};
+import { playerIdStorageUtils } from '@/utils/playerIdStorage';
 
 interface GameState {
   room: Room | null;

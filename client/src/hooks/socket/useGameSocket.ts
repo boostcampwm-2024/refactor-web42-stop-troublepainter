@@ -1,9 +1,10 @@
 import { useEffect } from 'react';
 import { useParams } from 'react-router-dom';
 import type { JoinRoomResponse, PlayerLeftResponse } from '@troublepainter/core';
-import { playerIdStorageUtils, useGameSocketStore } from '@/stores/socket/gameSocket.store';
+import { useGameSocketStore } from '@/stores/socket/gameSocket.store';
 import { SocketNamespace } from '@/stores/socket/socket.config';
 import { useSocketStore } from '@/stores/socket/socket.store';
+import { playerIdStorageUtils } from '@/utils/playerIdStorage';
 
 /**
  * 게임 진행에 필요한 소켓 연결과 상태를 관리하는 Hook입니다.
