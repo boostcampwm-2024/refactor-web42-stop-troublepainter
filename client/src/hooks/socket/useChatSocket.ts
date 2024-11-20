@@ -11,7 +11,7 @@ export const useChatSocket = () => {
   const { roomId } = useParams<{ roomId: string }>();
   const { sockets, connected, actions: socketActions } = useSocketStore();
   const { players } = useGameSocketStore();
-  const { messages, isScrollLocked, actions: chatActions } = useChatStore();
+  const { messages, actions: chatActions } = useChatStore();
   const currentPlayerId = playerIdStorageUtils.getPlayerId(roomId as string);
 
   // Socket 연결 설정
@@ -69,10 +69,8 @@ export const useChatSocket = () => {
 
   return {
     messages,
-    isScrollLocked,
     isConnected: connected.chat,
     currentPlayerId,
     sendMessage,
-    actions: chatActions,
   };
 };

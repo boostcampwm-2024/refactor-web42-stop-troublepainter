@@ -4,20 +4,17 @@ import { devtools } from 'zustand/middleware';
 
 export interface ChatState {
   messages: ChatResponse[];
-  isScrollLocked: boolean;
 }
 
 export interface ChatStore extends ChatState {
   actions: {
     addMessage: (message: ChatResponse) => void;
     clearMessages: () => void;
-    setScrollLocked: (locked: boolean) => void;
   };
 }
 
 const initialState: ChatState = {
   messages: [],
-  isScrollLocked: true,
 };
 
 export const useChatStore = create<ChatStore>()(
@@ -31,8 +28,6 @@ export const useChatStore = create<ChatStore>()(
           })),
 
         clearMessages: () => set({ messages: [] }),
-
-        setScrollLocked: (locked) => set({ isScrollLocked: locked }),
       },
     }),
     { name: 'ChatStore' },
