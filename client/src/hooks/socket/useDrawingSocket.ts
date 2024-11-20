@@ -2,8 +2,8 @@
 // 특정 기능(드로잉)에 집중된 이벤트 핸들링
 import { useCallback, useEffect } from 'react';
 import { useParams } from 'react-router-dom';
-import type { DrawingData } from '@/types/drawingShared.types';
-import type { DrawUpdateResponse } from '@/types/socketShared.types';
+import type { DrawUpdateResponse } from '@troublepainter/core';
+import type { DrawingData } from '@troublepainter/core';
 import { playerIdStorageUtils } from '@/stores/socket/gameSocket.store';
 import { SocketNamespace } from '@/stores/socket/socket.config';
 import { useSocketStore } from '@/stores/socket/socket.store';

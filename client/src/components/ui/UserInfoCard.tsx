@@ -1,6 +1,6 @@
+import { PlayerRole, PlayerStatus } from '@troublepainter/core';
 import { cva, type VariantProps } from 'class-variance-authority';
 import profilePlaceholder from '@/assets/profile-placeholder.png';
-import { PlayerRole, PlayerStatus } from '@/types/gameShared.types';
 import { cn } from '@/utils/cn';
 import getCrownImage from '@/utils/getCrownImage';
 

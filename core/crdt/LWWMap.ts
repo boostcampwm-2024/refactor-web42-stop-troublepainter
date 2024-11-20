@@ -1,9 +1,9 @@
-import { MapState, RegisterState, Stroke } from './crdt.types';
+import { MapState, RegisterState, DrawingData } from '@/types/crdt.types';
 import { LWWRegister } from './LWWRegister';
 
 export class LWWMap {
   readonly id: string;
-  #data: Map<string, LWWRegister<Stroke | null>>;
+  #data: Map<string, LWWRegister<DrawingData | null>>;
 
   constructor(id: string, initialState: MapState = {}) {
     this.id = id;
@@ -22,7 +22,7 @@ export class LWWMap {
     return state;
   }
 
-  get strokes(): { id: string; stroke: Stroke }[] {
+  get strokes(): { id: string; stroke: DrawingData }[] {
     const result = [];
     for (const [key, register] of this.#data.entries()) {
       const value = register.value;
@@ -34,10 +34,10 @@ export class LWWMap {
   }
 
   // 선 생성
-  addStroke(stroke: Stroke): string {
+  addStroke(stroke: DrawingData): string {
     const timestamp = Date.now();
     const id = `${this.id}-${timestamp}-${Math.random().toString(36).substring(2, 9)}`;
-    const register = new LWWRegister<Stroke | null>(this.id, [
+    const register = new LWWRegister<DrawingData | null>(this.id, [
       this.id,
       timestamp,
       stroke,
@@ -81,7 +81,7 @@ export class LWWMap {
   // 단일 레지스터 업데이트
   mergeRegister(
     key: string,
-    remoteRegisterState: RegisterState<Stroke | null>
+    remoteRegisterState: RegisterState<DrawingData | null>
   ): boolean {
     const localRegister = this.#data.get(key);
 

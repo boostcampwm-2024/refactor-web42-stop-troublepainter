@@ -1,5 +1,5 @@
 import { RefObject, useCallback, useEffect, useRef } from 'react';
-import { Point } from '@/types/drawingShared.types';
+import { Point } from '@troublepainter/core';
 
 /**
  * 캔버스 크기 변경 시 사용하는 hook입니다.

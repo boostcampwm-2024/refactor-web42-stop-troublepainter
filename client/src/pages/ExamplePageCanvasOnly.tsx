@@ -1,5 +1,5 @@
+import { PlayerRole } from '@troublepainter/core';
 import { GameCanvas } from '@/components/canvas/GameCanvasExample';
-import { PlayerRole } from '@/types/gameShared.types';
 
 const ExamplePageCanvasOnly = () => {
   return (

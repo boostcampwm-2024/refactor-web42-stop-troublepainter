@@ -1,6 +1,6 @@
+import { PlayerRole, PlayerStatus } from '@troublepainter/core';
 import { UserInfoCard } from './UserInfoCard';
 import type { Meta, StoryObj } from '@storybook/react';
-import { PlayerRole, PlayerStatus } from '@/types/gameShared.types';
 
 type Story = StoryObj<typeof UserInfoCard>;
 

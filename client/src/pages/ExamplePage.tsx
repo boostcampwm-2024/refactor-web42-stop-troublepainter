@@ -1,5 +1,6 @@
 import '@/App.css';
 import { useState } from 'react';
+import { PlayerRole } from '@troublepainter/core';
 import asdf from '@/assets/big-timer.gif';
 import helpIcon from '@/assets/help-icon.svg';
 import asd from '@/assets/small-timer.gif';
@@ -10,7 +11,6 @@ import { Logo } from '@/components/ui/Logo';
 import { Modal } from '@/components/ui/Modal';
 import { UserInfoCard } from '@/components/ui/UserInfoCard';
 import { useModal } from '@/hooks/useModal';
-import { PlayerRole } from '@/types/gameShared.types';
 
 const ExamplePage = () => {
   const [isReady, setIsReady] = useState(false);

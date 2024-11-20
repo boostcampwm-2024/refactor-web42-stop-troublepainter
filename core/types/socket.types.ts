@@ -1,5 +1,5 @@
-import { DrawingData } from '@/types/drawingShared.types';
-import { Player, PlayerRole, Room, RoomSettings } from '@/types/gameShared.types';
+import { DrawingData } from '@/types/crdt.types';
+import { Player, PlayerRole, Room, RoomSettings } from '@/types/game.types';
 
 // 웹소켓 이벤트의 기본 응답 형식을 정의하는 제네릭 인터페이스
 // export interface SocketResponse<T = unknown> {
@@ -159,9 +159,18 @@ export type GameServerEvents = {
 // 게임 클라이언트 이벤트 타입 정의
 export type GameClientEvents = {
   reconnect: (request: ReconnectRequest) => void;
-  joinRoom: (request: JoinRoomRequest, callback: (response: JoinRoomResponse) => void) => void;
-  updateSettings: (request: UpdateSettingsRequest, callback: (response: UpdateSettingsResponse) => void) => void;
-  updatePlayerStatus: (request: ReadyRequest, callback: (response: ReadyResponse) => void) => void;
+  joinRoom: (
+    request: JoinRoomRequest,
+    callback: (response: JoinRoomResponse) => void
+  ) => void;
+  updateSettings: (
+    request: UpdateSettingsRequest,
+    callback: (response: UpdateSettingsResponse) => void
+  ) => void;
+  updatePlayerStatus: (
+    request: ReadyRequest,
+    callback: (response: ReadyResponse) => void
+  ) => void;
 };
 
 // 드로잉 서버 이벤트 타입 정의

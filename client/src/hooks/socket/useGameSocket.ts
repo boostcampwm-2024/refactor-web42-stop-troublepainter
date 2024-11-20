@@ -1,6 +1,6 @@
 import { useEffect } from 'react';
 import { useParams } from 'react-router-dom';
-import type { JoinRoomResponse, PlayerLeftResponse } from '@/types/socketShared.types';
+import type { JoinRoomResponse, PlayerLeftResponse } from '@troublepainter/core';
 import { playerIdStorageUtils, useGameSocketStore } from '@/stores/socket/gameSocket.store';
 import { SocketNamespace } from '@/stores/socket/socket.config';
 import { useSocketStore } from '@/stores/socket/socket.store';

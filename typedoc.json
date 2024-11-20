@@ -12,6 +12,7 @@
     "./client/src/utils/**/*.ts",
     "./client/src/hooks/**/*.ts",
     "./client/src/hooks/**/*.tsx",
+    "./client/src/stores/**/*.ts",
     "./server/src/utils/**/*.ts"
   ],
   "categorizeByGroup": true,

@@ -1,5 +1,5 @@
 import { TouchEvent as ReactTouchEvent, MouseEvent as ReactMouseEvent } from 'react';
-import { Point } from '@/types/drawingShared.types';
+import { Point } from '@troublepainter/core';
 
 /**
  * TouchEvent에서 첫 번째 터치 좌표를 가져오는 Util 함수입니다.

@@ -1,2 +1,2 @@
 export * from './crdt';
-export * from './socket';
+export * from './types';

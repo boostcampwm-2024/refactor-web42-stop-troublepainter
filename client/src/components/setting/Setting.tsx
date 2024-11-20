@@ -1,6 +1,6 @@
 import { HTMLAttributes, useState } from 'react';
+import { RoomSettings } from '@troublepainter/core';
 import Dropdown from '@/components/ui/Dropdown';
-import { RoomSettings } from '@/types/gameShared.types';
 import { cn } from '@/utils/cn';
 
 type SettingKey = keyof RoomSettings;

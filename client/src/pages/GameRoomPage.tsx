@@ -1,7 +1,7 @@
 import { useState } from 'react';
+import { PlayerRole } from '@troublepainter/core';
 import { GameCanvas } from '@/components/canvas/GameCanvasExample';
 import { QuizTitle } from '@/components/ui/QuizTitle';
-import { PlayerRole } from '@/types/gameShared.types';
 
 const GameRoomPage = () => {
   const [remainingTime] = useState(30);

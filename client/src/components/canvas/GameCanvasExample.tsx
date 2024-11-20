@@ -1,11 +1,11 @@
 import { MouseEvent as ReactMouseEvent, TouchEvent as ReactTouchEvent, useCallback, useRef } from 'react';
+import { PlayerRole } from '@troublepainter/core';
 import { Canvas } from '@/components/canvas/CanvasUI';
 import { COLORS_INFO, MAINCANVAS_RESOLUTION_WIDTH } from '@/constants/canvasConstants';
 import { useDrawingSocket } from '@/hooks/socket/useDrawingSocket';
 import { useCoordinateScale } from '@/hooks/useCoordinateScale';
 import { useDrawing } from '@/hooks/useDrawing';
 import { CanvasEventHandlers } from '@/types/canvas.types';
-import { PlayerRole } from '@/types/gameShared.types';
 import { getCanvasContext } from '@/utils/getCanvasContext';
 import { getDrawPoint } from '@/utils/getDrawPoint';
 

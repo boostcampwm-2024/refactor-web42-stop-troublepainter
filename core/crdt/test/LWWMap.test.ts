@@ -1,11 +1,11 @@
-import { LWWMap } from '../LWWMap';
-import { Stroke, MapState, RegisterState } from '../crdt.types';
+import { DrawingData, MapState, RegisterState } from '@/types/crdt.types';
+import { LWWMap } from '@/crdt/LWWMap';
 
 describe('LWWMap', () => {
   const createTestStroke = (
     color: string = '#000000',
     width: number = 2
-  ): Stroke => ({
+  ): DrawingData => ({
     points: [
       { x: 0, y: 0 },
       { x: 2, y: 2 },
@@ -153,7 +153,7 @@ describe('LWWMap', () => {
       const modifyTime = deleteTime + 1000;
       vi.setSystemTime(modifyTime);
       const modifiedStroke = createTestStroke('#0000ff');
-      const modifiedState: RegisterState<Stroke | null> = [
+      const modifiedState: RegisterState<DrawingData | null> = [
         'peer2',
         modifyTime,
         modifiedStroke,

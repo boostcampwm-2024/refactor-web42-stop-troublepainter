@@ -3,6 +3,7 @@
     "./client/src/hooks/**/*.ts",
     "./client/src/hooks/**/*.tsx",
     "./client/src/utils/**/*.ts",
+    "./client/src/stores/**/*.ts",
     "./server/src/utils/**/*.ts"
   ],
   "exclude": ["**/node_modules", "**/dist"]

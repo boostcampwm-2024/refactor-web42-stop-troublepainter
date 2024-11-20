@@ -1,4 +1,3 @@
-import { Socket } from 'socket.io-client';
 import {
   ChatClientEvents,
   ChatServerEvents,
@@ -6,7 +5,8 @@ import {
   DrawingServerEvents,
   GameClientEvents,
   GameServerEvents,
-} from '@/types/socketShared.types';
+} from '@troublepainter/core';
+import { Socket } from 'socket.io-client';
 
 // 소켓 타입 정의
 // ----------------------------------------------------------------------------------------------------------------------
