@@ -1,7 +1,9 @@
-import { BadRequestException, Injectable, NotFoundException } from '@nestjs/common';
-import { Player, PlayerStatus, Room, RoomSettings, RoomStatus } from 'src/types/game.types';
-import { RedisService } from 'src/redis/redis.service';
+import { Injectable } from '@nestjs/common';
+import { Player, Room, RoomSettings } from 'src/common/types/game.types';
 import { v4 } from 'uuid';
+import { GameRepository } from './game.repository';
+import { PlayerNotFoundException, RoomFullException, RoomNotFoundException } from 'src/exceptions/game.exception';
+import { RoomStatus, PlayerStatus } from 'src/common/enums/game.status.enum';
 
 @Injectable()
 export class GameService {
@@ -11,17 +13,10 @@ export class GameService {
     drawTime: 30,
   };
 
-  constructor(private readonly redisService: RedisService) {}
+  constructor(private readonly gameRepository: GameRepository) {}
 
   async createRoom(): Promise<string> {
     const roomId = v4();
-    const roomSettingsKey = `room:${roomId}:settings`;
-    const roomKey = `room:${roomId}`;
-
-    const roomSettings: RoomSettings = {
-      ...this.DEFAULT_ROOM_SETTINGS,
-    };
-
     const room: Room = {
       roomId: roomId,
       hostId: null,
@@ -31,33 +26,25 @@ export class GameService {
       currentWord: null,
     };
 
-    const multi = this.redisService.multi();
-    multi.hset(roomSettingsKey, roomSettings);
-    multi.hset(roomKey, room);
-
-    await multi.exec();
+    await this.gameRepository.createRoom(roomId, room, this.DEFAULT_ROOM_SETTINGS);
 
     return roomId;
   }
 
   async joinRoom(roomId: string) {
-    const room = await this.getRoom(roomId);
-    if (!room) {
-      throw new NotFoundException('Room not found');
-    }
+    const [room, roomSettings, players] = await Promise.all([
+      this.gameRepository.getRoom(roomId),
+      this.gameRepository.getRoomSettings(roomId),
+      this.gameRepository.getRoomPlayers(roomId),
+    ]);
 
-    const players = await this.redisService.lrangeAll(`room:${roomId}:players`);
-
-    const roomSettings = await this.getRoomSettings(roomId);
+    if (!room) throw new RoomNotFoundException();
+    if (!roomSettings) throw new RoomNotFoundException('Room settings not found');
     if (players.length >= roomSettings.maxPlayers) {
-      throw new BadRequestException('Room is full');
+      throw new RoomFullException('Room is full');
     }
 
     const playerId = v4();
-    if (players.length === 0) {
-      room.hostId = playerId;
-    }
-
     const player: Player = {
       playerId,
       role: null,
@@ -67,85 +54,57 @@ export class GameService {
       score: 0,
     };
 
-    const multi = this.redisService.multi();
-    multi.lpush(`room:${roomId}:players`, playerId);
-    multi.hset(`room:${roomId}`, room);
-    multi.hset(`room:${roomId}:players:${playerId}`, player);
-
-    await multi.exec();
-
-    return { room, roomSettings, player };
-  }
-
-  async getRoom(roomId: string) {
-    const room = await this.redisService.hgetall(`room:${roomId}`);
-    if (Object.keys(room).length === 0) return null;
-
-    return {
-      roomId: room.roomId,
-      hostId: room.hostId === '' ? null : room.hostId,
-      status: room.status as RoomStatus,
-      currentRound: parseInt(room.currentRound),
-      totalRounds: parseInt(room.totalRounds),
-      currentWord: room.currentWord === '' ? null : room.currentWord,
-    };
-  }
-
-  async getRoomPlayers(roomId: string) {
-    const playerIds = await this.redisService.lrangeAll(`room:${roomId}:players`);
-
-    if (!playerIds.length) return [];
-
-    const players = await Promise.all(
-      playerIds.map(async (playerId) => {
-        const player = await this.redisService.hgetall(`room:${roomId}:players:${playerId}`);
-        if (!player || Object.keys(player).length === 0) return null;
-
-        return {
-          ...player,
-          role: player.role === '' ? null : player.role,
-          profileImage: player.userImg === '' ? null : player.userImg,
-          score: parseInt(player.score as string),
-        } as Player;
-      }),
-    );
-    return players.filter(Boolean);
-  }
-
-  async getRoomSettings(roomId: string) {
-    const settings = await this.redisService.hgetall(`room:${roomId}:settings`);
-    return {
-      maxPlayers: parseInt(settings.maxPlayers),
-      totalRounds: parseInt(settings.totalRounds),
-      drawTime: parseInt(settings.drawTime),
-    } as RoomSettings;
-  }
-
-  async removePlayer(roomId: string, playerId: string) {
-    const room = await this.getRoom(roomId);
-    if (!room) return null;
-
-    const players = await this.redisService.lrangeAll(`room:${roomId}:players`);
-    if (!players.includes(playerId)) return room;
-
-    const multi = this.redisService.multi();
-
-    multi.lrem(`room:${roomId}:players`, 0, playerId);
-    multi.del(`room:${roomId}:players:${playerId}`);
-
-    if (room.hostId === playerId) {
-      const remainingPlayers = players.filter((p) => p !== playerId);
-      if (remainingPlayers.length > 0) {
-        room.hostId = remainingPlayers[0];
-        multi.hset(`room:${roomId}`, room);
-      } else {
-        multi.del(`room:${roomId}`);
-        multi.del(`room:${roomId}:settings`);
-        return null;
-      }
+    const isFirstPlayer = players.length === 0;
+    if (isFirstPlayer) {
+      room.hostId = playerId;
+      await this.gameRepository.updateRoom(roomId, room);
     }
 
-    await multi.exec();
-    return room;
+    await this.gameRepository.addPlayerToRoom(roomId, playerId, player);
+
+    const updatedPlayers = [player, ...players].reverse();
+
+    return { room, roomSettings, player, players: updatedPlayers };
+  }
+
+  async reconnect(roomId: string, playerId: string) {
+    const [room, roomSettings, players] = await Promise.all([
+      this.gameRepository.getRoom(roomId),
+      this.gameRepository.getRoomSettings(roomId),
+      this.gameRepository.getRoomPlayers(roomId),
+    ]);
+
+    if (!room) throw new RoomNotFoundException('Room not found');
+    if (!roomSettings) throw new RoomNotFoundException('Room settings not found');
+
+    const existingPlayer = players.find((p) => p.playerId === playerId);
+    if (!existingPlayer) throw new PlayerNotFoundException('Player not found');
+
+    return { room, players, roomSettings };
+  }
+
+  async leaveRoom(roomId: string, playerId: string) {
+    const [room, players] = await Promise.all([
+      this.gameRepository.getRoom(roomId),
+      this.gameRepository.getRoomPlayers(roomId)
+    ]);
+
+    if (!room) throw new RoomNotFoundException('Room not found');
+    if (!players.some((p) => p.playerId === playerId)) throw new PlayerNotFoundException('Player not found');
+
+    const remainingPlayers = players.filter((p) => p.playerId !== playerId);
+    if (remainingPlayers.length === 0) {
+        await this.gameRepository.deleteRoom(roomId);
+        return null;
+    }
+
+    if (room.hostId === playerId) {
+      room.hostId = remainingPlayers[0].playerId;
+      await this.gameRepository.updateRoom(roomId, room);
+    }
+
+    await this.gameRepository.removePlayerFromRoom(roomId, playerId);
+
+    return remainingPlayers;
   }
 }
