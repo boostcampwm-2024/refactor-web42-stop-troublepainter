@@ -1,36 +1,10 @@
 import { Outlet } from 'react-router-dom';
-import ChatList from '@/components/chat/ChatList';
-import { Input } from '@/components/ui/Input';
+import { Chat } from '@/components/chat/Chat';
 import { Logo } from '@/components/ui/Logo';
 import { UserInfoCard } from '@/components/ui/UserInfoCard';
 import { useGameSocket } from '@/hooks/socket/useGameSocket';
 import { useGameSocketStore } from '@/stores/socket/gameSocket.store';
-import { Message } from '@/types/chat.types';
 import { cn } from '@/utils/cn';
-
-// 임시 데이터
-const MOCK_MESSAGES: Message[] = [
-  { id: 1, nickname: '참가자1', content: '안녕하세요!', isOthers: true },
-  { id: 2, nickname: '참가자2', content: '반가워요~', isOthers: true },
-  { id: 3, nickname: '', content: '안녕하세요 :)', isOthers: false },
-  { id: 12, nickname: '참가자1', content: '안녕하세요!', isOthers: true },
-  {
-    id: 22,
-    nickname: '참가자2',
-    content: '반가워요~반가워요~반가워요~반가워요~반가워요~반가워요~반가워요~반가워요~반가워요~반가워요~반가워요~',
-    isOthers: true,
-  },
-  { id: 32, nickname: '', content: '안녕하세요 :)', isOthers: false },
-  { id: 123, nickname: '참가자1', content: '안녕하세요!', isOthers: true },
-  { id: 223, nickname: '참가자2', content: '반가워요~', isOthers: true },
-  { id: 323, nickname: '', content: '안녕하세요 :)', isOthers: false },
-  { id: 1234, nickname: '참가자1', content: '안녕하세요!', isOthers: true },
-  { id: 2234, nickname: '참가자2', content: '반가워요~', isOthers: true },
-  { id: 3234, nickname: '', content: '안녕하세요 :)', isOthers: false },
-  { id: 12345, nickname: '참가자1', content: '안녕하세요!', isOthers: true },
-  { id: 22345, nickname: '참가자2', content: '반가워요~', isOthers: true },
-  { id: 32345, nickname: '', content: '안녕하세요 :)', isOthers: false },
-];
 
 const GameLayout = () => {
   const { players } = useGameSocketStore();
@@ -85,25 +59,6 @@ const GameLayout = () => {
                 score={player.score}
               />
             ))}
-
-            {/* <UserInfoCard
-          username="그림러그림러그그림러그림러그"
-          status={PlayerStatus.PLAYING}
-          role={PlayerRole.PAINTER}
-          rank={1}
-          score={50}
-        />
-        <UserInfoCard
-          username="TroublepainterTroublepainter"
-          status={PlayerStatus.PLAYING}
-          role={PlayerRole.DEVIL}
-          rank={2}
-          score={40}
-        />
-        <UserInfoCard username="구경러1" status={PlayerStatus.PLAYING} role={PlayerRole.GUESSER} score={3} />
-        <UserInfoCard username="구경러2" status={PlayerStatus.PLAYING} role={PlayerRole.GUESSER} score={2} />
-        <UserInfoCard username="그림러1" status={PlayerStatus.PLAYING} role={PlayerRole.PAINTER} rank={0} score={50} />
-        <UserInfoCard username="방해러1" status={PlayerStatus.PLAYING} role={PlayerRole.DEVIL} rank={1} score={40} /> */}
           </aside>
 
           {/* 중앙 영역 */}
@@ -126,8 +81,7 @@ const GameLayout = () => {
               '2xl:-ml-5 2xl:py-5 2xl:pl-5',
             )}
           >
-            <ChatList messages={MOCK_MESSAGES} />
-            <Input placeholder="답을 입력해주세요." className="mt-1 w-full" />
+            <Chat />
           </aside>
         </div>
       </main>
