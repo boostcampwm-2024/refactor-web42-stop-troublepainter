@@ -4,12 +4,7 @@ import type { Meta, StoryObj } from '@storybook/react';
 
 type Story = StoryObj<typeof Dropdown>;
 
-const sampleOptions = [
-  { id: 1, value: '옵션 1' },
-  { id: 2, value: '옵션 2' },
-  { id: 3, value: '옵션 3' },
-  { id: 4, value: '옵션 4' },
-];
+const sampleOptions = ['옵션 1', '옵션 2', '옵션 3'];
 
 export default {
   title: 'components/ui/Dropdown',
@@ -21,7 +16,7 @@ export default {
     },
     selectedValue: {
       control: 'select',
-      options: sampleOptions.map((option) => option.value),
+      options: sampleOptions,
       description: '현재 선택된 값',
     },
     handleChange: {
@@ -53,7 +48,7 @@ const DefaultExample = (args: DropdownProps) => {
 
   const handleChange = (value: string) => {
     setSelectedValue(value);
-    args?.handleChange(value);
+    args.handleChange(value);
   };
 
   return <Dropdown {...args} selectedValue={selectedValue} handleChange={handleChange} />;
@@ -61,8 +56,8 @@ const DefaultExample = (args: DropdownProps) => {
 
 export const Default: Story = {
   args: {
+    selectedValue: sampleOptions[0],
     options: sampleOptions,
-    selectedValue: sampleOptions[0].value,
   },
   render: (args) => <DefaultExample {...args} />,
 };

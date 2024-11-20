@@ -1,15 +1,14 @@
-import { HTMLAttributes } from 'react';
-import { ChatBubble } from './ChatBubbleUI';
+import { ChatBubble } from '@/components/chat/ChatBubbleUI';
 import { Message } from '@/types/chat.types';
 import { cn } from '@/utils/cn';
 
-export interface ChattingProps extends HTMLAttributes<HTMLDivElement> {
+interface ChatListProps {
   messages: Message[];
 }
 
-const Chatting = ({ messages, className, ...props }: ChattingProps) => {
+const ChatList = ({ messages }: ChatListProps) => {
   return (
-    <section className={cn('flex h-full w-full flex-col gap-2 overflow-y-scroll', className)} {...props}>
+    <section className={cn('flex h-full w-full flex-col gap-2 overflow-y-scroll')}>
       <p className="mb-7 text-center text-xl text-eastbay-50">
         여기에다가 답하고
         <br /> 채팅할 수 있습니다.
@@ -23,4 +22,4 @@ const Chatting = ({ messages, className, ...props }: ChattingProps) => {
   );
 };
 
-export default Chatting;
+export default ChatList;

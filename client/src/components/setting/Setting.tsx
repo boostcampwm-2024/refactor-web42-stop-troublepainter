@@ -1,21 +1,34 @@
 import { HTMLAttributes, useState } from 'react';
-import Dropdown from '../ui/Dropdown';
-import { SETTING_ITEMS } from '@/constants/setting';
-import { SettingOption, SettingKey, SettingValues } from '@/types/setting.types';
+import Dropdown from '@/components/ui/Dropdown';
+import { RoomSettings } from '@/types/game.types';
 import { cn } from '@/utils/cn';
 
+type SettingKey = keyof RoomSettings;
+
+interface RoomSettingItem {
+  key: SettingKey;
+  label: string;
+  options: number[];
+}
+
 interface SettingProps extends HTMLAttributes<HTMLDivElement> {
-  roundCount?: number;
-  playerCount?: number;
-  timeLimit?: number;
+  roomSettings?: RoomSettings;
   type: 'host' | 'participant';
 }
 
-const Setting = ({ className, roundCount = 4, playerCount = 4, timeLimit = 30, type, ...props }: SettingProps) => {
-  const [selectedValues, setSelectedValues] = useState<SettingValues>({
-    roundCount,
-    playerCount,
-    timeLimit,
+export const ROOM_SETTINGS: RoomSettingItem[] = [
+  { label: '라운드 수', key: 'totalRounds', options: [4, 6, 8] },
+  { label: '플레이어 수', key: 'maxPlayers', options: [4, 5, 6] },
+  { label: '제한 시간', key: 'drawTime', options: [15, 30] },
+  { label: '픽셀 수', key: 'maxPixels', options: [300, 500] },
+];
+
+const Setting = ({ className, roomSettings, type, ...props }: SettingProps) => {
+  const [selectedValues, setSelectedValues] = useState<RoomSettings>({
+    totalRounds: roomSettings?.totalRounds || 4,
+    maxPlayers: roomSettings?.maxPlayers || 4,
+    drawTime: roomSettings?.drawTime || 30,
+    maxPixels: roomSettings?.drawTime || 300,
   });
 
   const handleChange = (key: SettingKey) => (value: string) => {
@@ -25,29 +38,22 @@ const Setting = ({ className, roundCount = 4, playerCount = 4, timeLimit = 30, t
     }));
   };
 
-  const convertToString = (options: SettingOption[]) =>
-    options.map((option) => ({
-      ...option,
-      value: option.value.toString(),
-    }));
+  const convertToString = (options: number[]) => options.map((option) => String(option));
 
   return (
     <section
-      className={cn(
-        'flex flex-col overflow-hidden border-y-2 border-violet-950 sm:rounded-xl sm:border-x-2',
-        className,
-      )}
+      className={cn('flex w-full flex-col border-0 border-violet-950 sm:rounded-xl sm:border-2', className)}
       {...props}
     >
       {/* Setting title */}
-      <div className="flex min-h-[3.375rem] w-full items-center justify-center border-b-2 border-violet-950 bg-violet-500 p-3 sm:min-h-16">
-        <h2 className="text-2xl text-white text-stroke-md sm:translate-y-1 sm:text-4xl">Setting</h2>
+      <div className="flex h-14 w-full items-center justify-center border-0 border-violet-950 bg-violet-500 sm:h-16 sm:rounded-t-xl sm:border-b-2">
+        <h2 className="text-2xl text-white text-stroke-md sm:translate-y-1 lg:text-3xl">Setting</h2>
       </div>
 
       {/* Setting content */}
-      <div className="flex min-h-[16.125rem] items-center justify-center bg-violet-200 sm:min-h-[18.56rem] sm:px-6">
-        <div className="flex min-h-[13.8rem] w-full flex-col items-center justify-center gap-6 border-y-2 border-violet-950 bg-violet-50 p-4 text-2xl sm:rounded-[0.625rem] sm:border-x-2">
-          {SETTING_ITEMS.map(({ label, key, options }) => (
+      <div className="flex min-h-[16.125rem] items-center justify-center bg-violet-200 sm:min-h-[18.56rem] sm:rounded-b-xl sm:px-6">
+        <div className="flex min-h-[13.8rem] w-full flex-col items-center justify-center gap-4 border-0 border-violet-950 bg-violet-50 p-4 text-xl sm:h-auto sm:rounded-[0.625rem] sm:border-2 lg:gap-6 lg:text-2xl">
+          {ROOM_SETTINGS.map(({ label, key, options }) => (
             <div key={label} className="flex w-full max-w-80 items-center justify-between sm:max-w-[70%]">
               <span>{label}</span>
               {type === 'participant' ? (
@@ -57,7 +63,7 @@ const Setting = ({ className, roundCount = 4, playerCount = 4, timeLimit = 30, t
                   options={convertToString(options)}
                   selectedValue={selectedValues[key].toString()}
                   handleChange={handleChange(key)}
-                  className="w-[30%] min-w-[4.25rem] sm:min-w-28"
+                  className="h-7 w-[30%] min-w-[4.25rem] text-xl sm:min-w-28 lg:h-auto lg:text-2xl"
                 />
               )}
             </div>

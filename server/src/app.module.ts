@@ -3,7 +3,7 @@ import { RedisModule } from './redis/redis.module';
 import { ConfigModule } from '@nestjs/config';
 import { GameModule } from './game/game.module';
 import { ChatModule } from './chat/chat.module';
-import { DrawModule } from './draw/draw.module';
+import { DrawingModule } from './drawing/drawing.module';
 
 @Module({
   imports: [
@@ -14,7 +14,7 @@ import { DrawModule } from './draw/draw.module';
     RedisModule,
     GameModule,
     ChatModule,
-    DrawModule,
+    DrawingModule,
   ],
 })
 export class AppModule {}

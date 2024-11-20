@@ -8,11 +8,14 @@ import {
 } from '@nestjs/websockets';
 import { Server, Socket } from 'socket.io';
 import { GameService } from './game.service';
+import { UseFilters } from '@nestjs/common';
+import { WsExceptionFilter } from 'src/filters/ws-exception.filter';
 
 @WebSocketGateway({
   cors: '*',
   namespace: 'game',
 })
+@UseFilters(WsExceptionFilter)
 export class GameGateway implements OnGatewayDisconnect {
   @WebSocketServer()
   server: Server;
@@ -21,9 +24,7 @@ export class GameGateway implements OnGatewayDisconnect {
 
   @SubscribeMessage('joinRoom')
   async handleJoinRoom(@ConnectedSocket() client: Socket, @MessageBody() data: { roomId: string }) {
-    const { room, roomSettings, player } = await this.gameService.joinRoom(data.roomId);
-
-    const players = (await this.gameService.getRoomPlayers(data.roomId)).reverse();
+    const { room, roomSettings, player, players } = await this.gameService.joinRoom(data.roomId);
 
     client.data.playerId = player.playerId;
     client.data.roomId = room.roomId;
@@ -37,23 +38,9 @@ export class GameGateway implements OnGatewayDisconnect {
 
   @SubscribeMessage('reconnect')
   async handleReconnect(@ConnectedSocket() client: Socket, @MessageBody() data: { roomId: string; playerId: string; }) {
-    const { playerId, roomId } = data;
+    const { roomId, playerId } = data;
 
-    const room = await this.gameService.getRoom(roomId);
-    if (!room) {
-      client.emit('error', { message: 'Room not found' });
-      return;
-    }
-
-    const players = await this.gameService.getRoomPlayers(roomId);
-    const existingPlayer = players.find((p) => p.playerId === playerId);
-
-    const roomSettings = await this.gameService.getRoomSettings(roomId);
-
-    if (!existingPlayer) {
-      client.emit('error', { message: 'Player not found' });
-      return;
-    }
+    const { room, players, roomSettings } = await this.gameService.reconnect(roomId, playerId);
 
     client.data.playerId = playerId;
     client.data.roomId = roomId;
@@ -80,18 +67,15 @@ export class GameGateway implements OnGatewayDisconnect {
 
     setTimeout(async () => {
       const sockets = await this.server.fetchSockets();
-
       const isReconnected = sockets.some((socket) => socket.data.playerId === playerId);
 
       if (!isReconnected) {
-        const updatedRoom = await this.gameService.removePlayer(roomId, playerId);
-        if (updatedRoom) {
-          const players = await this.gameService.getRoomPlayers(roomId);
-          this.server.to(roomId).emit('playerLeft', {
-            leftPlayerId : playerId,
-            players,
-          });
-        }
+        const players = await this.gameService.leaveRoom(roomId, playerId);
+        if (!players) return;
+        this.server.to(roomId).emit('playerLeft', {
+          leftPlayerId : playerId,
+          players,
+        });
       }
     }, 10000);
   }

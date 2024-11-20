@@ -1,11 +1,15 @@
+import { UseFilters } from '@nestjs/common';
 import { ConnectedSocket, MessageBody, OnGatewayConnection, SubscribeMessage, WebSocketGateway, WebSocketServer } from '@nestjs/websockets';
 import { Server, Socket } from 'socket.io';
+import { BadRequestException } from 'src/exceptions/game.exception';
+import { WsExceptionFilter } from 'src/filters/ws-exception.filter';
 
 @WebSocketGateway({
   cors: '*',
-  namespace: 'draw',
+  namespace: 'drawing',
 })
-export class DrawGateway implements OnGatewayConnection {
+@UseFilters(WsExceptionFilter)
+export class DrawingGateway implements OnGatewayConnection {
   @WebSocketServer()
   server: Server;
 
@@ -13,7 +17,7 @@ export class DrawGateway implements OnGatewayConnection {
     const roomId = client.handshake.auth.roomId;
     const playerId = client.handshake.auth.playerId;
 
-    if (!roomId || !playerId) return;
+    if (!roomId || !playerId) throw new BadRequestException('Room ID and Player ID are required');
 
     client.data.roomId = roomId;
     client.data.playerId = playerId;
@@ -27,7 +31,7 @@ export class DrawGateway implements OnGatewayConnection {
     @MessageBody() data: { drawingData: any },
   ) {
     const roomId = client.data.roomId;
-    if (!roomId) return;
+    if (!roomId) throw new BadRequestException('Room ID is required');
 
     client.to(roomId).emit('drawUpdated', {
       playerId: client.data.playerId,

@@ -98,9 +98,9 @@ const GameCanvas = ({ role, maxPixels = 100000 }: GameCanvasProps) => {
 
   const handleDrawEnd = useCallback(() => {
     const currentDrawing = getCurrentDrawing();
-    console.log(currentDrawing, isConnected);
+    // console.log(currentDrawing, isConnected);
     if (currentDrawing && isConnected) {
-      console.log(currentDrawing);
+      // console.log(currentDrawing);
       sendDrawing(currentDrawing);
     }
     stopDrawing();

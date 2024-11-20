@@ -1,13 +1,17 @@
 import { ConnectedSocket, MessageBody, SubscribeMessage, WebSocketGateway, WebSocketServer } from '@nestjs/websockets';
 import { Server, Socket } from 'socket.io';
-import { RedisService } from '../redis/redis.service';
+import { ChatService } from './chat.service';
+import { UseFilters } from '@nestjs/common';
+import { WsExceptionFilter } from 'src/filters/ws-exception.filter';
+import { BadRequestException } from 'src/exceptions/game.exception';
 
 @WebSocketGateway({
   cors: '*',
   namespace: 'chat',
 })
+@UseFilters(WsExceptionFilter)
 export class ChatGateway {
-  constructor(private readonly redisService: RedisService) {}
+  constructor(private readonly chatService: ChatService) {}
 
   @WebSocketServer()
   server: Server;
@@ -16,7 +20,7 @@ export class ChatGateway {
     const roomId = client.handshake.auth.roomId;
     const playerId = client.handshake.auth.playerId;
 
-    if (!roomId || !playerId) return;
+    if (!roomId || !playerId) throw new BadRequestException('Room ID and Player ID are required');
 
     client.data.roomId = roomId;
     client.data.playerId = playerId;
@@ -32,16 +36,10 @@ export class ChatGateway {
     const roomId = client.data.roomId;
     const playerId = client.data.playerId;
     
-    if (!roomId || !playerId) return;
+    if (!roomId || !playerId) throw new BadRequestException('Room ID and Player ID are required');
 
-    const player = await this.redisService.hgetall(`room:${roomId}:players:${playerId}`);
-    if (!player) return;
+    const chatResponse = await this.chatService.sendMessage(roomId, playerId, data.message);
 
-    client.to(roomId).emit('messageReceived', {
-      playerId: client.data.playerId,
-      nickname: player.nickname,
-      message: data.message,
-      createdAt: new Date(),
-    });
+    client.to(roomId).emit('messageReceived', chatResponse);
   }
 }

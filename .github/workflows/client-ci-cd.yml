@@ -57,6 +57,9 @@ jobs:
 
       - name: Build
         working-directory: ./client
+        env:
+          VITE_API_URL: ${{secrets.VITE_API_URL}}
+          VITE_SOCKET_URL: ${{secrets.VITE_SOCKET_URL}}
         run: pnpm build
 
       - name: Upload to Object Storage
