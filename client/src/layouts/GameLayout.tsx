@@ -3,8 +3,9 @@ import ChatList from '@/components/chat/ChatList';
 import { Input } from '@/components/ui/Input';
 import { Logo } from '@/components/ui/Logo';
 import { UserInfoCard } from '@/components/ui/UserInfoCard';
+import { useGameSocketStore } from '@/core/socket/gameSocket.store';
+import { useGameSocket } from '@/core/socket/useGameSocket';
 import { Message } from '@/types/chat.types';
-import { PlayerRole, PlayerStatus } from '@/types/game.types';
 import { cn } from '@/utils/cn';
 
 // 임시 데이터
@@ -32,6 +33,21 @@ const MOCK_MESSAGES: Message[] = [
 ];
 
 const GameLayout = () => {
+  const { players, room, roomSettings } = useGameSocketStore();
+  const { isConnected } = useGameSocket();
+  console.log(players, room, roomSettings);
+
+  // 연결 상태에 따른 로딩 표시
+  if (!isConnected) {
+    return (
+      <div className="flex h-screen w-screen items-center justify-center">
+        <div className="flex h-96 w-96 animate-spin items-center justify-center text-5xl text-stroke-md">
+          연결 중...
+        </div>
+      </div>
+    );
+  }
+
   return (
     <div className="flex min-h-screen flex-col justify-start bg-gradient-to-b from-violet-950 via-violet-800 to-fuchsia-800 lg:py-5">
       {/* 상단 헤더 */}
@@ -61,12 +77,33 @@ const GameLayout = () => {
             )}
           >
             {/* 임시 데이터 */}
-            <UserInfoCard username="미라" status={PlayerStatus.PLAYING} role={PlayerRole.GUESSER} score={80} rank={0} />
-            <UserInfoCard username="친구1" status={PlayerStatus.PLAYING} role={PlayerRole.DEVIL} score={8} rank={1} />
-            <UserInfoCard username="친구2" status={PlayerStatus.PLAYING} role={PlayerRole.PAINTER} score={6} rank={2} />
-            <UserInfoCard username="친구3" status={PlayerStatus.PLAYING} role={PlayerRole.GUESSER} score={4} />
-            <UserInfoCard username="친구4" status={PlayerStatus.READY} />
-            <UserInfoCard username="친구5" status={PlayerStatus.NOT_READY} />
+            {players?.map((player) => (
+              <UserInfoCard
+                key={player.playerId}
+                username={player.nickname}
+                status={player.status}
+                score={player.score}
+              />
+            ))}
+
+            {/* <UserInfoCard
+          username="그림러그림러그그림러그림러그"
+          status={PlayerStatus.PLAYING}
+          role={PlayerRole.PAINTER}
+          rank={1}
+          score={50}
+        />
+        <UserInfoCard
+          username="TroublepainterTroublepainter"
+          status={PlayerStatus.PLAYING}
+          role={PlayerRole.DEVIL}
+          rank={2}
+          score={40}
+        />
+        <UserInfoCard username="구경러1" status={PlayerStatus.PLAYING} role={PlayerRole.GUESSER} score={3} />
+        <UserInfoCard username="구경러2" status={PlayerStatus.PLAYING} role={PlayerRole.GUESSER} score={2} />
+        <UserInfoCard username="그림러1" status={PlayerStatus.PLAYING} role={PlayerRole.PAINTER} rank={0} score={50} />
+        <UserInfoCard username="방해러1" status={PlayerStatus.PLAYING} role={PlayerRole.DEVIL} rank={1} score={40} /> */}
           </aside>
 
           {/* 중앙 영역 */}

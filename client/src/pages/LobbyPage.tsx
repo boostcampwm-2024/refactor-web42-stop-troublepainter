@@ -1,6 +1,8 @@
 import { useEffect, useState } from 'react';
+import { useNavigate, useParams } from 'react-router-dom';
 import { Setting } from '@/components/setting/Setting';
 import { Button } from '@/components/ui/Button';
+import { useGameSocketStore } from '@/core/socket/gameSocket.store';
 import { cn } from '@/utils/cn';
 
 const LobbyPage = () => {
@@ -8,10 +10,22 @@ const LobbyPage = () => {
   const [hostId, setHostId] = useState('');
   const [isReady] = useState(false);
 
+  const { roomId } = useParams<{ roomId: string }>();
+  const navigate = useNavigate();
+  const { room, players, roomSettings } = useGameSocketStore();
+
   useEffect(() => {
     setMyId('my-id');
     setHostId('host-id');
   }, []);
+
+  const handleNavigateToGame = () => {
+    if (roomId) {
+      navigate(`/game/${roomId}`);
+    } else {
+      console.error('Room ID is not available');
+    }
+  };
 
   return (
     <>
@@ -21,7 +35,16 @@ const LobbyPage = () => {
           Get Ready for the next battle
         </p>
 
-        {<Setting type={myId === hostId ? 'host' : 'participant'} />}
+        <div className="text-xl text-stroke-sm">
+          <h1>Game Room: {roomId}</h1>
+          <div>Room Status: {room?.status}</div>
+          <div>Host: {room?.hostId}</div>
+          <div>Settings: {JSON.stringify(roomSettings)}</div>
+          <div>Players: {players?.map((p) => `${p.nickname}: ${p.playerId}`).join(', ')}</div>
+          <Button onClick={handleNavigateToGame}>게임 시작</Button>
+        </div>
+
+        <Setting type={myId === hostId ? 'host' : 'participant'} />
         <div className="flex h-11 w-full gap-0 sm:h-14 sm:gap-8">
           <Button
             variant={isReady ? 'secondary' : 'primary'}
@@ -47,5 +70,4 @@ const LobbyPage = () => {
     </>
   );
 };
-
 export default LobbyPage;

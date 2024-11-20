@@ -1,8 +1,12 @@
+import { Socket } from 'socket.io-client';
+import { Player, PlayerRole, RoomSettings, Room } from '@/types/game.types';
+
 // 웹소켓 이벤트의 기본 응답 형식을 정의하는 제네릭 인터페이스
-export interface SocketResponse<T = unknown> {
-  data?: T;
-  error?: SocketError;
-}
+// export interface SocketResponse<T = unknown> {
+//   data?: T;
+//   error?: SocketError;
+// }
+// => 각 응답 타입은 Game Flow Event Specifications에 작성
 
 // 웹소켓 에러 정보를 정의하는 인터페이스
 export interface SocketError {
@@ -40,3 +44,156 @@ export enum SocketErrorCode {
   CONNECTION_TIMEOUT = 7001,
   CONNECTION_CLOSED = 7002,
 }
+
+// 클라이언트 - 서버 구조의 요청 - 응답 타입
+// ----------------------------------------------------------------------------------------------------------------------
+
+// 0. 연결 관리
+export interface ReconnectRequest {
+  roomId: string;
+  playerId: string;
+}
+
+// 1. 방 생성 및 입장
+export interface JoinRoomRequest {
+  roomId: string;
+}
+
+export interface JoinRoomResponse {
+  room: Room;
+  roomSettings: RoomSettings;
+  playerId?: string;
+  players: Player[];
+}
+
+export interface PlayerLeftResponse {
+  leftPlayerId: string;
+  players: Player[];
+}
+
+// 2. 대기방 설정
+export interface UpdateSettingsRequest {
+  settings: Partial<RoomSettings>;
+}
+
+export interface UpdateSettingsResponse {
+  settings: RoomSettings;
+}
+
+export interface ReadyRequest {
+  isReady: boolean;
+}
+
+export interface ReadyResponse {
+  playerId: string;
+  isReady: boolean;
+}
+
+export interface GameStartResponse {
+  countdown: number;
+  roles: Record<string, PlayerRole>;
+  initialWord?: string;
+}
+
+// 3. 게임 진행
+export interface RoundStartResponse {
+  roundNumber: number;
+  roles: {
+    painters?: string[];
+    devil?: string;
+    guessers: string[];
+  };
+  word?: string;
+  drawTime: number;
+}
+
+export interface RoundTimeUpdateResponse {
+  roundNumber: number;
+  remainingTime: number;
+}
+
+export interface RoundEndResponse {
+  roundNumber: number;
+  word: string;
+  winnerRole: PlayerRole;
+  players: Player[];
+}
+
+export interface ChatRequest {
+  message: string;
+}
+
+export interface ChatResponse {
+  id: string;
+  playerId: string;
+  nickname: string;
+  message: string;
+  timestamp: number;
+  isCorrectAnswer?: boolean;
+}
+
+export interface DrawRequest {
+  type: 'pen' | 'fill';
+  color: string;
+  points?: Array<{ x: number; y: number }>;
+  fillPoint?: { x: number; y: number };
+  brushSize?: number;
+}
+
+export interface DrawUpdateResponse {
+  playerId: string;
+  // TODO: 캔버스와 통일 예정
+  // drawingData: DrawingData;
+}
+
+// Socket.IO 이벤트 타입 정의
+// ----------------------------------------------------------------------------------------------------------------------
+
+// 게임 서버 이벤트 타입 정의
+export type GameServerEvents = {
+  joinedRoom: (response: JoinRoomResponse) => void;
+  playerJoined: (response: JoinRoomResponse) => void;
+  playerLeft: (response: PlayerLeftResponse) => void;
+  settingUpdated: (response: UpdateSettingsResponse) => void;
+  playerStatusUpdated: (response: ReadyResponse) => void;
+  gameStarted: (response: GameStartResponse) => void;
+  roundStarted: (response: RoundStartResponse) => void;
+  roundEnded: (response: RoundEndResponse) => void;
+  error: (error: SocketError) => void;
+};
+// 게임 클라이언트 이벤트 타입 정의
+export type GameClientEvents = {
+  reconnect: (request: ReconnectRequest) => void;
+  joinRoom: (request: JoinRoomRequest, callback: (response: JoinRoomResponse) => void) => void;
+  updateSettings: (request: UpdateSettingsRequest, callback: (response: UpdateSettingsResponse) => void) => void;
+  updatePlayerStatus: (request: ReadyRequest, callback: (response: ReadyResponse) => void) => void;
+};
+
+// 드로잉 서버 이벤트 타입 정의
+export type DrawingServerEvents = {
+  drawTimeUpdated: (response: RoundTimeUpdateResponse) => void;
+  drawUpdated: (response: DrawUpdateResponse) => void;
+  error: (error: SocketError) => void;
+};
+// 드로잉 클라이언트 이벤트 타입 정의
+export type DrawingClientEvents = {
+  connect: (request: ReconnectRequest) => void;
+  reconnect: (request: ReconnectRequest) => void;
+  draw: (request: DrawRequest) => void;
+};
+
+// 채팅 서버 이벤트 타입 정의
+export type ChatServerEvents = {
+  messageReceived: (response: ChatResponse) => void;
+  error: (error: SocketError) => void;
+};
+// 채팅 클라이언트 이벤트 타입 정의
+export type ChatClientEvents = {
+  sendMessage: (request: ChatRequest) => void;
+};
+
+// 소켓 타입 정의
+// ----------------------------------------------------------------------------------------------------------------------
+export type GameSocket = Socket<GameServerEvents, GameClientEvents>;
+export type DrawingSocket = Socket<DrawingServerEvents, DrawingClientEvents>;
+export type ChatSocket = Socket<ChatServerEvents, ChatClientEvents>;

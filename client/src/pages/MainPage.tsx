@@ -27,7 +27,11 @@ const MainPage = () => {
           <Logo variant="main" className="w-full transition duration-300 hover:scale-110 hover:brightness-[1.12]" />
         </div>
 
-        <Button onClick={() => void handleCreateRoom()} disabled={createRoomMutation.isPending || isExiting}>
+        <Button
+          onClick={() => void handleCreateRoom()}
+          disabled={createRoomMutation.isPending || isExiting}
+          className="h-12 max-w-72 animate-pulse"
+        >
           {createRoomMutation.isPending || isExiting ? '방 생성중...' : '방 만들기'}
         </Button>
       </main>
