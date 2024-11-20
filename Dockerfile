@@ -1,0 +1,41 @@
+FROM node:20-alpine AS builder
+
+RUN corepack enable && corepack prepare pnpm@9.12.3 --activate
+
+WORKDIR /app
+
+COPY pnpm-workspace.yaml package.json pnpm-lock.yaml ./
+COPY core/package.json ./core/
+COPY server/package.json ./server/
+
+RUN pnpm install --frozen-lockfile
+
+COPY . .
+
+RUN pnpm --filter @troublepainter/core build
+RUN pnpm --filter server build
+
+FROM node:20-alpine AS production
+WORKDIR /app
+
+COPY --from=builder /app/pnpm-workspace.yaml ./
+COPY --from=builder /app/server/package.json ./server/package.json
+COPY --from=builder /app/server/dist ./server/dist
+COPY --from=builder /app/core/package.json ./core/package.json
+COPY --from=builder /app/core/dist ./core/dist
+
+RUN corepack enable && corepack prepare pnpm@9.12.3 --activate && cd server && pnpm install --prod
+
+WORKDIR /app/server
+
+ARG REDIS_HOST
+ARG REDIS_PORT
+
+ENV NODE_ENV=production
+ENV PORT=3000
+ENV REDIS_HOST=$REDIS_HOST
+ENV REDIS_PORT=$REDIS_PORT
+
+EXPOSE 3000
+
+CMD ["node", "dist/main.js"]
