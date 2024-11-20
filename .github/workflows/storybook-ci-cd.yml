@@ -6,15 +6,13 @@ on:
       - main
       - develop
     paths:
-      - client/**
+      - 'client/**'
+      - 'core/**'
+      - '.github/workflows/storybook-*.yml'
 
 concurrency:
   group: ${{ github.workflow }}-${{ github.ref }}
   cancel-in-progress: true
-
-defaults:
-  run:
-    working-directory: ./client
 
 jobs:
   deploy:
@@ -36,14 +34,31 @@ jobs:
         uses: actions/setup-node@v4
         with:
           node-version: 20
-          cache: "pnpm"
-          cache-dependency-path: "./client/pnpm-lock.yaml"
+          cache: 'pnpm'
+          cache-dependency-path: '**/pnpm-lock.yaml'
 
-      - name: Install dependencies
-        run: pnpm install
+      - name: Install all dependencies
+        run: pnpm install --frozen-lockfile
+
+      - name: Build core package
+        run: |
+          echo "Building core package..."
+          pnpm --filter @troublepainter/core build
+          echo "Core build output:"
+          ls -la core/dist/
+
+      - name: Verify core build
+        run: |
+          if [ ! -f "core/dist/index.mjs" ]; then
+            echo "Core build failed - index.mjs not found"
+            exit 1
+          fi
 
       - name: Build storybook
-        run: pnpm run build-storybook
+        working-directory: ./client
+        run: |
+          echo "Building Storybook with core from $(realpath ../core/dist/)"
+          pnpm build-storybook
 
       - name: Deploy
         uses: peaceiris/actions-gh-pages@v3
@@ -52,4 +67,4 @@ jobs:
           publish_dir: ./client/storybook-static
           destination_dir: ${{ github.ref == 'refs/heads/main' && 'storybook' || 'storybook-develop' }}
           keep_files: true
-          commit_message: "docs: deploy storybook"
+          commit_message: 'docs: deploy storybook'
