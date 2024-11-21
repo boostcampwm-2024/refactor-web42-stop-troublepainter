@@ -20,6 +20,9 @@ export class GameGateway implements OnGatewayDisconnect {
   @WebSocketServer()
   server: Server;
 
+  private disconnectTimeouts: Map<string, NodeJS.Timeout> = new Map();
+  private readonly DISCONNECT_TIMEOUT = 10000;
+
   constructor(private readonly gameService: GameService) {}
 
   @SubscribeMessage('joinRoom')
@@ -65,18 +68,29 @@ export class GameGateway implements OnGatewayDisconnect {
     const { playerId, roomId } = client.data;
     if (!playerId || !roomId) return;
 
-    setTimeout(async () => {
-      const sockets = await this.server.fetchSockets();
-      const isReconnected = sockets.some((socket) => socket.data.playerId === playerId);
+    const existingTimeout = this.disconnectTimeouts.get(playerId);
+    if (existingTimeout) {
+      clearTimeout(existingTimeout);
+      this.disconnectTimeouts.delete(playerId);
+    }
 
-      if (!isReconnected) {
-        const players = await this.gameService.leaveRoom(roomId, playerId);
-        if (!players) return;
-        this.server.to(roomId).emit('playerLeft', {
-          leftPlayerId: playerId,
-          players,
-        });
+    const timeout = setTimeout(async () => {
+      try {
+        const sockets = await this.server.fetchSockets();
+        const isReconnected = sockets.some((socket) => socket.data.playerId === playerId);
+
+        if (!isReconnected) {
+          const players = await this.gameService.leaveRoom(roomId, playerId);
+          if (!players) return;
+          this.server.to(roomId).emit('playerLeft', {
+            leftPlayerId: playerId,
+            players,
+          });
+        }
+      } finally {
+        this.disconnectTimeouts.delete(playerId);
       }
-    }, 10000);
+    }, this.DISCONNECT_TIMEOUT);
+    this.disconnectTimeouts.set(playerId, timeout);
   }
 }
