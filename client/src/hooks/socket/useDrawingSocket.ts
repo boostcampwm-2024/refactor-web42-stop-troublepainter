@@ -4,9 +4,9 @@ import { useCallback, useEffect } from 'react';
 import { useParams } from 'react-router-dom';
 import type { DrawUpdateResponse } from '@troublepainter/core';
 import type { DrawingData } from '@troublepainter/core';
+import { useGameSocketStore } from '@/stores/socket/gameSocket.store';
 import { SocketNamespace } from '@/stores/socket/socket.config';
 import { useSocketStore } from '@/stores/socket/socket.store';
-import { playerIdStorageUtils } from '@/utils/playerIdStorage';
 
 interface UseDrawingSocketProps {
   onDrawUpdate?: (response: DrawUpdateResponse) => void;
@@ -58,7 +58,7 @@ interface UseDrawingSocketProps {
 export const useDrawingSocket = ({ onDrawUpdate }: UseDrawingSocketProps = {}) => {
   const { roomId } = useParams<{ roomId: string }>();
   const { sockets, connected, actions: socketActions } = useSocketStore();
-  const currentPlayerId = playerIdStorageUtils.getPlayerId(roomId as string); // roomId가 있다고 가정
+  const { currentPlayerId } = useGameSocketStore(); // roomId가 있다고 가정
 
   // 소켓 연결 설정
   useEffect(() => {

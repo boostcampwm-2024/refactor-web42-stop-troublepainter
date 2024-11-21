@@ -3,7 +3,6 @@ import { JoinRoomRequest, JoinRoomResponse, ReconnectRequest } from '@troublepai
 import { create } from 'zustand';
 import { devtools } from 'zustand/middleware';
 import { useSocketStore } from './socket.store';
-import { playerIdStorageUtils } from '@/utils/playerIdStorage';
 
 interface GameState {
   room: Room | null;
@@ -17,6 +16,7 @@ interface GameActions {
   updateRoom: (room: Room) => void;
   updateRoomSettings: (settings: RoomSettings) => void;
   updatePlayers: (players: Player[]) => void;
+  updateCurrentPlayerId: (currentPlayerId: string) => void;
   removePlayer: (playerId: string) => void;
 
   // 소켓 요청 액션
@@ -86,6 +86,10 @@ export const useGameSocketStore = create<GameState & { actions: GameActions }>()
           set({ players });
         },
 
+        updateCurrentPlayerId: (currentPlayerId) => {
+          set({ currentPlayerId });
+        },
+
         removePlayer: (playerId) => {
           set((state) => ({
             players: state.players.filter((player) => player.playerId !== playerId),
@@ -97,23 +101,8 @@ export const useGameSocketStore = create<GameState & { actions: GameActions }>()
           const socket = useSocketStore.getState().sockets.game;
           if (!socket) throw new Error('Socket not connected');
 
-          return new Promise((resolve) => {
-            socket.emit('joinRoom', request, (response: JoinRoomResponse) => {
-              const { room, roomSettings, players, playerId } = response;
-
-              set({
-                room,
-                roomSettings,
-                players,
-                currentPlayerId: playerId || null,
-              });
-
-              if (playerId) {
-                playerIdStorageUtils.setPlayerId(request.roomId, playerId);
-              }
-
-              resolve(response);
-            });
+          return new Promise(() => {
+            socket.emit('joinRoom', request);
           });
         },
 

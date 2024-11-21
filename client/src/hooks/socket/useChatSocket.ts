@@ -5,7 +5,6 @@ import { useChatStore } from '@/stores/socket/chatSocket.store';
 import { useGameSocketStore } from '@/stores/socket/gameSocket.store';
 import { SocketNamespace } from '@/stores/socket/socket.config';
 import { useSocketStore } from '@/stores/socket/socket.store';
-import { playerIdStorageUtils } from '@/utils/playerIdStorage';
 
 /**
  * 채팅 소켓 연결과 메시지 처리를 관리하는 커스텀 훅입니다.
@@ -32,9 +31,8 @@ import { playerIdStorageUtils } from '@/utils/playerIdStorage';
 export const useChatSocket = () => {
   const { roomId } = useParams<{ roomId: string }>();
   const { sockets, connected, actions: socketActions } = useSocketStore();
-  const { players } = useGameSocketStore();
+  const { players, currentPlayerId } = useGameSocketStore();
   const { messages, actions: chatActions } = useChatStore();
-  const currentPlayerId = playerIdStorageUtils.getPlayerId(roomId as string);
 
   // Socket 연결 설정
   useEffect(() => {
