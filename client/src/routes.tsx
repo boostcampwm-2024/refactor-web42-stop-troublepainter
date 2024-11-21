@@ -1,7 +1,6 @@
 import { createBrowserRouter } from 'react-router-dom';
 import GameLayout from '@/layouts/GameLayout';
 import RootLayout from '@/layouts/RootLayout';
-import ExamplePage from '@/pages/ExamplePage';
 import ExamplePageCanvasOnly from '@/pages/ExamplePageCanvasOnly';
 import GameRoomPage from '@/pages/GameRoomPage';
 import LobbyPage from '@/pages/LobbyPage';
@@ -21,10 +20,6 @@ export const router = createBrowserRouter(
           element: <GameLayout />,
           children: [
             {
-              path: '/game-examples',
-              element: <ExamplePage />,
-            },
-            {
               path: '/lobby/:roomId',
               element: <LobbyPage />,
             },
@@ -39,10 +34,6 @@ export const router = createBrowserRouter(
         //   element: <ResultPage />,
         // },
         // 개발용 페이지
-        {
-          path: '/examples',
-          element: <ExamplePage />,
-        },
         {
           path: '/dev/canvas',
           element: <ExamplePageCanvasOnly />,
