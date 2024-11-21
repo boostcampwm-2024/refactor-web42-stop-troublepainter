@@ -64,7 +64,7 @@ const Setting = ({ className, type, ...props }: SettingProps) => {
           {ROOM_SETTINGS.map(({ label, key, options }) => (
             <div key={label} className="flex w-full max-w-80 items-center justify-between sm:max-w-[70%]">
               <span>{label}</span>
-              {type === 'host' ? (
+              {type === 'participant' ? (
                 <span>{selectedValues[key]}</span>
               ) : (
                 <Dropdown
