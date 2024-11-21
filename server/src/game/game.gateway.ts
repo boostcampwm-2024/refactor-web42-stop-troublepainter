@@ -59,39 +59,24 @@ export class GameGateway implements OnGatewayDisconnect {
       playerId,
       players,
     });
-
-    client.to(roomId).emit('playerJoined', {
-      room,
-      roomSettings,
-      players,
-    });
   }
 
   @SubscribeMessage('updateSettings')
-  async handleSettings(@ConnectedSocket() client: Socket, @MessageBody() data: Partial<RoomSettings>) {
+  async handleSettings(@ConnectedSocket() client: Socket, @MessageBody() data: { settings: Partial<RoomSettings> }) {
     const { playerId, roomId } = client.data;
+    if (!roomId || !playerId) throw new BadRequestException('Room ID and Player ID are required');
 
-    const updatedSettings = await this.gameService.updateSettings(roomId, playerId, data);
+    const updatedSettings = await this.gameService.updateSettings(roomId, playerId, data.settings);
 
     client.to(roomId).emit('settingsUpdated', updatedSettings);
-    this.server.to(client.id).emit('settingsUpdated', updatedSettings);
   }
 
   @SubscribeMessage('gameStart')
   async handleGameStart(@ConnectedSocket() client: Socket) {
     const { playerId, roomId } = client.data;
+    if (!playerId || !roomId) throw new BadRequestException('Room ID and Player ID are required');
 
-    const { room, roomSettings, players } = await this.gameService.startGame(roomId, playerId);
-
-    const roles = players.reduce(
-      (acc, player) => {
-        if (player.role === PlayerRole.PAINTER) acc.painters.push(player.playerId);
-        else if (player.role === PlayerRole.DEVIL) acc.devils.push(player.playerId);
-        else acc.guessers.push(player.playerId);
-        return acc;
-      },
-      { painters: [], devils: [], guessers: [] },
-    );
+    const { room, roomSettings, roles, players } = await this.gameService.startGame(roomId, playerId);
 
     const sockets = await this.server.in(roomId).fetchSockets();
 
@@ -99,20 +84,19 @@ export class GameGateway implements OnGatewayDisconnect {
       const playerSocket = sockets.find((socket) => socket.data.playerId === player.playerId);
       if (!playerSocket) continue;
 
+      const basePayload = {
+        roundNumber: room.currentRound,
+        assignedRole: player.role,
+        roles,
+        drawTime: roomSettings.drawTime,
+      };
+
       if (player.role === PlayerRole.PAINTER || player.role === PlayerRole.DEVIL) {
-        this.server.to(playerSocket.id).emit('drawingGroupRoundStarted', {
-          roundNumber: room.currentRound,
-          assignedRole: player.role,
-          roles,
-          word: room.currentWord,
-          drawTime: roomSettings.drawTime,
-        });
+        this.server.to(playerSocket.id).emit('drawingGroupRoundStarted', basePayload);
       } else {
         this.server.to(playerSocket.id).emit('guesserRoundStarted', {
-          roundNumber: room.currentRound,
-          assignedRole: player.role,
+          ...basePayload,
           roles: { guessers: roles.guessers },
-          drawTime: roomSettings.drawTime,
         });
       }
     }
@@ -134,11 +118,12 @@ export class GameGateway implements OnGatewayDisconnect {
         const isReconnected = sockets.some((socket) => socket.data.playerId === playerId);
 
         if (!isReconnected) {
-          const players = await this.gameService.leaveRoom(roomId, playerId);
-          if (!players) return;
+          const { hostId, remainingPlayers } = await this.gameService.leaveRoom(roomId, playerId);
+          if (!remainingPlayers) return;
           this.server.to(roomId).emit('playerLeft', {
             leftPlayerId: playerId,
-            players,
+            hostId,
+            players: remainingPlayers,
           });
         }
       } finally {
