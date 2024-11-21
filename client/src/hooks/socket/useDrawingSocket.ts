@@ -3,7 +3,7 @@
 import { useCallback, useEffect } from 'react';
 import { useParams } from 'react-router-dom';
 import type { DrawUpdateResponse } from '@troublepainter/core';
-import type { DrawingData } from '@troublepainter/core';
+import type { CRDTMessage } from '@troublepainter/core';
 import { SocketNamespace } from '@/stores/socket/socket.config';
 import { useSocketStore } from '@/stores/socket/socket.store';
 import { playerIdStorageUtils } from '@/utils/playerIdStorage';
@@ -100,11 +100,10 @@ export const useDrawingSocket = ({ onDrawUpdate }: UseDrawingSocketProps = {}) =
 
   // 드로잉 데이터 전송
   const sendDrawing = useCallback(
-    (drawingData: DrawingData) => {
+    (crdtDrawingData: CRDTMessage) => {
       const socket = sockets.drawing;
       if (!socket || !connected.drawing) return;
-
-      socket.emit('draw', { drawingData });
+      socket.emit('draw', { drawingData: crdtDrawingData });
     },
     [sockets.drawing, connected.drawing],
   );

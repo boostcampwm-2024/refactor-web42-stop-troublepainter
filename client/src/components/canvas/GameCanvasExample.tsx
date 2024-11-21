@@ -59,7 +59,6 @@ const GameCanvas = ({ role, maxPixels = 100000 }: GameCanvasProps) => {
     draw,
     stopDrawing,
     applyDrawing,
-    getCurrentDrawing,
     canUndo,
     canRedo,
     undo,
@@ -81,9 +80,13 @@ const GameCanvas = ({ role, maxPixels = 100000 }: GameCanvasProps) => {
       const { canvas } = getCanvasContext(canvasRef);
       const point = getDrawPoint(e, canvas);
       const convertPoint = convertCoordinate(point);
-      startDrawing(convertPoint);
+
+      const crdtDrawingData = startDrawing(convertPoint);
+      if (crdtDrawingData) {
+        sendDrawing(crdtDrawingData);
+      }
     },
-    [startDrawing, convertCoordinate],
+    [startDrawing, convertCoordinate, isConnected, sendDrawing],
   );
 
   const handleDrawMove = useCallback(
@@ -91,20 +94,18 @@ const GameCanvas = ({ role, maxPixels = 100000 }: GameCanvasProps) => {
       const { canvas } = getCanvasContext(canvasRef);
       const point = getDrawPoint(e, canvas);
       const convertPoint = convertCoordinate(point);
-      draw(convertPoint);
+
+      const crdtDrawingData = draw(convertPoint);
+      if (crdtDrawingData) {
+        sendDrawing(crdtDrawingData);
+      }
     },
-    [draw, convertCoordinate],
+    [draw, convertCoordinate, isConnected, sendDrawing],
   );
 
   const handleDrawEnd = useCallback(() => {
-    const currentDrawing = getCurrentDrawing();
-    // console.log(currentDrawing, isConnected);
-    if (currentDrawing && isConnected) {
-      // console.log(currentDrawing);
-      sendDrawing(currentDrawing);
-    }
     stopDrawing();
-  }, [stopDrawing, sendDrawing, getCurrentDrawing, isConnected]);
+  }, [stopDrawing]);
 
   const isDrawableRole = (role: PlayerRole): role is PlayerRole.PAINTER | PlayerRole.DEVIL => {
     return role === 'PAINTER' || role === 'DEVIL';
