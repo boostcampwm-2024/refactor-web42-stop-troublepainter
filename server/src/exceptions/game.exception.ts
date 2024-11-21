@@ -32,3 +32,9 @@ export class BadRequestException extends GameException {
     super(SocketErrorCode.BAD_REQUEST, message);
   }
 }
+
+export class InsufficientPlayersException extends GameException {
+  constructor(message: string = 'Insufficient players') {
+    super(SocketErrorCode.INSUFFICIENT_PLAYERS, message);
+  }
+}

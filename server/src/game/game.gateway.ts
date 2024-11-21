@@ -12,6 +12,7 @@ import { UseFilters } from '@nestjs/common';
 import { WsExceptionFilter } from 'src/filters/ws-exception.filter';
 import { RoomSettings } from 'src/common/types/game.types';
 import { BadRequestException } from 'src/exceptions/game.exception';
+import { PlayerRole } from 'src/common/enums/game.status.enum';
 
 @WebSocketGateway({
   cors: '*',
@@ -69,12 +70,52 @@ export class GameGateway implements OnGatewayDisconnect {
   @SubscribeMessage('updateSettings')
   async handleSettings(@ConnectedSocket() client: Socket, @MessageBody() data: Partial<RoomSettings>) {
     const { playerId, roomId } = client.data;
-    if (!playerId || !roomId) throw new BadRequestException('Room ID and Player ID are required');
 
     const updatedSettings = await this.gameService.updateSettings(roomId, playerId, data);
 
     client.to(roomId).emit('settingsUpdated', updatedSettings);
     this.server.to(client.id).emit('settingsUpdated', updatedSettings);
+  }
+
+  @SubscribeMessage('gameStart')
+  async handleGameStart(@ConnectedSocket() client: Socket) {
+    const { playerId, roomId } = client.data;
+
+    const { room, roomSettings, players } = await this.gameService.startGame(roomId, playerId);
+
+    const roles = players.reduce(
+      (acc, player) => {
+        if (player.role === PlayerRole.PAINTER) acc.painters.push(player.playerId);
+        else if (player.role === PlayerRole.DEVIL) acc.devils.push(player.playerId);
+        else acc.guessers.push(player.playerId);
+        return acc;
+      },
+      { painters: [], devils: [], guessers: [] },
+    );
+
+    const sockets = await this.server.in(roomId).fetchSockets();
+
+    for (const player of players) {
+      const playerSocket = sockets.find((socket) => socket.data.playerId === player.playerId);
+      if (!playerSocket) continue;
+
+      if (player.role === PlayerRole.PAINTER || player.role === PlayerRole.DEVIL) {
+        this.server.to(playerSocket.id).emit('drawingGroupRoundStarted', {
+          roundNumber: room.currentRound,
+          assignedRole: player.role,
+          roles,
+          word: room.currentWord,
+          drawTime: roomSettings.drawTime,
+        });
+      } else {
+        this.server.to(playerSocket.id).emit('guesserRoundStarted', {
+          roundNumber: room.currentRound,
+          assignedRole: player.role,
+          roles: { guessers: roles.guessers },
+          drawTime: roomSettings.drawTime,
+        });
+      }
+    }
   }
 
   async handleDisconnect(client: Socket) {
