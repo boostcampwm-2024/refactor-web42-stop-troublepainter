@@ -1,13 +1,11 @@
 import { Outlet } from 'react-router-dom';
 import { Chat } from '@/components/chat/Chat';
+import { PlayerCardList } from '@/components/player/PlayerCardList';
 import { Logo } from '@/components/ui/Logo';
-import { PlayerCard } from '@/components/ui/PlayerCard';
 import { useGameSocket } from '@/hooks/socket/useGameSocket';
-import { useGameSocketStore } from '@/stores/socket/gameSocket.store';
 import { cn } from '@/utils/cn';
 
 const GameLayout = () => {
-  const { players } = useGameSocketStore();
   const { isConnected } = useGameSocket();
   // console.log(players, room, roomSettings);
 
@@ -45,20 +43,16 @@ const GameLayout = () => {
           {/* 플레이어 정보 영역 */}
           <aside
             className={cn(
+              // 모바일
               'flex h-24 w-full gap-0.5 overflow-x-scroll px-2 pt-2',
               // 데스크탑
-              'lg:m-0 lg:mr-4 lg:h-full lg:w-3/12 lg:flex-col lg:gap-2 lg:overflow-y-scroll lg:border-r-2 lg:border-dashed lg:border-violet-50 lg:p-0 lg:py-3 lg:pr-4 2xl:-mr-5 2xl:py-5 2xl:pr-5',
+              'lg:m-0 lg:mr-4 lg:h-full lg:w-3/12 lg:flex-col lg:gap-2 lg:overflow-x-auto lg:overflow-y-scroll',
+              'lg:border-r-2 lg:border-dashed lg:border-violet-50 lg:p-0 lg:py-3 lg:pr-4',
+              '2xl:-mr-5 2xl:py-5 2xl:pr-5',
             )}
+            aria-label="플레이어 목록"
           >
-            {/* 임시 데이터 */}
-            {players?.map((player) => (
-              <PlayerCard
-                key={player.playerId}
-                nickname={player.nickname}
-                status={player.status}
-                score={player.score}
-              />
-            ))}
+            <PlayerCardList />
           </aside>
 
           {/* 중앙 영역 */}
@@ -77,7 +71,7 @@ const GameLayout = () => {
             className={cn(
               'relative flex min-h-0 w-full flex-1 flex-col items-end px-2 pb-2 sm:h-full',
               // 데스크탑
-              'lg:ml-4 lg:h-full lg:w-3/12 lg:border-l-2 lg:border-dashed lg:border-violet-50 lg:py-3 lg:pl-2',
+              'lg:ml-4 lg:h-full lg:w-3/12 lg:border-l-2 lg:border-dashed lg:border-violet-50 lg:py-3 lg:pl-2 lg:pr-0',
               '2xl:-ml-5 2xl:py-5 2xl:pl-5',
             )}
           >

@@ -36,6 +36,7 @@ export class GameRepository {
     const multi = this.redisService.multi();
     multi.del(`room:${roomId}`);
     multi.del(`room:${roomId}:settings`);
+    multi.del(`room:${roomId}:players`);
     await multi.exec();
   }
 
@@ -84,5 +85,9 @@ export class GameRepository {
 
   async updateRoomSettings(roomId: string, settings: RoomSettings) {
     await this.redisService.hset(`room:${roomId}:settings`, settings);
+  }
+
+  async updatePlayer(roomId: string, playerId: string, player: Player) {
+    await this.redisService.hset(`room:${roomId}:players:${playerId}`, player);
   }
 }

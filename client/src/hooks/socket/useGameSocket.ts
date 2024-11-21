@@ -104,7 +104,10 @@ export const useGameSocket = () => {
         gameActions.updateRoom(room);
         gameActions.updateRoomSettings(roomSettings);
         gameActions.updatePlayers(players);
-        if (playerId) playerIdStorageUtils.setPlayerId(roomId, playerId);
+        if (playerId) {
+          playerIdStorageUtils.setPlayerId(roomId, playerId);
+          gameActions.updateCurrentPlayerId(playerId);
+        }
       },
 
       playerJoined: (response: JoinRoomResponse) => {
