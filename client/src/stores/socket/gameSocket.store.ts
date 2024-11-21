@@ -1,4 +1,4 @@
-import { Player, Room, RoomSettings } from '@troublepainter/core';
+import { Player, Room, RoomSettings, UpdateSettingsRequest } from '@troublepainter/core';
 import { JoinRoomRequest, JoinRoomResponse, ReconnectRequest } from '@troublepainter/core';
 import { create } from 'zustand';
 import { devtools } from 'zustand/middleware';
@@ -23,7 +23,7 @@ interface GameActions {
   joinRoom: (request: JoinRoomRequest) => Promise<JoinRoomResponse>;
   reconnect: (request: ReconnectRequest) => Promise<void>;
   // updatePlayerStatus: (request: ReadyRequest) => Promise<void>;
-  // updateSettings: (request: UpdateSettingsRequest) => Promise<void>;
+  updateSettings: (request: UpdateSettingsRequest) => Promise<void>;
   // leaveRoom: () => Promise<void>;
 
   // 상태 초기화
@@ -148,21 +148,14 @@ export const useGameSocketStore = create<GameState & { actions: GameActions }>()
         //   });
         // },
 
-        // updateSettings: async (request) => {
-        //   const socket = useSocketStore.getState().sockets.game;
-        //   if (!socket) throw new Error('Socket not connected');
+        updateSettings: async (request) => {
+          const socket = useSocketStore.getState().sockets.game;
+          if (!socket) throw new Error('Socket not connected');
 
-        //   return new Promise((resolve, reject) => {
-        //     socket.emit('updateSettings', request, (error?: SocketError) => {
-        //       if (error) {
-        //         set({ error });
-        //         reject(error);
-        //       } else {
-        //         resolve();
-        //       }
-        //     });
-        //   });
-        // },
+          return new Promise(() => {
+            socket.emit('updateSettings', request);
+          });
+        },
 
         // leaveRoom: async () => {
         //   const socket = useSocketStore.getState().sockets.game;
