@@ -64,7 +64,7 @@ const Setting = ({ className, type, ...props }: SettingProps) => {
       <div className="flex min-h-[16.125rem] items-center justify-center bg-violet-200 sm:min-h-[18.56rem] sm:rounded-b-xl sm:px-6">
         <div className="flex min-h-[13.8rem] w-full flex-col items-center justify-center gap-4 border-0 border-violet-950 bg-violet-50 p-4 text-xl sm:h-auto sm:rounded-[0.625rem] sm:border-2 lg:gap-6 lg:text-2xl">
           {ROOM_SETTINGS.map(({ label, key, options }) => (
-            <div key={label} className="flex w-full max-w-80 items-center justify-between sm:max-w-[70%]">
+            <div key={label} className="flex w-full max-w-80 items-center justify-between lg:max-w-[80%]">
               <span>{label}</span>
               {type === 'participant' ? (
                 <span>{roomSettings?.[key] || ''}</span>
