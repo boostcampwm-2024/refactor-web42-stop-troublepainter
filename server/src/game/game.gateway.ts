@@ -68,13 +68,12 @@ export class GameGateway implements OnGatewayDisconnect {
   }
 
   @SubscribeMessage('updateSettings')
-  async handleSettings(@ConnectedSocket() client: Socket, @MessageBody() data: Partial<RoomSettings>) {
+  async handleSettings(@ConnectedSocket() client: Socket, @MessageBody() data: { settings: Partial<RoomSettings> }) {
     const { playerId, roomId } = client.data;
 
-    const updatedSettings = await this.gameService.updateSettings(roomId, playerId, data);
+    const updatedSettings = await this.gameService.updateSettings(roomId, playerId, data.settings);
 
-    client.to(roomId).emit('settingsUpdated', updatedSettings);
-    this.server.to(client.id).emit('settingsUpdated', updatedSettings);
+    client.to(roomId).emit('settingsUpdated', { settings: updatedSettings });
   }
 
   @SubscribeMessage('gameStart')

@@ -1,6 +1,7 @@
 import { HTMLAttributes, useEffect, useState } from 'react';
 import { RoomSettings } from '@troublepainter/core';
 import Dropdown from '@/components/ui/Dropdown';
+import { gameSocketHandlers } from '@/handlers/socket/gameSocket.handler';
 import { useGameSocketStore } from '@/stores/socket/gameSocket.store';
 import { cn } from '@/utils/cn';
 
@@ -18,26 +19,29 @@ interface SettingProps extends HTMLAttributes<HTMLDivElement> {
 
 export const ROOM_SETTINGS: RoomSettingItem[] = [
   { label: '라운드 수', key: 'totalRounds', options: [3, 5] },
-  { label: '플레이어 수', key: 'maxPlayers', options: [4, 5] },
+  { label: '최대 플레이어 수', key: 'maxPlayers', options: [4, 5] },
   { label: '제한 시간', key: 'drawTime', options: [15, 20, 25, 30] },
   //{ label: '픽셀 수', key: 'maxPixels', options: [300, 500] },
 ];
 
 const Setting = ({ className, type, ...props }: SettingProps) => {
-  const { roomSettings, actions } = useGameSocketStore();
+  const { roomSettings } = useGameSocketStore();
 
-  const [selectedValues, setSelectedValues] = useState<RoomSettings>({
-    totalRounds: roomSettings?.totalRounds || 5,
-    maxPlayers: roomSettings?.maxPlayers || 5,
-    drawTime: roomSettings?.drawTime || 30,
-    maxPixels: roomSettings?.maxPixels || 300,
+  const [selectedValues, setSelectedValues] = useState<Partial<RoomSettings>>({
+    totalRounds: undefined,
+    maxPlayers: undefined,
+    drawTime: undefined,
   });
 
   useEffect(() => {
+    if (!roomSettings) return;
+    setSelectedValues(roomSettings);
+  }, [roomSettings]);
+
+  useEffect(() => {
     if (type === 'participant') return;
-    //console.log(selectedValues);
-    actions.updateRoomSettings(selectedValues);
-  }, [selectedValues]);
+    void gameSocketHandlers.updateSettings({ settings: selectedValues });
+  }, [selectedValues, type]);
 
   const handleChange = (key: SettingKey) => (value: string) => {
     setSelectedValues((prev) => ({
@@ -45,8 +49,6 @@ const Setting = ({ className, type, ...props }: SettingProps) => {
       [key]: Number(value),
     }));
   };
-
-  const convertToString = (options: number[]) => options.map((option) => String(option));
 
   return (
     <section
@@ -65,11 +67,11 @@ const Setting = ({ className, type, ...props }: SettingProps) => {
             <div key={label} className="flex w-full max-w-80 items-center justify-between sm:max-w-[70%]">
               <span>{label}</span>
               {type === 'participant' ? (
-                <span>{selectedValues[key]}</span>
+                <span>{roomSettings?.[key] || ''}</span>
               ) : (
                 <Dropdown
-                  options={convertToString(options)}
-                  selectedValue={selectedValues[key].toString()}
+                  options={options.map((option) => option.toString())}
+                  selectedValue={selectedValues?.[key]?.toString() || ''}
                   handleChange={handleChange(key)}
                   className="h-7 w-[30%] min-w-[4.25rem] text-xl sm:min-w-28 lg:h-auto lg:text-2xl"
                 />

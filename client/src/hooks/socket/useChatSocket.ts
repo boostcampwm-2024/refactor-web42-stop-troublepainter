@@ -1,7 +1,7 @@
-import { useCallback, useEffect } from 'react';
+import { useEffect } from 'react';
 import { ChatResponse } from '@troublepainter/core';
 import { useParams } from 'react-router-dom';
-import { useChatStore } from '@/stores/socket/chatSocket.store';
+import { useChatSocketStore } from '@/stores/socket/chatSocket.store';
 import { useGameSocketStore } from '@/stores/socket/gameSocket.store';
 import { SocketNamespace } from '@/stores/socket/socket.config';
 import { useSocketStore } from '@/stores/socket/socket.store';
@@ -31,8 +31,8 @@ import { useSocketStore } from '@/stores/socket/socket.store';
 export const useChatSocket = () => {
   const { roomId } = useParams<{ roomId: string }>();
   const { sockets, connected, actions: socketActions } = useSocketStore();
-  const { players, currentPlayerId } = useGameSocketStore();
-  const { messages, actions: chatActions } = useChatStore();
+  const { currentPlayerId } = useGameSocketStore();
+  const { messages, actions: chatActions } = useChatSocketStore();
 
   // Socket 연결 설정
   useEffect(() => {
@@ -65,32 +65,9 @@ export const useChatSocket = () => {
     };
   }, [sockets.chat, currentPlayerId, chatActions]);
 
-  // 메시지 전송
-  const sendMessage = useCallback(
-    (message: string) => {
-      const socket = sockets.chat;
-      if (!socket || !connected.chat || !message.trim() || !currentPlayerId) return;
-
-      const currentPlayer = players?.find((player) => player.playerId === currentPlayerId);
-      if (!currentPlayer) return;
-
-      const messageData: ChatResponse = {
-        playerId: currentPlayerId,
-        nickname: currentPlayer.nickname,
-        message: message.trim(),
-        createdAt: new Date().toISOString(),
-      };
-
-      chatActions.addMessage(messageData);
-      socket.emit('sendMessage', { message: message.trim() });
-    },
-    [sockets.chat, connected.chat, chatActions, currentPlayerId, players],
-  );
-
   return {
     messages,
     isConnected: connected.chat,
     currentPlayerId,
-    sendMessage,
   };
 };
