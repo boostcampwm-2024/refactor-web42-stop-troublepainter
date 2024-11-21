@@ -7,7 +7,7 @@ import { RoomStatus } from 'src/common/enums/game.status.enum';
 export class GameRepository {
   constructor(private readonly redisService: RedisService) {}
 
-  async createRoom(roomId: string, room: Room, settings: RoomSettings) {
+  async createRoom(roomId: string, room: Partial<Room>, settings: Partial<RoomSettings>) {
     const multi = this.redisService.multi();
     multi.hset(`room:${roomId}`, room);
     multi.hset(`room:${roomId}:settings`, settings);
@@ -23,12 +23,11 @@ export class GameRepository {
       hostId: room.hostId === '' ? null : room.hostId,
       status: room.status as RoomStatus,
       currentRound: parseInt(room.currentRound, 10) || 0,
-      totalRounds: parseInt(room.totalRounds, 10) || 0,
       currentWord: room.currentWord === '' ? null : room.currentWord,
     } as Room;
   }
 
-  async updateRoom(roomId: string, room: Room) {
+  async updateRoom(roomId: string, room: Partial<Room>) {
     await this.redisService.hset(`room:${roomId}`, room);
   }
 
@@ -48,6 +47,10 @@ export class GameRepository {
       totalRounds: parseInt(settings.totalRounds, 10),
       drawTime: parseInt(settings.drawTime, 10),
     } as RoomSettings;
+  }
+
+  async updateRoomSettings(roomId: string, settings: Partial<RoomSettings>) {
+    await this.redisService.hset(`room:${roomId}:settings`, settings);
   }
 
   async getRoomPlayers(roomId: string): Promise<Player[]> {
@@ -76,18 +79,14 @@ export class GameRepository {
     await multi.exec();
   }
 
+  async updatePlayer(roomId: string, playerId: string, player: Partial<Player>) {
+    await this.redisService.hset(`room:${roomId}:players:${playerId}`, player);
+  }
+
   async removePlayerFromRoom(roomId: string, playerId: string) {
     const multi = this.redisService.multi();
     multi.lrem(`room:${roomId}:players`, 0, playerId);
     multi.del(`room:${roomId}:players:${playerId}`);
     await multi.exec();
-  }
-
-  async updateRoomSettings(roomId: string, settings: RoomSettings) {
-    await this.redisService.hset(`room:${roomId}:settings`, settings);
-  }
-
-  async updatePlayer(roomId: string, playerId: string, player: Player) {
-    await this.redisService.hset(`room:${roomId}:players:${playerId}`, player);
   }
 }

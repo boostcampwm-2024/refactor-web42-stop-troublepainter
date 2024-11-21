@@ -35,8 +35,8 @@ export class ChatGateway {
 
     if (!roomId || !playerId) throw new BadRequestException('Room ID and Player ID are required');
 
-    const chatResponse = await this.chatService.sendMessage(roomId, playerId, data.message);
+    const newMessage = await this.chatService.sendMessage(roomId, playerId, data.message);
 
-    client.to(roomId).emit('messageReceived', chatResponse);
+    client.to(roomId).emit('messageReceived', newMessage);
   }
 }
