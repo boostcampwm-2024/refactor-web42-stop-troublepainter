@@ -1,6 +1,7 @@
 import { useEffect } from 'react';
 import { useParams } from 'react-router-dom';
 import type { JoinRoomResponse, PlayerLeftResponse } from '@troublepainter/core';
+import { gameSocketHandlers } from '@/handlers/socket/gameSocket.handler';
 import { useGameSocketStore } from '@/stores/socket/gameSocket.store';
 import { SocketNamespace } from '@/stores/socket/socket.config';
 import { useSocketStore } from '@/stores/socket/socket.store';
@@ -75,7 +76,7 @@ export const useGameSocket = () => {
     const savedPlayerId = playerIdStorageUtils.getPlayerId(roomId);
     // console.log(savedPlayerId, roomId);
     if (savedPlayerId) {
-      gameActions.reconnect({ playerId: savedPlayerId, roomId }).catch((error) => {
+      gameSocketHandlers.reconnect({ playerId: savedPlayerId, roomId }).catch((error) => {
         // 재연결 실패 시 계정 삭제
         console.error('Reconnection failed:', error);
         playerIdStorageUtils.removePlayerId(roomId);
@@ -84,7 +85,7 @@ export const useGameSocket = () => {
     // savedPlayerId가 없다면 새로운 접속 시도
     else {
       playerIdStorageUtils.removeAllPlayerIds();
-      gameActions.joinRoom({ roomId }).catch(console.error);
+      gameSocketHandlers.joinRoom({ roomId }).catch(console.error);
     }
 
     // 연결 해제 시 현재 방의 playerId만 제거

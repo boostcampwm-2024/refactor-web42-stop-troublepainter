@@ -6,16 +6,16 @@ export interface ChatState {
   messages: ChatResponse[];
 }
 
-export interface ChatStore extends ChatState {
+const initialState: ChatState = {
+  messages: [],
+};
+
+export interface ChatStore {
   actions: {
     addMessage: (message: ChatResponse) => void;
     clearMessages: () => void;
   };
 }
-
-const initialState: ChatState = {
-  messages: [],
-};
 
 /**
  * 채팅 상태와 액션을 관리하는 ㄴtore입니다.
@@ -25,12 +25,11 @@ const initialState: ChatState = {
  *
  * @example
  * ```typescript
- * const { messages, actions } = useChatStore();
+ * const { messages, actions } = useChatSocketStore();
  * actions.addMessage(newMessage);
  * ```
  */
-
-export const useChatStore = create<ChatStore>()(
+export const useChatSocketStore = create<ChatState & ChatStore>()(
   devtools(
     (set) => ({
       ...initialState,

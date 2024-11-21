@@ -2,6 +2,7 @@ import { MouseEvent as ReactMouseEvent, TouchEvent as ReactTouchEvent, useCallba
 import { PlayerRole } from '@troublepainter/core';
 import { Canvas } from '@/components/canvas/CanvasUI';
 import { COLORS_INFO, MAINCANVAS_RESOLUTION_WIDTH } from '@/constants/canvasConstants';
+import { drawingSocketHandlers } from '@/handlers/socket/drawingSocket.handler';
 import { useDrawingSocket } from '@/hooks/socket/useDrawingSocket';
 import { useCoordinateScale } from '@/hooks/useCoordinateScale';
 import { useDrawing } from '@/hooks/useDrawing';
@@ -67,7 +68,7 @@ const GameCanvas = ({ role, maxPixels = 100000 }: GameCanvasProps) => {
     maxPixels,
   });
 
-  const { isConnected, sendDrawing } = useDrawingSocket({
+  const { isConnected } = useDrawingSocket({
     onDrawUpdate: (response) => {
       if (response.drawingData) {
         applyDrawing(response.drawingData);
@@ -83,10 +84,10 @@ const GameCanvas = ({ role, maxPixels = 100000 }: GameCanvasProps) => {
 
       const crdtDrawingData = startDrawing(convertPoint);
       if (crdtDrawingData) {
-        sendDrawing(crdtDrawingData);
+        void drawingSocketHandlers.sendDrawing(crdtDrawingData);
       }
     },
-    [startDrawing, convertCoordinate, isConnected, sendDrawing],
+    [startDrawing, convertCoordinate, isConnected],
   );
 
   const handleDrawMove = useCallback(
@@ -95,12 +96,12 @@ const GameCanvas = ({ role, maxPixels = 100000 }: GameCanvasProps) => {
       const point = getDrawPoint(e, canvas);
       const convertPoint = convertCoordinate(point);
 
-      const crdtDrawingData = draw(convertPoint);
+      const crdtDrawingData = startDrawing(convertPoint);
       if (crdtDrawingData) {
-        sendDrawing(crdtDrawingData);
+        void drawingSocketHandlers.sendDrawing(crdtDrawingData);
       }
     },
-    [draw, convertCoordinate, isConnected, sendDrawing],
+    [draw, convertCoordinate, isConnected],
   );
 
   const handleDrawEnd = useCallback(() => {
@@ -111,7 +112,7 @@ const GameCanvas = ({ role, maxPixels = 100000 }: GameCanvasProps) => {
     const updates = undo();
     if (updates) {
       updates.forEach((update) => {
-        sendDrawing(update);
+        void drawingSocketHandlers.sendDrawing(update);
       });
     }
   };
@@ -120,7 +121,7 @@ const GameCanvas = ({ role, maxPixels = 100000 }: GameCanvasProps) => {
     const updates = redo();
     if (updates) {
       updates.forEach((update) => {
-        sendDrawing(update);
+        void drawingSocketHandlers.sendDrawing(update);
       });
     }
   };

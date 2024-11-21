@@ -1,6 +1,6 @@
 import { useState } from 'react';
 import { PlayerRole } from '@troublepainter/core';
-import { GameCanvas } from '@/components/canvas/GameCanvasExample';
+import { GameCanvas } from '@/components/canvas/GameCanvas';
 import { QuizTitle } from '@/components/ui/QuizTitle';
 
 const GameRoomPage = () => {
