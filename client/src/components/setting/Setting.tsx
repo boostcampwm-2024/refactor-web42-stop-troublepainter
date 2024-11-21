@@ -19,7 +19,7 @@ interface SettingProps extends HTMLAttributes<HTMLDivElement> {
 export const ROOM_SETTINGS: RoomSettingItem[] = [
   { label: '라운드 수', key: 'totalRounds', options: [3, 5] },
   { label: '플레이어 수', key: 'maxPlayers', options: [4, 5] },
-  { label: '제한 시간', key: 'drawTime', options: [15, 30] },
+  { label: '제한 시간', key: 'drawTime', options: [15, 20, 25, 30] },
   //{ label: '픽셀 수', key: 'maxPixels', options: [300, 500] },
 ];
 
