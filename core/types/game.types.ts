@@ -25,8 +25,7 @@ export interface RoomSettings {
 }
 
 export enum PlayerStatus {
-  NOT_READY = 'NOT_READY',
-  READY = 'READY',
+  NOT_PLAYING = 'NOT_PLAYING',
   PLAYING = 'PLAYING',
 }
 export enum PlayerRole {

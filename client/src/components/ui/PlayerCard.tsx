@@ -1,4 +1,4 @@
-import { PlayerRole, PlayerStatus } from '@troublepainter/core';
+import { PlayerRole } from '@troublepainter/core';
 import { cva, type VariantProps } from 'class-variance-authority';
 import profilePlaceholder from '@/assets/profile-placeholder.png';
 import { cn } from '@/utils/cn';
@@ -7,16 +7,19 @@ import getCrownImage from '@/utils/getCrownImage';
 const playerCardVariants = cva('flex duration-200 gap-2 lg:transition-colors', {
   variants: {
     status: {
-      // 대기 상태 - 기본 상태
-      NOT_READY: 'bg-transparent lg:bg-eastbay-400 text-white',
-      // 준비 완료 상태
-      READY: 'bg-transparent lg:bg-violet-500 text-white',
+      // 게임 참여 전 상태
+      NOT_PLAYING: 'bg-transparent lg:bg-eastbay-400 text-white',
       // 게임 진행 중 상태
       PLAYING: 'bg-transparent lg:bg-eastbay-400 text-white',
     },
+    isHost: {
+      true: 'bg-transparent lg:bg-violet-500 text-white',
+      false: '',
+    },
   },
   defaultVariants: {
-    status: 'NOT_READY',
+    status: 'NOT_PLAYING',
+    isHost: false,
   },
 });
 
@@ -32,6 +35,8 @@ interface PlayerCardProps extends VariantProps<typeof playerCardVariants> {
   score?: number;
   // 사용자 역할 (그림꾼, 방해꾼 등)
   role?: PlayerRole | null;
+  // 방장 확인 props
+  isHost?: boolean;
 
   /// 공통 선택
   // 추가 스타일링을 위한 className
@@ -65,37 +70,19 @@ const PlayerCard = ({
   rank,
   score,
   role = null,
+  status = 'NOT_PLAYING',
+  isHost = false,
   profileImage,
-  status = 'NOT_READY',
   className,
 }: PlayerCardProps) => {
   // 순위에 따른 Crown Image 렌더링 로직
   const showCrown = rank !== undefined && rank <= 3;
   const crownImage = showCrown ? getCrownImage(rank) : null;
 
-  // 준비 상태 표시 섹션 재료, 추후 픽셀아트로 디자인 할 예정
-  const READY_STATUS_CONFIG: Record<
-    PlayerStatus,
-    {
-      text: string;
-      className: string;
-    } | null
-  > = {
-    READY: {
-      text: '준비완료',
-      className: 'text-white bg-violet-400',
-    },
-    NOT_READY: {
-      text: '대기중',
-      className: 'bg-white/10 text-white/60',
-    },
-    PLAYING: null,
-  } as const;
-
   return (
     <div
       className={cn(
-        playerCardVariants({ status }),
+        playerCardVariants({ status, isHost }),
         // 모바일
         'h-20 w-20 items-center',
         // 데스트톱
@@ -113,13 +100,10 @@ const PlayerCard = ({
               <div
                 className={cn(
                   'absolute inset-0 flex items-center justify-center rounded-full transition-all duration-300 lg:hidden',
-                  {
-                    'bg-violet-500/80 opacity-100': status === 'READY',
-                    'bg-transparent opacity-0': status !== 'READY',
-                  },
+                  isHost && 'bg-violet-500/60 opacity-100',
                 )}
               >
-                {status === 'READY' && <span className="text-xs text-stroke-sm">준비</span>}
+                {isHost && <span className="text-xs text-stroke-sm">방장</span>}
               </div>
             ) : (
               <div className="absolute inset-0 flex items-center justify-center rounded-full bg-black/50 lg:hidden">
@@ -180,15 +164,8 @@ const PlayerCard = ({
           </div>
         )}
 
-        {status !== 'PLAYING' && (
-          <div
-            className={cn(
-              'rounded-md px-3 py-1 text-sm font-medium',
-              READY_STATUS_CONFIG[status || 'NOT_READY']?.className,
-            )}
-          >
-            {READY_STATUS_CONFIG[status || 'NOT_READY']?.text}
-          </div>
+        {status !== 'PLAYING' && isHost && (
+          <div className="rounded-md bg-violet-400 px-3 py-1 text-sm font-medium text-white">방장</div>
         )}
       </div>
     </div>
