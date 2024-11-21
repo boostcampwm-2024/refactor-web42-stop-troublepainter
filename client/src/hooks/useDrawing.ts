@@ -149,8 +149,8 @@ const useDrawing = (canvasRef: RefObject<HTMLCanvasElement>, options?: DrawingOp
     ctx.lineWidth = style.width;
 
     ctx.beginPath();
-    // 점 하나일 때는 원으로 그리기
     if (points.length === 1) {
+      // 점 하나일 때는 원으로 그리기
       const point = points[0];
       ctx.arc(point.x, point.y, style.width / 2, 0, Math.PI * 2);
       ctx.fill();
