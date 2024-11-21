@@ -1,8 +1,6 @@
 import { Player, Room, RoomSettings } from '@troublepainter/core';
-import { JoinRoomRequest, JoinRoomResponse, ReconnectRequest } from '@troublepainter/core';
 import { create } from 'zustand';
 import { devtools } from 'zustand/middleware';
-import { useSocketStore } from './socket.store';
 
 interface GameState {
   room: Room | null;
@@ -18,13 +16,6 @@ interface GameActions {
   updatePlayers: (players: Player[]) => void;
   updateCurrentPlayerId: (currentPlayerId: string) => void;
   removePlayer: (playerId: string) => void;
-
-  // 소켓 요청 액션
-  joinRoom: (request: JoinRoomRequest) => Promise<JoinRoomResponse>;
-  reconnect: (request: ReconnectRequest) => Promise<void>;
-  // updatePlayerStatus: (request: ReadyRequest) => Promise<void>;
-  // updateSettings: (request: UpdateSettingsRequest) => Promise<void>;
-  // leaveRoom: () => Promise<void>;
 
   // 상태 초기화
   reset: () => void;
@@ -48,11 +39,6 @@ const initialState: GameState = {
  * ```typescript
  * const GameComponent = () => {
  *   const { room, players, actions } = useGameSocketStore();
- *
- *   useEffect(() => {
- *     // 방 입장 처리
- *     actions.joinRoom({ roomId: "123" });
- *   }, []);
  *
  *   if (!room) return <div>로딩중...</div>;
  *
@@ -95,86 +81,6 @@ export const useGameSocketStore = create<GameState & { actions: GameActions }>()
             players: state.players.filter((player) => player.playerId !== playerId),
           }));
         },
-
-        // 소켓 요청 액션들
-        joinRoom: async (request) => {
-          const socket = useSocketStore.getState().sockets.game;
-          if (!socket) throw new Error('Socket not connected');
-
-          return new Promise(() => {
-            socket.emit('joinRoom', request);
-          });
-        },
-
-        reconnect: async (request) => {
-          const socket = useSocketStore.getState().sockets.game;
-          if (!socket) throw new Error('Socket not connected');
-
-          return new Promise((resolve) => {
-            socket.emit('reconnect', request);
-
-            // 재연결 성공 이벤트 대기
-            const handleReconnected = (response: JoinRoomResponse) => {
-              const { room, roomSettings, players } = response;
-
-              set({
-                room,
-                roomSettings,
-                players,
-                currentPlayerId: request.playerId,
-              });
-
-              socket.off('reconnected', handleReconnected);
-              resolve();
-            };
-
-            socket.on('reconnected', handleReconnected);
-          });
-        },
-
-        // updatePlayerStatus: async (request) => {
-        //   const socket = useSocketStore.getState().sockets.game;
-        //   if (!socket) throw new Error('Socket not connected');
-
-        //   return new Promise((resolve, reject) => {
-        //     socket.emit('updatePlayerStatus', request, (error?: SocketError) => {
-        //       if (error) {
-        //         set({ error });
-        //         reject(error);
-        //       } else {
-        //         resolve();
-        //       }
-        //     });
-        //   });
-        // },
-
-        // updateSettings: async (request) => {
-        //   const socket = useSocketStore.getState().sockets.game;
-        //   if (!socket) throw new Error('Socket not connected');
-
-        //   return new Promise((resolve, reject) => {
-        //     socket.emit('updateSettings', request, (error?: SocketError) => {
-        //       if (error) {
-        //         set({ error });
-        //         reject(error);
-        //       } else {
-        //         resolve();
-        //       }
-        //     });
-        //   });
-        // },
-
-        // leaveRoom: async () => {
-        //   const socket = useSocketStore.getState().sockets.game;
-        //   if (!socket) throw new Error('Socket not connected');
-
-        //   return new Promise((resolve) => {
-        //     socket.emit('leaveRoom', () => {
-        //       get().actions.reset();
-        //       resolve();
-        //     });
-        //   });
-        // },
 
         // 상태 초기화
         reset: () => {

@@ -1,9 +1,8 @@
 // 이벤트 중심적 구조, 드로잉 관련 단일 책임, 실시간 드로잉 데이터
 // 특정 기능(드로잉)에 집중된 이벤트 핸들링
-import { useCallback, useEffect } from 'react';
+import { useEffect } from 'react';
 import { useParams } from 'react-router-dom';
 import type { DrawUpdateResponse } from '@troublepainter/core';
-import type { DrawingData } from '@troublepainter/core';
 import { useGameSocketStore } from '@/stores/socket/gameSocket.store';
 import { SocketNamespace } from '@/stores/socket/socket.config';
 import { useSocketStore } from '@/stores/socket/socket.store';
@@ -98,19 +97,7 @@ export const useDrawingSocket = ({ onDrawUpdate }: UseDrawingSocketProps = {}) =
     };
   }, [sockets.drawing, currentPlayerId, onDrawUpdate]);
 
-  // 드로잉 데이터 전송
-  const sendDrawing = useCallback(
-    (drawingData: DrawingData) => {
-      const socket = sockets.drawing;
-      if (!socket || !connected.drawing) return;
-
-      socket.emit('draw', { drawingData });
-    },
-    [sockets.drawing, connected.drawing],
-  );
-
   return {
     isConnected: connected.drawing,
-    sendDrawing,
   };
 };

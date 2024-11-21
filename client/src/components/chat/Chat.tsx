@@ -1,19 +1,35 @@
 import { FormEvent, useState } from 'react';
+import type { ChatResponse } from '@troublepainter/core';
 import { ChatBubble } from '@/components/chat/ChatBubbleUI';
 import { Input } from '@/components/ui/Input';
+import { chatSocketHandlers } from '@/handlers/socket/chatSocket.handler';
 import { useChatSocket } from '@/hooks/socket/useChatSocket';
 import { useScrollToBottom } from '@/hooks/useScrollToBottom';
+import { useChatSocketStore } from '@/stores/socket/chatSocket.store';
+import { useGameSocketStore } from '@/stores/socket/gameSocket.store';
 
 export const Chat = () => {
   const [inputMessage, setInputMessage] = useState('');
-  const { messages, isConnected, currentPlayerId, sendMessage } = useChatSocket();
+  const { messages, isConnected, currentPlayerId } = useChatSocket();
+  const { players } = useGameSocketStore();
+  const { actions } = useChatSocketStore();
   const { containerRef } = useScrollToBottom([messages]);
 
   const handleSubmit = (e: FormEvent) => {
     e.preventDefault();
     if (!isConnected || !inputMessage.trim()) return;
+    void chatSocketHandlers.sendMessage(inputMessage);
 
-    sendMessage(inputMessage);
+    const currentPlayer = players?.find((player) => player.playerId === currentPlayerId);
+    if (!currentPlayer || !currentPlayerId) throw new Error('Current player not found');
+    const messageData: ChatResponse = {
+      playerId: currentPlayerId as string,
+      nickname: currentPlayer.nickname,
+      message: inputMessage.trim(),
+      createdAt: new Date().toISOString(),
+    };
+    actions.addMessage(messageData);
+
     setInputMessage('');
   };
 

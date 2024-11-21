@@ -2,6 +2,7 @@ import { MouseEvent as ReactMouseEvent, TouchEvent as ReactTouchEvent, useCallba
 import { PlayerRole } from '@troublepainter/core';
 import { Canvas } from '@/components/canvas/CanvasUI';
 import { COLORS_INFO, MAINCANVAS_RESOLUTION_WIDTH } from '@/constants/canvasConstants';
+import { drawingSocketHandlers } from '@/handlers/socket/drawingSocket.handler';
 import { useDrawingSocket } from '@/hooks/socket/useDrawingSocket';
 import { useCoordinateScale } from '@/hooks/useCoordinateScale';
 import { useDrawing } from '@/hooks/useDrawing';
@@ -68,7 +69,7 @@ const GameCanvas = ({ role, maxPixels = 100000 }: GameCanvasProps) => {
     maxPixels,
   });
 
-  const { isConnected, sendDrawing } = useDrawingSocket({
+  const { isConnected } = useDrawingSocket({
     onDrawUpdate: (response) => {
       if (response.drawingData) {
         applyDrawing(response.drawingData);
@@ -101,10 +102,10 @@ const GameCanvas = ({ role, maxPixels = 100000 }: GameCanvasProps) => {
     // console.log(currentDrawing, isConnected);
     if (currentDrawing && isConnected) {
       // console.log(currentDrawing);
-      sendDrawing(currentDrawing);
+      void drawingSocketHandlers.sendDrawing(currentDrawing);
     }
     stopDrawing();
-  }, [stopDrawing, sendDrawing, getCurrentDrawing, isConnected]);
+  }, [stopDrawing, getCurrentDrawing, isConnected]);
 
   const isDrawableRole = (role: PlayerRole): role is PlayerRole.PAINTER | PlayerRole.DEVIL => {
     return role === 'PAINTER' || role === 'DEVIL';
