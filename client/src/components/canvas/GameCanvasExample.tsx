@@ -107,6 +107,24 @@ const GameCanvas = ({ role, maxPixels = 100000 }: GameCanvasProps) => {
     stopDrawing();
   }, [stopDrawing]);
 
+  const handleUndo = () => {
+    const updates = undo();
+    if (updates) {
+      updates.forEach((update) => {
+        sendDrawing(update);
+      });
+    }
+  };
+
+  const handleRedo = () => {
+    const updates = redo();
+    if (updates) {
+      updates.forEach((update) => {
+        sendDrawing(update);
+      });
+    }
+  };
+
   const isDrawableRole = (role: PlayerRole): role is PlayerRole.PAINTER | PlayerRole.DEVIL => {
     return role === 'PAINTER' || role === 'DEVIL';
   };
@@ -143,8 +161,8 @@ const GameCanvas = ({ role, maxPixels = 100000 }: GameCanvasProps) => {
       maxPixels={maxPixels}
       canUndo={canUndo}
       canRedo={canRedo}
-      onUndo={undo}
-      onRedo={redo}
+      onUndo={handleUndo}
+      onRedo={handleRedo}
       canvasEvents={canvasEventHandlers}
     />
   );
