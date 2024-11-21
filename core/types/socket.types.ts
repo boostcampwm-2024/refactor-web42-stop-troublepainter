@@ -131,7 +131,7 @@ export interface ChatResponse {
 }
 
 export interface DrawRequest {
-  drauwingData: CRDTMessage;
+  drawingData: CRDTMessage;
 }
 
 export interface DrawUpdateResponse {

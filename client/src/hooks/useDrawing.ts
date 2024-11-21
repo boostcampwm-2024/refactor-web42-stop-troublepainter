@@ -7,6 +7,7 @@ import {
   MapState,
   RegisterState,
   CRDTUpdateMessage,
+  StrokeStyle,
 } from '@troublepainter/core';
 import { useParams } from 'react-router-dom';
 import type { DrawingMode, RGBA } from '@/types/canvas.types';
@@ -122,6 +123,13 @@ const useDrawing = (canvasRef: RefObject<HTMLCanvasElement>, options?: DrawingOp
   const currentStrokeIdsRef = useRef<string[]>([]);
   const historyPointerRef = useRef<number>(-1);
 
+  const getCurrentStyle = useCallback((): StrokeStyle => {
+    return {
+      color: currentColor,
+      width: brushSize,
+    };
+  }, [currentColor, brushSize]);
+
   useEffect(() => {
     crdtRef.current = new LWWMap(currentPlayerId || 'player');
     const { ctx } = getCanvasContext(canvasRef);
@@ -129,7 +137,7 @@ const useDrawing = (canvasRef: RefObject<HTMLCanvasElement>, options?: DrawingOp
     ctx.lineJoin = 'round';
   }, [currentPlayerId]);
 
-  // DrawingData를 캔버스에 그리는 함수 - 단일 스트로크만 그림
+  // 단일 Stroke 그리는 함수
   const drawStroke = useCallback((drawingData: DrawingData) => {
     const { ctx } = getCanvasContext(canvasRef);
     const { points, style } = drawingData;
@@ -141,11 +149,13 @@ const useDrawing = (canvasRef: RefObject<HTMLCanvasElement>, options?: DrawingOp
     ctx.lineWidth = style.width;
 
     ctx.beginPath();
+    // 점 하나일 때는 원으로 그리기
     if (points.length === 1) {
       const point = points[0];
       ctx.arc(point.x, point.y, style.width / 2, 0, Math.PI * 2);
       ctx.fill();
     } else {
+      // 선으로 연결하기
       ctx.moveTo(points[0].x, points[0].y);
       points.slice(1).forEach((point) => ctx.lineTo(point.x, point.y));
       ctx.stroke();
@@ -173,7 +183,7 @@ const useDrawing = (canvasRef: RefObject<HTMLCanvasElement>, options?: DrawingOp
       const filledPoints: Point[] = [];
 
       while (pixelsToCheck.length > 0 && pixelCount < inkRemaining) {
-        const [x, y] = pixelsToCheck.pop()!;
+        const [x, y] = pixelsToCheck.shift()!;
         const pos = (y * canvas.width + x) * 4;
 
         if (
@@ -197,10 +207,10 @@ const useDrawing = (canvasRef: RefObject<HTMLCanvasElement>, options?: DrawingOp
 
       return {
         points: filledPoints,
-        style: { color: currentColor, width: brushSize },
+        style: getCurrentStyle(),
       };
     },
-    [currentColor, brushSize, inkRemaining],
+    [currentColor, inkRemaining, getCurrentStyle],
   );
 
   // 히스토리 상태 업데이트
@@ -227,7 +237,7 @@ const useDrawing = (canvasRef: RefObject<HTMLCanvasElement>, options?: DrawingOp
       } else {
         currentDrawingRef.current = {
           points: [point],
-          style: { color: currentColor, width: brushSize },
+          style: getCurrentStyle(),
         };
       }
 
@@ -243,10 +253,9 @@ const useDrawing = (canvasRef: RefObject<HTMLCanvasElement>, options?: DrawingOp
         },
       };
     },
-    [inkRemaining, currentColor, brushSize, drawingMode, floodFill, drawStroke],
+    [inkRemaining, currentColor, getCurrentStyle, drawingMode, floodFill, drawStroke],
   );
 
-  // 드로잉 진행
   const draw = useCallback(
     (point: Point): CRDTMessage | null => {
       if (!currentDrawingRef.current || !crdtRef.current || inkRemaining <= 0) return null;
@@ -278,7 +287,6 @@ const useDrawing = (canvasRef: RefObject<HTMLCanvasElement>, options?: DrawingOp
     [inkRemaining, brushSize, drawingMode, drawStroke],
   );
 
-  // 드로잉 종료
   const stopDrawing = useCallback(() => {
     if (currentStrokeIdsRef.current.length === 0) return;
 
