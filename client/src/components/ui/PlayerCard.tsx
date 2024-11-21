@@ -90,7 +90,7 @@ const PlayerCard = ({
         className,
       )}
     >
-      <div className="flex flex-col items-center justify-center lg:flex-row lg:gap-3">
+      <div className="flex flex-col items-center justify-center lg:flex-row lg:gap-2 xl:gap-3">
         {/* 프로필 이미지 섹션 */}
         <div className="relative mb-1 lg:m-0">
           <div className="flex h-12 w-12 items-center justify-center overflow-hidden rounded-full border-2 border-violet-950 bg-white/20 lg:h-14 lg:w-14 lg:rounded-xl">
@@ -130,7 +130,7 @@ const PlayerCard = ({
                 // 기본 & 모바일 스타일
                 'w-20 truncate text-xs text-chartreuseyellow-400',
                 // 데스크톱
-                'lg:w-auto lg:max-w-28 lg:text-base',
+                'lg:w-full lg:max-w-28 lg:text-base',
                 'xl:max-w-[9.5rem] xl:text-lg',
                 '2xl:max-w-52 2xl:text-xl',
               )}
@@ -145,7 +145,7 @@ const PlayerCard = ({
                 // 기본 & 모바일 스타일
                 'w-20 truncate text-[0.625rem] text-gray-50',
                 // 데스크톱
-                'lg:w-auto lg:max-w-28 lg:text-sm',
+                'lg:w-full lg:max-w-28 lg:text-sm',
                 'xl:max-w-[9.5rem] xl:text-base',
                 '2xl:max-w-52',
               )}

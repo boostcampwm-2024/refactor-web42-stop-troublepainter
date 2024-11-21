@@ -18,7 +18,7 @@ const Input = ({ className, label, ...props }: InputProps) => {
         id={inputId}
         type="text"
         className={cn(
-          'h-11 w-full rounded-lg border-2 border-violet-950 px-4 text-base text-violet-950 placeholder:text-eastbay-500 focus:border-violet-500 focus:outline-none',
+          'h-11 w-full rounded-lg border-2 border-violet-950 px-4 text-base text-violet-950 placeholder:text-eastbay-500 focus:border-violet-500 focus:outline-none lg:h-12 lg:text-lg 2xl:h-14 2xl:text-xl',
           className,
         )}
         {...props}
