@@ -1,6 +1,7 @@
-import { HTMLAttributes, useState } from 'react';
+import { HTMLAttributes, useEffect, useState } from 'react';
 import { RoomSettings } from '@troublepainter/core';
 import Dropdown from '@/components/ui/Dropdown';
+import { useGameSocketStore } from '@/stores/socket/gameSocket.store';
 import { cn } from '@/utils/cn';
 
 type SettingKey = keyof RoomSettings;
@@ -12,24 +13,31 @@ interface RoomSettingItem {
 }
 
 interface SettingProps extends HTMLAttributes<HTMLDivElement> {
-  roomSettings?: RoomSettings;
   type: 'host' | 'participant';
 }
 
 export const ROOM_SETTINGS: RoomSettingItem[] = [
-  { label: '라운드 수', key: 'totalRounds', options: [4, 6, 8] },
-  { label: '플레이어 수', key: 'maxPlayers', options: [4, 5, 6] },
+  { label: '라운드 수', key: 'totalRounds', options: [3, 5] },
+  { label: '플레이어 수', key: 'maxPlayers', options: [4, 5] },
   { label: '제한 시간', key: 'drawTime', options: [15, 30] },
-  { label: '픽셀 수', key: 'maxPixels', options: [300, 500] },
+  //{ label: '픽셀 수', key: 'maxPixels', options: [300, 500] },
 ];
 
-const Setting = ({ className, roomSettings, type, ...props }: SettingProps) => {
+const Setting = ({ className, type, ...props }: SettingProps) => {
+  const { roomSettings, actions } = useGameSocketStore();
+
   const [selectedValues, setSelectedValues] = useState<RoomSettings>({
-    totalRounds: roomSettings?.totalRounds || 4,
-    maxPlayers: roomSettings?.maxPlayers || 4,
+    totalRounds: roomSettings?.totalRounds || 5,
+    maxPlayers: roomSettings?.maxPlayers || 5,
     drawTime: roomSettings?.drawTime || 30,
-    maxPixels: roomSettings?.drawTime || 300,
+    maxPixels: roomSettings?.maxPixels || 300,
   });
+
+  useEffect(() => {
+    if (type === 'participant') return;
+    //console.log(selectedValues);
+    actions.updateRoomSettings(selectedValues);
+  }, [selectedValues]);
 
   const handleChange = (key: SettingKey) => (value: string) => {
     setSelectedValues((prev) => ({
@@ -56,7 +64,7 @@ const Setting = ({ className, roomSettings, type, ...props }: SettingProps) => {
           {ROOM_SETTINGS.map(({ label, key, options }) => (
             <div key={label} className="flex w-full max-w-80 items-center justify-between sm:max-w-[70%]">
               <span>{label}</span>
-              {type === 'participant' ? (
+              {type === 'host' ? (
                 <span>{selectedValues[key]}</span>
               ) : (
                 <Dropdown
