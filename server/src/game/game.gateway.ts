@@ -68,7 +68,7 @@ export class GameGateway implements OnGatewayDisconnect {
 
     const updatedSettings = await this.gameService.updateSettings(roomId, playerId, data.settings);
 
-    client.to(roomId).emit('settingsUpdated', updatedSettings);
+    client.to(roomId).emit('settingsUpdated', { settings: updatedSettings });
   }
 
   @SubscribeMessage('gameStart')
