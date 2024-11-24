@@ -7,7 +7,7 @@ import { RoomStatus } from 'src/common/enums/game.status.enum';
 export class GameRepository {
   constructor(private readonly redisService: RedisService) {}
 
-  async createRoom(roomId: string, room: Partial<Room>, settings: Partial<RoomSettings>) {
+  async createRoom(roomId: string, room: Room, settings: RoomSettings) {
     const multi = this.redisService.multi();
     multi.hset(`room:${roomId}`, room);
     multi.hset(`room:${roomId}:settings`, settings);
