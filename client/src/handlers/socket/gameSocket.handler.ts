@@ -21,12 +21,22 @@ export const gameSocketHandlers = {
     });
   },
 
-  updateSettings: async (request: UpdateSettingsRequest): Promise<void> => {
+  updateSettings: (request: UpdateSettingsRequest): Promise<void> => {
     const socket = useSocketStore.getState().sockets.game;
     if (!socket) throw new Error('Socket not connected');
 
     return new Promise((resolve) => {
       socket.emit('updateSettings', request);
+      resolve();
+    });
+  },
+
+  gameStart: (request: { roomId: string; playerId: string }): Promise<void> => {
+    const socket = useSocketStore.getState().sockets.game;
+    if (!socket) throw new Error('Socket not connected');
+
+    return new Promise((resolve) => {
+      socket.emit('gameStart', request);
       resolve();
     });
   },
@@ -37,22 +47,6 @@ export const gameSocketHandlers = {
 
   //   return new Promise((resolve, reject) => {
   //     socket.emit('updatePlayerStatus', request, (error?: SocketError) => {
-  //       if (error) {
-  //         set({ error });
-  //         reject(error);
-  //       } else {
-  //         resolve();
-  //       }
-  //     });
-  //   });
-  // },
-
-  // updateSettings: async (request) => {
-  //   const socket = useSocketStore.getState().sockets.game;
-  //   if (!socket) throw new Error('Socket not connected');
-
-  //   return new Promise((resolve, reject) => {
-  //     socket.emit('updateSettings', request, (error?: SocketError) => {
   //       if (error) {
   //         set({ error });
   //         reject(error);

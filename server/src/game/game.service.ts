@@ -16,7 +16,7 @@ export class GameService {
   private readonly DEFAULT_ROOM_SETTINGS: RoomSettings = {
     maxPlayers: 5,
     totalRounds: 5,
-    drawTime: 30,
+    drawTime: 35,
   };
 
   constructor(private readonly gameRepository: GameRepository) {}
@@ -139,7 +139,7 @@ export class GameService {
     const roomSettings = await this.gameRepository.getRoomSettings(roomId);
 
     const roomUpdates = {
-      status: RoomStatus.IN_GAME,
+      status: RoomStatus.DRAWING,
       currentRound: room.currentRound + 1,
       currentWord: '바보',
     };

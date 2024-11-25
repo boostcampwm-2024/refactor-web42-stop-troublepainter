@@ -1,6 +1,12 @@
 import { useEffect } from 'react';
-import { useParams } from 'react-router-dom';
-import type { JoinRoomResponse, PlayerLeftResponse, UpdateSettingsResponse } from '@troublepainter/core';
+import {
+  PlayerRole,
+  type JoinRoomResponse,
+  type PlayerLeftResponse,
+  type RoundStartResponse,
+  type UpdateSettingsResponse,
+} from '@troublepainter/core';
+import { useNavigate, useParams } from 'react-router-dom';
 import { gameSocketHandlers } from '@/handlers/socket/gameSocket.handler';
 import { useGameSocketStore } from '@/stores/socket/gameSocket.store';
 import { SocketNamespace } from '@/stores/socket/socket.config';
@@ -63,6 +69,7 @@ export const useGameSocket = () => {
   const { roomId } = useParams<{ roomId: string }>();
   const { sockets, connected, actions: socketActions } = useSocketStore();
   const { actions: gameActions } = useGameSocketStore();
+  const navigate = useNavigate();
 
   // 연결 + 재연결 시도
   useEffect(() => {
@@ -127,6 +134,27 @@ export const useGameSocket = () => {
       settingsUpdated: (response: UpdateSettingsResponse) => {
         const { settings } = response;
         gameActions.updateRoomSettings(settings);
+      },
+
+      drawingGroupRoundStarted: (response: RoundStartResponse) => {
+        const { roundNumber, roles, word } = response;
+        //console.log('drawingGroupRoundStarted', response);
+        const { painters, devil, guessers } = roles;
+        gameActions.updateCurrentRound(roundNumber);
+        painters?.forEach((playerId) => gameActions.updatePlayerRole(playerId, PlayerRole.PAINTER));
+        guessers?.forEach((playerId) => gameActions.updatePlayerRole(playerId, PlayerRole.GUESSER));
+        if (devil) gameActions.updatePlayerRole(devil, PlayerRole.DEVIL);
+        if (word) gameActions.updateCurrentWord(word);
+        navigate(`/game/${roomId}`);
+      },
+
+      guesserRoundStarted: (response: RoundStartResponse) => {
+        const { roundNumber, roles } = response;
+        //console.log('guesserRoundStarted', response);
+        const { guessers } = roles;
+        gameActions.updateCurrentRound(roundNumber);
+        guessers?.forEach((playerId) => gameActions.updatePlayerRole(playerId, PlayerRole.GUESSER));
+        navigate(`/game/${roomId}`);
       },
     };
 

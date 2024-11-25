@@ -1,4 +1,5 @@
 import { HTMLAttributes, KeyboardEvent, PropsWithChildren } from 'react';
+import ReactDOM from 'react-dom'; // Import ReactDOM explicitly
 import { cn } from '@/utils/cn';
 
 export interface ModalProps extends PropsWithChildren<HTMLAttributes<HTMLDivElement>> {
@@ -9,7 +10,11 @@ export interface ModalProps extends PropsWithChildren<HTMLAttributes<HTMLDivElem
 }
 
 const Modal = ({ className, handleKeyDown, closeModal, isModalOpened, title, children, ...props }: ModalProps) => {
-  return (
+  const modalRoot = document.getElementById('modal-root');
+
+  if (!modalRoot) return null;
+
+  return ReactDOM.createPortal(
     <div
       className={cn(
         'fixed left-0 top-0 flex h-full w-full items-center justify-center',
@@ -43,7 +48,8 @@ const Modal = ({ className, handleKeyDown, closeModal, isModalOpened, title, chi
         </div>
         <div className="p-5">{children}</div>
       </div>
-    </div>
+    </div>,
+    modalRoot,
   );
 };
 

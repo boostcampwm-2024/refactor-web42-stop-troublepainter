@@ -26,8 +26,6 @@ const App = ({ children }: AppChildrenProps) => {
     <AppProvider>
       {children}
       <ToastContainer />
-      {/* 모달을 위한 포털 */}
-      {/* <div id="modal-root" />  */}
     </AppProvider>
   );
 };

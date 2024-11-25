@@ -1,4 +1,4 @@
-import { Player, Room, RoomSettings } from '@troublepainter/core';
+import { Player, PlayerRole, Room, RoomSettings } from '@troublepainter/core';
 import { create } from 'zustand';
 import { devtools } from 'zustand/middleware';
 
@@ -11,11 +11,21 @@ interface GameState {
 
 interface GameActions {
   // 상태 업데이트 액션
+
+  // room 상태 업데이트
   updateRoom: (room: Room) => void;
+  updateCurrentRound: (currentRound: number) => void;
+  updateCurrentWord: (currentWord: string) => void;
+
+  // roomSetting 상태 업데이트
   updateRoomSettings: (settings: RoomSettings) => void;
+
+  //player 상태 업데이트
   updatePlayers: (players: Player[]) => void;
-  updateCurrentPlayerId: (currentPlayerId: string) => void;
   removePlayer: (playerId: string) => void;
+  updatePlayerRole: (playerId: string, role: PlayerRole) => void;
+
+  updateCurrentPlayerId: (currentPlayerId: string) => void;
 
   // 상태 초기화
   reset: () => void;
@@ -64,6 +74,18 @@ export const useGameSocketStore = create<GameState & { actions: GameActions }>()
           set({ room });
         },
 
+        updateCurrentRound: (currentRound) => {
+          set((state) => ({
+            room: state.room && { ...state.room, currentRound },
+          }));
+        },
+
+        updateCurrentWord: (currentWord) => {
+          set((state) => ({
+            room: state.room && { ...state.room, currentWord },
+          }));
+        },
+
         updateRoomSettings: (settings) => {
           set({ roomSettings: settings });
         },
@@ -79,6 +101,12 @@ export const useGameSocketStore = create<GameState & { actions: GameActions }>()
         removePlayer: (playerId) => {
           set((state) => ({
             players: state.players.filter((player) => player.playerId !== playerId),
+          }));
+        },
+
+        updatePlayerRole: (playerId, role) => {
+          set((state) => ({
+            players: state.players.map((player) => (player.playerId === playerId ? { ...player, role } : player)),
           }));
         },
 

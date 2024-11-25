@@ -13,6 +13,7 @@ import { WsExceptionFilter } from 'src/filters/ws-exception.filter';
 import { RoomSettings } from 'src/common/types/game.types';
 import { BadRequestException } from 'src/exceptions/game.exception';
 import { PlayerRole } from 'src/common/enums/game.status.enum';
+import { TimerService } from 'src/common/services/timer.service';
 
 @WebSocketGateway({
   cors: '*',
@@ -26,7 +27,10 @@ export class GameGateway implements OnGatewayDisconnect {
   private disconnectTimeouts: Map<string, NodeJS.Timeout> = new Map();
   private readonly DISCONNECT_TIMEOUT = 10000;
 
-  constructor(private readonly gameService: GameService) {}
+  constructor(
+    private readonly gameService: GameService,
+    private readonly timerService: TimerService,
+  ) {}
 
   @SubscribeMessage('joinRoom')
   async handleJoinRoom(@ConnectedSocket() client: Socket, @MessageBody() data: { roomId: string }) {
@@ -59,6 +63,8 @@ export class GameGateway implements OnGatewayDisconnect {
       playerId,
       players,
     });
+
+    // TODO: Timer sync
   }
 
   @SubscribeMessage('updateSettings')
@@ -77,6 +83,16 @@ export class GameGateway implements OnGatewayDisconnect {
     if (!playerId || !roomId) throw new BadRequestException('Room ID and Player ID are required');
 
     const { room, roomSettings, roles, players } = await this.gameService.startGame(roomId, playerId);
+
+    this.timerService.startTimer(this.server, roomId, 35000, {
+      onTick: async (remaining: number) => {
+        this.server.to(roomId).emit('timerSync', { remaining });
+      }, // 35 seconds
+      onTimeUp: async () => {
+        console.log('Game ended');
+        this.server.to(roomId).emit('drawingTimeEnded');
+      },
+    });
 
     const sockets = await this.server.in(roomId).fetchSockets();
 
@@ -119,7 +135,11 @@ export class GameGateway implements OnGatewayDisconnect {
 
         if (!isReconnected) {
           const { hostId, remainingPlayers } = await this.gameService.leaveRoom(roomId, playerId);
-          if (!remainingPlayers) return;
+          if (!remainingPlayers) {
+            this.timerService.stopGameTimer(roomId);
+            return;
+          }
+
           this.server.to(roomId).emit('playerLeft', {
             leftPlayerId: playerId,
             hostId,
