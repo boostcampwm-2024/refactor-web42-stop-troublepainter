@@ -84,10 +84,10 @@ export class GameGateway implements OnGatewayDisconnect {
 
     const { room, roomSettings, roles, players } = await this.gameService.startGame(roomId, playerId);
 
-    this.timerService.startTimer(this.server, roomId, 35000, {
+    this.timerService.startTimer(this.server, roomId, roomSettings.drawTime * 1000, {
       onTick: async (remaining: number) => {
         this.server.to(roomId).emit('timerSync', { remaining });
-      }, // 35 seconds
+      },
       onTimeUp: async () => {
         console.log('Game ended');
         this.server.to(roomId).emit('drawingTimeEnded');
@@ -108,7 +108,10 @@ export class GameGateway implements OnGatewayDisconnect {
       };
 
       if (player.role === PlayerRole.PAINTER || player.role === PlayerRole.DEVIL) {
-        this.server.to(playerSocket.id).emit('drawingGroupRoundStarted', basePayload);
+        this.server.to(playerSocket.id).emit('drawingGroupRoundStarted', {
+          ...basePayload,
+          word: room.currentWord,
+        });
       } else {
         this.server.to(playerSocket.id).emit('guesserRoundStarted', {
           ...basePayload,

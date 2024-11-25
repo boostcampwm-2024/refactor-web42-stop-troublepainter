@@ -14,3 +14,9 @@ export enum RoomStatus {
   DRAWING = 'DRAWING',
   GUESSING = 'GUESSING',
 }
+
+export enum Difficulty {
+  EASY = 'EASY',
+  NORMAL = 'NORMAL',
+  HARD = 'HARD',
+}

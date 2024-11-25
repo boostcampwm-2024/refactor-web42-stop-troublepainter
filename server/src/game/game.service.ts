@@ -9,7 +9,8 @@ import {
   BadRequestException,
   InsufficientPlayersException,
 } from 'src/exceptions/game.exception';
-import { RoomStatus, PlayerStatus, PlayerRole } from 'src/common/enums/game.status.enum';
+import { RoomStatus, PlayerStatus, PlayerRole, Difficulty } from 'src/common/enums/game.status.enum';
+import { ClovaClient } from 'src/common/clova-client';
 
 @Injectable()
 export class GameService {
@@ -18,8 +19,12 @@ export class GameService {
     totalRounds: 5,
     drawTime: 35,
   };
+  private words: string[] = [];
 
-  constructor(private readonly gameRepository: GameRepository) {}
+  constructor(
+    private readonly gameRepository: GameRepository,
+    private readonly clovaClient: ClovaClient,
+  ) {}
 
   async createRoom(): Promise<string> {
     const roomId = v4();
@@ -138,10 +143,12 @@ export class GameService {
 
     const roomSettings = await this.gameRepository.getRoomSettings(roomId);
 
+    this.words = await this.clovaClient.getDrawingWords(Difficulty.HARD, roomSettings.totalRounds);
+
     const roomUpdates = {
       status: RoomStatus.DRAWING,
       currentRound: room.currentRound + 1,
-      currentWord: '바보',
+      currentWord: this.words.shift(),
     };
     await this.gameRepository.updateRoom(roomId, roomUpdates);
 
