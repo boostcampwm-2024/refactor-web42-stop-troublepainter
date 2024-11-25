@@ -7,6 +7,7 @@ interface GameState {
   roomSettings: RoomSettings | null;
   players: Player[];
   currentPlayerId: string | null;
+  timer: number | null;
 }
 
 interface GameActions {
@@ -20,12 +21,16 @@ interface GameActions {
   // roomSetting 상태 업데이트
   updateRoomSettings: (settings: RoomSettings) => void;
 
-  //player 상태 업데이트
+  // player 상태 업데이트
   updatePlayers: (players: Player[]) => void;
   removePlayer: (playerId: string) => void;
   updatePlayerRole: (playerId: string, role: PlayerRole) => void;
 
   updateCurrentPlayerId: (currentPlayerId: string) => void;
+
+  // timer 상태 업데이트
+  updateTimer: (remaining: number) => void;
+  decreaseTimer: () => void;
 
   // 상태 초기화
   reset: () => void;
@@ -36,6 +41,7 @@ const initialState: GameState = {
   roomSettings: null,
   players: [],
   currentPlayerId: null,
+  timer: null,
 };
 
 /**
@@ -107,6 +113,16 @@ export const useGameSocketStore = create<GameState & { actions: GameActions }>()
         updatePlayerRole: (playerId, role) => {
           set((state) => ({
             players: state.players.map((player) => (player.playerId === playerId ? { ...player, role } : player)),
+          }));
+        },
+
+        updateTimer: (remaining) => {
+          set({ timer: remaining });
+        },
+
+        decreaseTimer: () => {
+          set((state) => ({
+            timer: state.timer && state.timer - 1,
           }));
         },
 
