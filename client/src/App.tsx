@@ -21,13 +21,7 @@ const AppProvider = ({ children }: AppChildrenProps) => {
 
 // ErrorBoundary, 모달 등 추가할 예정
 const App = ({ children }: AppChildrenProps) => {
-  return (
-    <AppProvider>
-      {children}
-      {/* 모달을 위한 포털 */}
-      {/* <div id="modal-root" />  */}
-    </AppProvider>
-  );
+  return <AppProvider>{children}</AppProvider>;
 };
 
 export default App;
