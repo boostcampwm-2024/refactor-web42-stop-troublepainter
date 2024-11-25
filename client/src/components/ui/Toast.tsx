@@ -42,12 +42,12 @@ const Toast = forwardRef<HTMLDivElement, ToastProps>(
         {/* Content */}
         <div className="flex flex-1 flex-col gap-1">
           {title && (
-            <div className="text-base font-semibold" id={`toast-title-${props.id}`}>
+            <div className="text-base font-semibold lg:text-lg" id={`toast-title-${props.id}`}>
               {title}
             </div>
           )}
           {description && (
-            <div className="text-sm opacity-90" id={`toast-description-${props.id}`}>
+            <div className="text-sm opacity-90 lg:text-base" id={`toast-description-${props.id}`}>
               {description}
             </div>
           )}
@@ -57,10 +57,10 @@ const Toast = forwardRef<HTMLDivElement, ToastProps>(
         {onClose && (
           <button
             onClick={onClose}
-            className="ml-4 flex h-6 w-6 items-center justify-center rounded-full transition-colors hover:bg-black/10 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-offset-2"
+            className="ml-4 flex h-6 w-6 items-center justify-center rounded-full transition-colors hover:bg-black/10 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-offset-2 lg:h-10 lg:w-10"
             aria-label="닫기"
           >
-            <span className="text-xl leading-none" aria-hidden={false}>
+            <span className="text-xl leading-none lg:text-3xl" aria-hidden={false}>
               ×
             </span>
           </button>

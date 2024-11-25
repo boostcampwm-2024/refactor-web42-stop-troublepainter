@@ -78,7 +78,7 @@ export const ToastContainer = () => {
         <div
           key={toast.id}
           className={cn(
-            'w-full max-w-80 transform transition-all duration-300 ease-out',
+            'w-full max-w-80 transform transition-all duration-300 ease-out lg:max-w-96',
             // 초기 상태 (마운트 전)
             'translate-y-3 opacity-0',
             // 진입 애니메이션 (마운트)
