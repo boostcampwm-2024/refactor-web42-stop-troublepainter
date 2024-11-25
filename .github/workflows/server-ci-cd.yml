@@ -31,6 +31,8 @@ jobs:
         run: |
           echo "REDIS_HOST=${{ secrets.REDIS_HOST }}" >> .env
           echo "REDIS_PORT=${{ secrets.REDIS_PORT }}" >> .env
+          echo "CLOVA_API_KEY=${{ secrets.CLOVA_API_KEY }}" >> .env
+          echo "CLOVA_GATEWAY_KEY=${{ secrets.CLOVA_GATEWAY_KEY }}" >> .env
 
       - name: Run tests
         run: pnpm --filter server test | true
@@ -62,6 +64,8 @@ jobs:
           build-args: |
             REDIS_HOST=${{ secrets.REDIS_HOST }}
             REDIS_PORT=${{ secrets.REDIS_PORT }}
+            CLOVA_API_KEY=${{ secrets.CLOVA_API_KEY }}
+            CLOVA_GATEWAY_KEY=${{ secrets.CLOVA_GATEWAY_KEY }}
 
       - name: Deploy to Server
         uses: appleboy/ssh-action@v1.0.0
@@ -77,4 +81,4 @@ jobs:
             docker stop troublepainter || true
             docker rm troublepainter || true
 
-            docker run -d --name troublepainter -p 3000:3000 -e REDIS_HOST=${{ secrets.REDIS_HOST }} -e REDIS_PORT=${{ secrets.REDIS_PORT }} --restart unless-stopped ${{ secrets.DOCKERHUB_USERNAME }}/troublepainter:latest
+            docker run -d --name troublepainter -p 3000:3000 -e REDIS_HOST=${{ secrets.REDIS_HOST }} -e REDIS_PORT=${{ secrets.REDIS_PORT }} -e CLOVA_API_KEY=${{ secrets.CLOVA_API_KEY }} -e CLOVA_GATEWAY_KEY=${{ secrets.CLOVA_GATEWAY_KEY }} --restart unless-stopped ${{ secrets.DOCKERHUB_USERNAME }}/troublepainter:latest

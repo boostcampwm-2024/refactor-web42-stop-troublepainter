@@ -11,5 +11,12 @@ export enum PlayerRole {
 
 export enum RoomStatus {
   WAITING = 'WAITING',
-  IN_GAME = 'IN_GAME',
+  DRAWING = 'DRAWING',
+  GUESSING = 'GUESSING',
+}
+
+export enum Difficulty {
+  EASY = 'EASY',
+  NORMAL = 'NORMAL',
+  HARD = 'HARD',
 }

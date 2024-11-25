@@ -1,16 +1,19 @@
 import { useMemo } from 'react';
-import { useNavigate, useParams } from 'react-router-dom';
+import { useParams } from 'react-router-dom';
 import { Setting } from '@/components/setting/Setting';
 import { Button } from '@/components/ui/Button';
+import { gameSocketHandlers } from '@/handlers/socket/gameSocket.handler';
 import { useGameSocketStore } from '@/stores/socket/gameSocket.store';
 import { cn } from '@/utils/cn';
 
 const LobbyPage = () => {
   const { roomId } = useParams<{ roomId: string }>();
-  const navigate = useNavigate();
   const { players, room, currentPlayerId } = useGameSocketStore();
+
   // 현재 사용자가 방장인지 확인
   const isHost = useMemo(() => room?.hostId === currentPlayerId, [room?.hostId, currentPlayerId]);
+
+  //console.log(players, room);
 
   const buttonConfig = useMemo(() => {
     if (!isHost) return START_BUTTON_STATUS.NOT_HOST;
@@ -19,8 +22,8 @@ const LobbyPage = () => {
   }, [isHost, players.length]);
 
   const handleStartGame = () => {
-    if (buttonConfig.disabled || !roomId) return;
-    navigate(`/game/${roomId}`);
+    if (buttonConfig.disabled || !roomId || !currentPlayerId) return;
+    void gameSocketHandlers.gameStart({ roomId: roomId, playerId: currentPlayerId });
   };
 
   return (
@@ -30,10 +33,6 @@ const LobbyPage = () => {
         <p className="mb-3 text-center text-xl text-eastbay-50 text-stroke-md sm:mb-0 sm:text-2xl lg:text-3xl">
           Get Ready for the next battle
         </p>
-
-        <Button onClick={() => navigate(`/game/${roomId}`)} variant={'secondary'}>
-          테스트 게임 시작
-        </Button>
 
         <Setting type={isHost ? 'host' : 'participant'} />
         <div className="flex h-11 w-full gap-0 sm:h-14 sm:gap-8">

@@ -76,8 +76,22 @@ const GameCanvas = ({ role, maxPixels = 100000 }: GameCanvasProps) => {
     },
   });
 
+  const isDrawableRole = (role: PlayerRole): role is PlayerRole.PAINTER | PlayerRole.DEVIL => {
+    return role === 'PAINTER' || role === 'DEVIL';
+  };
+
+  const isDrawable = isDrawableRole(role);
+
+  const COLORS = COLORS_INFO.map((color) => ({
+    ...color,
+    isSelected: currentColor === color.backgroundColor,
+    onClick: () => setCurrentColor(color.backgroundColor),
+  }));
+
   const handleDrawStart = useCallback(
     (e: ReactMouseEvent<HTMLCanvasElement> | ReactTouchEvent<HTMLCanvasElement>) => {
+      if (!isDrawable || !isConnected) return;
+
       const { canvas } = getCanvasContext(canvasRef);
       const point = getDrawPoint(e, canvas);
       const convertPoint = convertCoordinate(point);
@@ -87,7 +101,7 @@ const GameCanvas = ({ role, maxPixels = 100000 }: GameCanvasProps) => {
         void drawingSocketHandlers.sendDrawing(crdtDrawingData);
       }
     },
-    [startDrawing, convertCoordinate, isConnected],
+    [startDrawing, convertCoordinate, isConnected, isDrawable],
   );
 
   const handleDrawMove = useCallback(
@@ -108,35 +122,23 @@ const GameCanvas = ({ role, maxPixels = 100000 }: GameCanvasProps) => {
     stopDrawing();
   }, [stopDrawing]);
 
-  const handleUndo = () => {
+  const handleUndo = useCallback(() => {
+    if (!isDrawable || !isConnected) return;
     const updates = undo();
-    if (updates) {
-      updates.forEach((update) => {
-        void drawingSocketHandlers.sendDrawing(update);
-      });
-    }
-  };
+    if (!updates) return;
+    updates.forEach((update) => {
+      void drawingSocketHandlers.sendDrawing(update);
+    });
+  }, [undo, isConnected, isDrawable]);
 
-  const handleRedo = () => {
+  const handleRedo = useCallback(() => {
+    if (!isDrawable || !isConnected) return;
     const updates = redo();
-    if (updates) {
-      updates.forEach((update) => {
-        void drawingSocketHandlers.sendDrawing(update);
-      });
-    }
-  };
-
-  const isDrawableRole = (role: PlayerRole): role is PlayerRole.PAINTER | PlayerRole.DEVIL => {
-    return role === 'PAINTER' || role === 'DEVIL';
-  };
-
-  const isDrawable = isDrawableRole(role);
-
-  const COLORS = COLORS_INFO.map((color) => ({
-    ...color,
-    isSelected: currentColor === color.backgroundColor,
-    onClick: () => setCurrentColor(color.backgroundColor),
-  }));
+    if (!updates) return;
+    updates.forEach((update) => {
+      void drawingSocketHandlers.sendDrawing(update);
+    });
+  }, [redo, isConnected, isDrawable]);
 
   const canvasEventHandlers: CanvasEventHandlers = {
     onMouseDown: handleDrawStart,
