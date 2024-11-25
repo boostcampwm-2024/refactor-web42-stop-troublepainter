@@ -1,6 +1,7 @@
 import { PlayerRole } from '@troublepainter/core';
 import { cva, type VariantProps } from 'class-variance-authority';
 import profilePlaceholder from '@/assets/profile-placeholder.png';
+import { PLAYING_ROLE_TEXT } from '@/constants/gameConstant';
 import { cn } from '@/utils/cn';
 import getCrownImage from '@/utils/getCrownImage';
 
@@ -65,6 +66,7 @@ interface PlayerCardProps extends VariantProps<typeof playerCardVariants> {
  *   status="gaming"
  * />
  */
+
 const PlayerCard = ({
   nickname,
   rank,
@@ -140,7 +142,7 @@ const PlayerCard = ({
           </div>
           <div className="h-3 text-stroke-sm lg:h-auto">
             <div
-              title={role || '???'}
+              title={role ? PLAYING_ROLE_TEXT[role] : '???'}
               className={cn(
                 // 기본 & 모바일 스타일
                 'w-20 truncate text-[0.625rem] text-gray-50',
@@ -150,7 +152,7 @@ const PlayerCard = ({
                 '2xl:max-w-52',
               )}
             >
-              {role || '???'}
+              {role ? PLAYING_ROLE_TEXT[role] : '???'}
             </div>
           </div>
         </div>
