@@ -5,12 +5,14 @@ import {
   type PlayerLeftResponse,
   type RoundStartResponse,
   type UpdateSettingsResponse,
+  type TimerSyncResponse,
 } from '@troublepainter/core';
 import { useNavigate, useParams } from 'react-router-dom';
 import { gameSocketHandlers } from '@/handlers/socket/gameSocket.handler';
 import { useGameSocketStore } from '@/stores/socket/gameSocket.store';
 import { SocketNamespace } from '@/stores/socket/socket.config';
 import { useSocketStore } from '@/stores/socket/socket.store';
+import { checkTimerDifference } from '@/utils/checkTimerDifference';
 import { playerIdStorageUtils } from '@/utils/playerIdStorage';
 
 /**
@@ -68,7 +70,7 @@ import { playerIdStorageUtils } from '@/utils/playerIdStorage';
 export const useGameSocket = () => {
   const { roomId } = useParams<{ roomId: string }>();
   const { sockets, connected, actions: socketActions } = useSocketStore();
-  const { actions: gameActions } = useGameSocketStore();
+  const { actions: gameActions, timer: clientTimer } = useGameSocketStore();
   const navigate = useNavigate();
 
   // 연결 + 재연결 시도
@@ -101,6 +103,16 @@ export const useGameSocket = () => {
       playerIdStorageUtils.removePlayerId(roomId);
     };
   }, [roomId]);
+
+  useEffect(() => {
+    if (clientTimer === 0 || clientTimer === null) return;
+
+    const intervalId = setInterval(() => {
+      gameActions.decreaseTimer();
+    }, 1000);
+
+    return () => clearInterval(intervalId);
+  }, [clientTimer, gameActions]);
 
   useEffect(() => {
     const socket = sockets.game;
@@ -138,7 +150,6 @@ export const useGameSocket = () => {
 
       drawingGroupRoundStarted: (response: RoundStartResponse) => {
         const { roundNumber, roles, word } = response;
-        //console.log('drawingGroupRoundStarted', response);
         const { painters, devil, guessers } = roles;
         gameActions.updateCurrentRound(roundNumber);
         painters?.forEach((playerId) => gameActions.updatePlayerRole(playerId, PlayerRole.PAINTER));
@@ -150,12 +161,22 @@ export const useGameSocket = () => {
 
       guesserRoundStarted: (response: RoundStartResponse) => {
         const { roundNumber, roles } = response;
-        //console.log('guesserRoundStarted', response);
         const { guessers } = roles;
         gameActions.updateCurrentRound(roundNumber);
         guessers?.forEach((playerId) => gameActions.updatePlayerRole(playerId, PlayerRole.GUESSER));
         navigate(`/game/${roomId}`);
       },
+
+      timerSync: (response: TimerSyncResponse) => {
+        const { remaining } = response;
+        const serverTimer = Math.floor(remaining / 1000);
+        if (clientTimer === null || checkTimerDifference(serverTimer, clientTimer, 1))
+          gameActions.updateTimer(serverTimer);
+      },
+
+      /*       drawingTimeEnded: () => {
+        console.log('drawingTimeEnded Trigger');
+      }, */
     };
 
     // 이벤트 리스너 등록
