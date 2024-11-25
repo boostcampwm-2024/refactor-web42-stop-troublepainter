@@ -20,8 +20,8 @@ export const API_CONFIG = {
 export class ApiError extends Error {
   constructor(
     public status: number,
-    message?: string,
     public data?: unknown,
+    message?: string,
   ) {
     super(message);
     this.name = 'ApiError';
@@ -62,14 +62,34 @@ export class ApiError extends Error {
  *   }
  * );
  *
- * // 에러 처리
- * try {
- *   const data = await fetchApi<ApiResponse<CreateRoomResponse>>(endpoint);
- * } catch (error) {
- *   if (error instanceof ApiError) {
- *     console.error(`API Error ${error.status}: ${error.message}`);
+ * // 에러 처리: 방 생성 함수
+ * const createRoom = async (): Promise<CreateRoomResponse | undefined> => {
+ *   setIsLoading(true);
+ *   try {
+ *     const response = await gameApi.createRoom();
+ *
+ *     // 성공 토스트 메시지
+ *     // actions.addToast({
+ *     //   title: '방 생성 성공',
+ *     //   description: `방이 생성됐습니다! 초대 버튼을 눌러 초대 후 게임을 즐겨보세요!`,
+ *     //   variant: 'success',
+ *     // });
+ *
+ *     return response;
+ *   } catch (error) {
+ *     if (error instanceof ApiError) {
+ *       // 에러 토스트 메시지
+ *       actions.addToast({
+ *         title: '방 생성 실패',
+ *         description: error.message,
+ *         variant: 'error',
+ *       });
+ *       console.error(error);
+ *     }
+ *   } finally {
+ *     setIsLoading(false);
  *   }
- * }
+ * };
  */
 export async function fetchApi<T>(endpoint: string, options?: RequestInit): Promise<T> {
   const response = await fetch(`${API_CONFIG.BASE_URL}${endpoint}`, {
@@ -84,7 +104,7 @@ export async function fetchApi<T>(endpoint: string, options?: RequestInit): Prom
   const data = await response.json();
 
   if (!response.ok) {
-    throw new ApiError(response.status, data.message || 'An error occurred', data);
+    throw new ApiError(response.status, data);
   }
 
   return data;

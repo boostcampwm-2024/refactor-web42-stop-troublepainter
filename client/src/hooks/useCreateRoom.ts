@@ -1,6 +1,7 @@
-import { useMutation } from '@tanstack/react-query';
+import { useState } from 'react';
 import { ApiError } from '@/api/api.config';
-import { gameApi } from '@/api/gameApi';
+import { CreateRoomResponse, gameApi } from '@/api/gameApi';
+import { useToastStore } from '@/stores/toast.store';
 
 /**
  * 게임 방 생성을 위한 커스텀 훅입니다.
@@ -28,13 +29,37 @@ import { gameApi } from '@/api/gameApi';
  * };
  */
 export const useCreateRoom = () => {
-  return useMutation({
-    mutationFn: gameApi.createRoom,
-    onError: (error) => {
+  const { actions } = useToastStore();
+  const [isLoading, setIsLoading] = useState(false);
+
+  // 방 생성 함수
+  const createRoom = async (): Promise<CreateRoomResponse | undefined> => {
+    setIsLoading(true);
+    try {
+      const response = await gameApi.createRoom();
+
+      // 성공 토스트 메시지
+      // actions.addToast({
+      //   title: '방 생성 성공',
+      //   description: `방이 생성됐습니다! 초대 버튼을 눌러 초대 후 게임을 즐겨보세요!`,
+      //   variant: 'success',
+      // });
+
+      return response;
+    } catch (error) {
       if (error instanceof ApiError) {
-        console.error('API Error:', error.message);
-        // TODO: 에러 처리 (예: 토스트 메시지)
+        // 에러 토스트 메시지
+        actions.addToast({
+          title: '방 생성 실패',
+          description: error.message,
+          variant: 'error',
+        });
+        console.error(error);
       }
-    },
-  });
+    } finally {
+      setIsLoading(false);
+    }
+  };
+
+  return { createRoom, isLoading };
 };

@@ -6,13 +6,15 @@ import { usePageTransition } from '@/hooks/usePageTransition';
 import { cn } from '@/utils/cn';
 
 const MainPage = () => {
-  const createRoomMutation = useCreateRoom();
+  const { createRoom, isLoading } = useCreateRoom();
   const { isExiting, transitionTo } = usePageTransition();
 
   const handleCreateRoom = async () => {
     // transitionTo(`/lobby/${roomId}`);
-    const response = await createRoomMutation.mutateAsync();
-    transitionTo(`/lobby/${response.roomId}`);
+    const response = await createRoom();
+    if (response && response.roomId) {
+      transitionTo(`/lobby/${response.roomId}`);
+    }
   };
 
   return (
@@ -29,10 +31,10 @@ const MainPage = () => {
 
         <Button
           onClick={() => void handleCreateRoom()}
-          disabled={createRoomMutation.isPending || isExiting}
+          disabled={isLoading || isExiting}
           className="h-12 max-w-72 animate-pulse"
         >
-          {createRoomMutation.isPending || isExiting ? '방 생성중...' : '방 만들기'}
+          {isLoading || isExiting ? '방 생성중...' : '방 만들기'}
         </Button>
       </main>
     </PixelTransitionContainer>
