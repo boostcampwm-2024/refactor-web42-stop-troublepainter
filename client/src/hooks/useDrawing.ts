@@ -1,14 +1,5 @@
 import { RefObject, useCallback, useEffect, useRef, useState } from 'react';
-import {
-  Point,
-  DrawingData,
-  LWWMap,
-  CRDTMessage,
-  MapState,
-  RegisterState,
-  CRDTUpdateMessage,
-  StrokeStyle,
-} from '@troublepainter/core';
+import { Point, DrawingData, LWWMap, CRDTMessage, MapState, RegisterState, StrokeStyle } from '@troublepainter/core';
 import { useParams } from 'react-router-dom';
 import type { DrawingMode, RGBA } from '@/types/canvas.types';
 import { DEFAULT_MAX_PIXELS, COLORS_INFO, DRAWING_MODE, LINEWIDTH_VARIABLE } from '@/constants/canvasConstants';
@@ -23,6 +14,7 @@ interface DrawingOptions {
 interface StrokeHistoryEntry {
   strokeIds: string[];
   isLocal: boolean;
+  drawingData: DrawingData;
 }
 
 // Fill 모드 유틸리티 함수들
@@ -118,10 +110,9 @@ const useDrawing = (canvasRef: RefObject<HTMLCanvasElement>, options?: DrawingOp
 
   // CRDT 및 히스토리 관리
   const crdtRef = useRef<LWWMap>();
-  const currentDrawingRef = useRef<DrawingData | null>(null);
   const strokeHistoryRef = useRef<StrokeHistoryEntry[]>([]);
-  const currentStrokeIdsRef = useRef<string[]>([]);
   const historyPointerRef = useRef<number>(-1);
+  const currentSessionStrokeIds = useRef<string[]>([]);
 
   const getCurrentStyle = useCallback((): StrokeStyle => {
     return {
@@ -136,6 +127,20 @@ const useDrawing = (canvasRef: RefObject<HTMLCanvasElement>, options?: DrawingOp
     ctx.lineCap = 'round';
     ctx.lineJoin = 'round';
   }, [currentPlayerId]);
+
+  // 캔버스 전체 다시 그리기
+  const redrawCanvas = useCallback(() => {
+    if (!crdtRef.current) return;
+
+    const { canvas, ctx } = getCanvasContext(canvasRef);
+    ctx.clearRect(0, 0, canvas.width, canvas.height);
+
+    crdtRef.current.strokes
+      .filter((stroke) => stroke.stroke !== null)
+      .forEach(({ stroke }) => {
+        drawStroke(stroke);
+      });
+  }, []);
 
   // 단일 Stroke 그리는 함수
   const drawStroke = useCallback((drawingData: DrawingData) => {
@@ -227,23 +232,22 @@ const useDrawing = (canvasRef: RefObject<HTMLCanvasElement>, options?: DrawingOp
     (point: Point): CRDTMessage | null => {
       if (inkRemaining <= 0 || !crdtRef.current) return null;
 
-      currentStrokeIdsRef.current = [];
+      // 새로운 드로잉 세션 시작
+      currentSessionStrokeIds.current = [];
 
-      if (drawingMode === DRAWING_MODE.FILL) {
-        const fillData = floodFill(Math.floor(point.x), Math.floor(point.y));
-        if (!fillData) return null;
+      const drawingData =
+        drawingMode === DRAWING_MODE.FILL
+          ? floodFill(Math.floor(point.x), Math.floor(point.y))
+          : {
+              points: [point],
+              style: getCurrentStyle(),
+            };
 
-        currentDrawingRef.current = fillData;
-      } else {
-        currentDrawingRef.current = {
-          points: [point],
-          style: getCurrentStyle(),
-        };
-      }
+      if (!drawingData) return null;
 
-      const strokeId = crdtRef.current.addStroke(currentDrawingRef.current);
-      currentStrokeIdsRef.current.push(strokeId);
-      drawStroke(currentDrawingRef.current);
+      const strokeId = crdtRef.current.addStroke(drawingData);
+      currentSessionStrokeIds.current.push(strokeId);
+      drawStroke(drawingData);
 
       return {
         type: 'update',
@@ -253,28 +257,33 @@ const useDrawing = (canvasRef: RefObject<HTMLCanvasElement>, options?: DrawingOp
         },
       };
     },
-    [inkRemaining, currentColor, getCurrentStyle, drawingMode, floodFill, drawStroke],
+    [inkRemaining, getCurrentStyle, drawingMode, floodFill, drawStroke],
   );
 
   const draw = useCallback(
     (point: Point): CRDTMessage | null => {
-      if (!currentDrawingRef.current || !crdtRef.current || inkRemaining <= 0) return null;
-
-      // Fill 모드에서는 draw 동작 없음
+      if (!crdtRef.current || inkRemaining <= 0) return null;
       if (drawingMode === DRAWING_MODE.FILL) return null;
 
-      currentDrawingRef.current.points.push(point);
+      const lastStrokeId = currentSessionStrokeIds.current[currentSessionStrokeIds.current.length - 1];
+      const lastStroke = crdtRef.current.strokes.find((s) => s.id === lastStrokeId);
+      if (!lastStroke) return null;
+
+      const updatedDrawing = {
+        ...lastStroke.stroke,
+        points: [...lastStroke.stroke.points, point],
+      };
 
       // 잉크 소비량 계산
-      const lastPoint = currentDrawingRef.current.points[currentDrawingRef.current.points.length - 2];
+      const lastPoint = lastStroke.stroke.points[lastStroke.stroke.points.length - 1];
       const pixelsUsed = Math.ceil(
         Math.sqrt(Math.pow(point.x - lastPoint.x, 2) + Math.pow(point.y - lastPoint.y, 2)) * brushSize,
       );
       setInkRemaining((prev) => Math.max(0, prev - pixelsUsed));
 
-      const strokeId = crdtRef.current.addStroke(currentDrawingRef.current);
-      currentStrokeIdsRef.current.push(strokeId);
-      drawStroke(currentDrawingRef.current);
+      const strokeId = crdtRef.current.addStroke(updatedDrawing);
+      currentSessionStrokeIds.current.push(strokeId);
+      drawStroke(updatedDrawing);
 
       return {
         type: 'update',
@@ -288,21 +297,29 @@ const useDrawing = (canvasRef: RefObject<HTMLCanvasElement>, options?: DrawingOp
   );
 
   const stopDrawing = useCallback(() => {
-    if (currentStrokeIdsRef.current.length === 0) return;
+    if (!crdtRef.current || currentSessionStrokeIds.current.length === 0) return;
 
-    // 새로운 스트로크가 추가되면 redo 스택을 비움
+    // 새로운 stroke가 추가되면 redo 히스토리를 비움
     if (historyPointerRef.current < strokeHistoryRef.current.length - 1) {
       strokeHistoryRef.current = strokeHistoryRef.current.slice(0, historyPointerRef.current + 1);
     }
 
+    // 현재 세션의 마지막 stroke 가져오기
+    const lastStrokeId = currentSessionStrokeIds.current[currentSessionStrokeIds.current.length - 1];
+    const lastStroke = crdtRef.current.strokes.find((s) => s.id === lastStrokeId);
+
+    if (!lastStroke) return;
+
+    // 현재 세션의 모든 stroke를 하나의 히스토리 엔트리로 저장
     strokeHistoryRef.current.push({
-      strokeIds: [...currentStrokeIdsRef.current],
+      strokeIds: [...currentSessionStrokeIds.current],
       isLocal: true,
+      drawingData: lastStroke.stroke,
     });
     historyPointerRef.current = strokeHistoryRef.current.length - 1;
 
-    currentDrawingRef.current = null;
-    currentStrokeIdsRef.current = [];
+    // 현재 세션 초기화
+    currentSessionStrokeIds.current = [];
     updateHistoryState();
   }, [updateHistoryState]);
 
@@ -312,20 +329,16 @@ const useDrawing = (canvasRef: RefObject<HTMLCanvasElement>, options?: DrawingOp
       if (!crdtRef.current) return;
 
       if (crdtDrawingData.type === 'sync') {
-        // 전체 동기화
         const updatedKeys = crdtRef.current.merge(crdtDrawingData.state as MapState);
         if (updatedKeys.length > 0) {
-          // 모든 업데이트된 스트로크 그리기
-          updatedKeys.forEach((key) => {
-            const stroke = crdtRef.current!.state[key][2];
-            if (stroke) drawStroke(stroke);
-          });
+          // 전체 동기화 후 캔버스 다시 그리기
+          redrawCanvas();
 
-          // 히스토리 리셋
           strokeHistoryRef.current = [
             {
               strokeIds: updatedKeys,
               isLocal: false,
+              drawingData: crdtRef.current.strokes[crdtRef.current.strokes.length - 1].stroke,
             },
           ];
           historyPointerRef.current = 0;
@@ -342,29 +355,34 @@ const useDrawing = (canvasRef: RefObject<HTMLCanvasElement>, options?: DrawingOp
 
         if (crdtRef.current.mergeRegister(key, register)) {
           const stroke = register[2];
-          if (stroke !== null && !isLocalUpdate) {
-            // 원격 스트로크는 히스토리에 추가하고 바로 그리기
-            drawStroke(stroke);
-            if (historyPointerRef.current < strokeHistoryRef.current.length - 1) {
-              strokeHistoryRef.current = strokeHistoryRef.current.slice(0, historyPointerRef.current + 1);
+
+          if (!isLocalUpdate) {
+            // 원격 업데이트의 경우 캔버스 다시 그리기
+            redrawCanvas();
+
+            // stroke가 null이 아닌 경우 (삭제되지 않은 경우) 히스토리 추가
+            if (stroke) {
+              if (historyPointerRef.current < strokeHistoryRef.current.length - 1) {
+                strokeHistoryRef.current = strokeHistoryRef.current.slice(0, historyPointerRef.current + 1);
+              }
+              strokeHistoryRef.current.push({
+                strokeIds: [key],
+                isLocal: false,
+                drawingData: stroke,
+              });
+              historyPointerRef.current++;
+              updateHistoryState();
             }
-            strokeHistoryRef.current.push({
-              strokeIds: [key],
-              isLocal: false,
-            });
-            historyPointerRef.current++;
-            updateHistoryState();
           }
         }
       }
     },
-    [currentPlayerId, drawStroke, updateHistoryState],
+    [currentPlayerId, redrawCanvas, updateHistoryState],
   );
 
   const undo = useCallback(() => {
     if (!crdtRef.current || historyPointerRef.current < 0) return null;
 
-    // 현재 포인터부터 로컬 엔트리 찾기
     let currentEntry = strokeHistoryRef.current[historyPointerRef.current];
     while (currentEntry && !currentEntry.isLocal && historyPointerRef.current > 0) {
       historyPointerRef.current--;
@@ -373,6 +391,7 @@ const useDrawing = (canvasRef: RefObject<HTMLCanvasElement>, options?: DrawingOp
 
     if (!currentEntry?.isLocal) return null;
 
+    // 현재 엔트리의 모든 stroke 삭제
     const updates = currentEntry.strokeIds.map((strokeId) => {
       crdtRef.current!.deleteStroke(strokeId);
       return {
@@ -386,30 +405,14 @@ const useDrawing = (canvasRef: RefObject<HTMLCanvasElement>, options?: DrawingOp
 
     historyPointerRef.current--;
     updateHistoryState();
-
-    // 캔버스 지우고 현재 상태까지 다시 그리기
-    const { canvas, ctx } = getCanvasContext(canvasRef);
-    ctx.clearRect(0, 0, canvas.width, canvas.height);
-
-    crdtRef.current.strokes
-      .filter(({ id }) => {
-        const strokePlayerId = id.split('-')[0];
-        if (strokePlayerId === currentPlayerId) {
-          return strokeHistoryRef.current
-            .slice(0, historyPointerRef.current + 1)
-            .some((entry) => entry.strokeIds.includes(id));
-        }
-        return true;
-      })
-      .forEach(({ stroke }) => drawStroke(stroke));
+    redrawCanvas();
 
     return updates;
-  }, [currentPlayerId, drawStroke, updateHistoryState]);
+  }, [redrawCanvas, updateHistoryState]);
 
   const redo = useCallback(() => {
     if (!crdtRef.current || historyPointerRef.current >= strokeHistoryRef.current.length - 1) return null;
 
-    // 다음 로컬 엔트리 찾기
     let nextEntry = strokeHistoryRef.current[historyPointerRef.current + 1];
     while (nextEntry && !nextEntry.isLocal && historyPointerRef.current < strokeHistoryRef.current.length - 1) {
       historyPointerRef.current++;
@@ -418,35 +421,27 @@ const useDrawing = (canvasRef: RefObject<HTMLCanvasElement>, options?: DrawingOp
 
     if (!nextEntry?.isLocal) return null;
 
-    const updates = nextEntry.strokeIds
-      .map((strokeId) => {
-        // 원본 스트로크 찾기
-        const originalStroke = crdtRef.current!.strokes.find((s) => s.id === strokeId)?.stroke;
-        if (!originalStroke) return null;
+    // 다음 엔트리의 drawingData로 새 stroke 생성
+    const strokeId = crdtRef.current.addStroke(nextEntry.drawingData);
+    if (!strokeId) return null;
 
-        // 새 스트로크 ID로 추가
-        const newStrokeId = crdtRef.current!.addStroke(originalStroke);
-        if (!newStrokeId) return null;
+    // strokeIds 업데이트
+    nextEntry.strokeIds = [strokeId];
 
-        drawStroke(originalStroke);
-
-        return {
-          type: 'update' as const,
-          state: {
-            key: newStrokeId,
-            register: crdtRef.current!.state[newStrokeId],
-          },
-        };
-      })
-      .filter((update): update is CRDTUpdateMessage => update !== null);
-
-    // 새로운 stroke ID로 히스토리 업데이트
-    nextEntry.strokeIds = updates.map((update) => update.state.key);
+    const update = {
+      type: 'update' as const,
+      state: {
+        key: strokeId,
+        register: crdtRef.current.state[strokeId],
+      },
+    };
 
     historyPointerRef.current++;
     updateHistoryState();
-    return updates;
-  }, [currentPlayerId, drawStroke, updateHistoryState]);
+    redrawCanvas();
+
+    return [update];
+  }, [redrawCanvas, updateHistoryState]);
 
   return {
     currentColor,
