@@ -1,5 +1,7 @@
-import { SocketError } from '@troublepainter/core';
+import { SocketError, SocketErrorCode } from '@troublepainter/core';
 import { io } from 'socket.io-client';
+import { ERROR_MESSAGES, getErrorTitle } from '@/constants/socket-error-messages';
+import { useToastStore } from '@/stores/toast.store';
 import { ChatSocket, DrawingSocket, GameSocket } from '@/types/socket.types';
 
 /**
@@ -111,7 +113,9 @@ type SocketCreator<T extends SocketType> = (auth?: SocketAuth) => T;
  * @returns 생성된 소켓 인스턴스
  */
 const createSocket = <T extends SocketType>(namespace: SocketNamespace, auth?: SocketAuth): T => {
-  const options = auth ? { ...SOCKET_CONFIG.BASE_OPTIONS, auth } : SOCKET_CONFIG.BASE_OPTIONS;
+  const options = auth
+    ? { ...SOCKET_CONFIG.BASE_OPTIONS, auth: { roomId: '213', playerId: '123sas' } }
+    : SOCKET_CONFIG.BASE_OPTIONS;
   return io(`${SOCKET_CONFIG.URL}${SOCKET_CONFIG.PATHS[namespace]}`, options) as T;
 };
 
@@ -133,8 +137,16 @@ export const socketCreators: {
  * @param error - 소켓 에러 객체
  * @param namespace - 에러가 발생한 네임스페이스
  */
-export const handleSocketError = (error: SocketError, namespace: string) => {
+export const handleSocketError = (error: SocketError, namespace: SocketNamespace) => {
   console.error(`Socket Error (${namespace}):`, error);
-  // TODO: 에러 추적 서비스에 로깅
-  // TODO: 사용자에게 에러 알림 (토스트 등)
+
+  const { actions } = useToastStore.getState();
+
+  actions.addToast({
+    title: getErrorTitle(namespace),
+    description: ERROR_MESSAGES[error.code] || '알 수 없는 오류가 발생했습니다.',
+    variant: 'error',
+    // 심각한 에러의 경우 더 긴 duration
+    duration: [SocketErrorCode.CONNECTION_ERROR, SocketErrorCode.UNAUTHORIZED].includes(error.code) ? 5000 : 3000,
+  });
 };
