@@ -72,7 +72,7 @@ export const ToastContainer = () => {
     <div
       role="region"
       aria-label="알림"
-      className="fixed inset-0 right-1 top-1 z-[100] flex flex-col items-end justify-start gap-1 p-4 sm:right-4 sm:top-4 sm:gap-2"
+      className="fixed right-1 top-1 z-[100] flex flex-col items-end justify-start gap-1 p-4 sm:right-4 sm:top-4 sm:gap-2"
     >
       {animatedToasts.map((toast) => (
         <div
