@@ -42,7 +42,10 @@ const checkColorisNotEqual = (pos: number, startColor: RGBA, pixelArray: Uint8Cl
  * - 펜/채우기 모드 드로잉
  * - 실행 취소/다시 실행
  * - 잉크 잔량 관리
- * - 드로잉 데이터 기록 및 재생
+ * - 실시간 드로잉 데이터 동기화 및 기록
+ *
+ * 드로잉은 mousedown부터 mouseup까지를 하나의 단위로 처리하며,
+ * 실시간으론 각 stroke 단위로 동기화하고 히스토리는 mouseup 단위로 기록됩니다.
  *
  * @param canvasRef - 캔버스 엘리먼트의 RefObject
  * @param options - 드로잉 설정 옵션
@@ -88,11 +91,12 @@ const checkColorisNotEqual = (pos: number, startColor: RGBA, pixelArray: Uint8Cl
  * - `brushSize` - 현재 브러시 크기
  * - `drawingMode` - 현재 드로잉 모드 (펜/채우기)
  * - `inkRemaining` - 남은 잉크량
- * - `startDrawing` - 드로잉 시작 함수
- * - `draw` - 드로잉 진행 함수
- * - `stopDrawing` - 드로잉 종료 함수
+ * - `startDrawing` - 드로잉 시작 함수 (mousedown)
+ * - `draw` - 드로잉 진행 함수 (mousemove)
+ * - `stopDrawing` - 드로잉 종료 함수 (mouseup)
  * - `applyDrawing` - 외부 드로잉 데이터 적용 함수
- * - `undo/redo` - 실행 취소/다시 실행 함수
+ * - `undo/redo` - mouseup 단위로 실행 취소/다시 실행하는 함수
+ * - `canUndo/canRedo` - 실행 취소/다시 실행 가능 여부
  *
  * @category Hooks
  */
@@ -110,8 +114,9 @@ const useDrawing = (canvasRef: RefObject<HTMLCanvasElement>, options?: DrawingOp
 
   // CRDT 및 히스토리 관리
   const crdtRef = useRef<LWWMap>();
-  const currentStrokeIds = useRef<string[]>([]);
   const strokeHistoryRef = useRef<StrokeHistoryEntry[]>([]);
+  // mouseup 전까지 발생한 모든 점들의 stroke ID를 담고 있는 배열
+  const currentStrokeIdsRef = useRef<string[]>([]);
   const historyPointerRef = useRef<number>(-1);
 
   const getCurrentStyle = useCallback((): StrokeStyle => {
@@ -236,8 +241,8 @@ const useDrawing = (canvasRef: RefObject<HTMLCanvasElement>, options?: DrawingOp
     (point: Point): CRDTMessage | null => {
       if (inkRemaining <= 0 || !crdtRef.current) return null;
 
-      // 새로운 드로잉 세션 시작
-      currentStrokeIds.current = [];
+      // 새로운 currentStrokeIdsRef 시작
+      currentStrokeIdsRef.current = [];
 
       const drawingData =
         drawingMode === DRAWING_MODE.FILL
@@ -250,7 +255,7 @@ const useDrawing = (canvasRef: RefObject<HTMLCanvasElement>, options?: DrawingOp
       if (!drawingData) return null;
 
       const strokeId = crdtRef.current.addStroke(drawingData);
-      currentStrokeIds.current.push(strokeId);
+      currentStrokeIdsRef.current.push(strokeId);
       drawStroke(drawingData);
 
       return {
@@ -267,9 +272,10 @@ const useDrawing = (canvasRef: RefObject<HTMLCanvasElement>, options?: DrawingOp
   const draw = useCallback(
     (point: Point): CRDTMessage | null => {
       if (!crdtRef.current || inkRemaining <= 0) return null;
+      // Fill 모드에서는 draw 동작 없음
       if (drawingMode === DRAWING_MODE.FILL) return null;
 
-      const lastStrokeId = currentStrokeIds.current[currentStrokeIds.current.length - 1];
+      const lastStrokeId = currentStrokeIdsRef.current[currentStrokeIdsRef.current.length - 1];
       const lastStroke = crdtRef.current.strokes.find((s) => s.id === lastStrokeId);
       if (!lastStroke) return null;
 
@@ -286,7 +292,7 @@ const useDrawing = (canvasRef: RefObject<HTMLCanvasElement>, options?: DrawingOp
       setInkRemaining((prev) => Math.max(0, prev - pixelsUsed));
 
       const strokeId = crdtRef.current.addStroke(updatedDrawing);
-      currentStrokeIds.current.push(strokeId);
+      currentStrokeIdsRef.current.push(strokeId);
       drawStroke(updatedDrawing);
 
       return {
@@ -301,29 +307,29 @@ const useDrawing = (canvasRef: RefObject<HTMLCanvasElement>, options?: DrawingOp
   );
 
   const stopDrawing = useCallback(() => {
-    if (!crdtRef.current || currentStrokeIds.current.length === 0) return;
+    if (!crdtRef.current || currentStrokeIdsRef.current.length === 0) return;
 
     // 새로운 stroke가 추가되면 redo 히스토리를 비움
     if (historyPointerRef.current < strokeHistoryRef.current.length - 1) {
       strokeHistoryRef.current = strokeHistoryRef.current.slice(0, historyPointerRef.current + 1);
     }
 
-    // 현재 세션의 마지막 stroke 가져오기
-    const lastStrokeId = currentStrokeIds.current[currentStrokeIds.current.length - 1];
+    // 현재 currentStrokeIdsRef의 마지막 stroke 가져오기
+    const lastStrokeId = currentStrokeIdsRef.current[currentStrokeIdsRef.current.length - 1];
     const lastStroke = crdtRef.current.strokes.find((s) => s.id === lastStrokeId);
 
     if (!lastStroke) return;
 
-    // 현재 세션의 모든 stroke를 하나의 히스토리 엔트리로 저장
+    // 현재 currentStrokeIdsRef의 모든 stroke를 하나의 히스토리 엔트리로 저장
     strokeHistoryRef.current.push({
-      strokeIds: [...currentStrokeIds.current],
+      strokeIds: [...currentStrokeIdsRef.current],
       isLocal: true,
       drawingData: lastStroke.stroke,
     });
     historyPointerRef.current = strokeHistoryRef.current.length - 1;
 
-    // 현재 세션 초기화
-    currentStrokeIds.current = [];
+    // 현재 currentStrokeIdsRef 초기화
+    currentStrokeIdsRef.current = [];
     updateHistoryState();
   }, [updateHistoryState]);
 
@@ -387,6 +393,7 @@ const useDrawing = (canvasRef: RefObject<HTMLCanvasElement>, options?: DrawingOp
   const undo = useCallback(() => {
     if (!crdtRef.current || historyPointerRef.current < 0) return null;
 
+    // 현재 포인터부터 로컬 엔트리 찾기
     let currentEntry = strokeHistoryRef.current[historyPointerRef.current];
     while (currentEntry && !currentEntry.isLocal && historyPointerRef.current > 0) {
       historyPointerRef.current--;
@@ -417,6 +424,7 @@ const useDrawing = (canvasRef: RefObject<HTMLCanvasElement>, options?: DrawingOp
   const redo = useCallback(() => {
     if (!crdtRef.current || historyPointerRef.current >= strokeHistoryRef.current.length - 1) return null;
 
+    // 다음 로컬 엔트리 찾기
     let nextEntry = strokeHistoryRef.current[historyPointerRef.current + 1];
     while (nextEntry && !nextEntry.isLocal && historyPointerRef.current < strokeHistoryRef.current.length - 1) {
       historyPointerRef.current++;
