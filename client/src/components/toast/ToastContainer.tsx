@@ -69,12 +69,16 @@ export const ToastContainer = () => {
   if (animatedToasts.length === 0) return null;
 
   return (
-    <div className="fixed inset-0 right-1 top-1 z-[100] flex flex-col items-end justify-start gap-1 p-4 sm:right-4 sm:top-4 sm:gap-2">
+    <div
+      role="region"
+      aria-label="알림"
+      className="fixed inset-0 right-1 top-1 z-[100] flex flex-col items-end justify-start gap-1 p-4 sm:right-4 sm:top-4 sm:gap-2"
+    >
       {animatedToasts.map((toast) => (
         <div
           key={toast.id}
           className={cn(
-            'w-80 transform transition-all duration-300 ease-out',
+            'w-full max-w-80 transform transition-all duration-300 ease-out',
             // 초기 상태 (마운트 전)
             'translate-y-3 opacity-0',
             // 진입 애니메이션 (마운트)
@@ -88,6 +92,8 @@ export const ToastContainer = () => {
             title={toast.title}
             description={toast.description}
             onClose={() => toast.id && actions.removeToast(toast.id)}
+            aria-describedby={toast.description ? `toast-description-${toast.id}` : undefined}
+            aria-labelledby={toast.title ? `toast-title-${toast.id}` : undefined}
           />
         </div>
       ))}

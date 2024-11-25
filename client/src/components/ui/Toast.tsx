@@ -1,4 +1,4 @@
-import { HTMLAttributes, forwardRef } from 'react';
+import { HTMLAttributes, KeyboardEvent, forwardRef } from 'react';
 import { cva, type VariantProps } from 'class-variance-authority';
 import { cn } from '@/utils/cn';
 
@@ -24,22 +24,45 @@ interface ToastProps extends HTMLAttributes<HTMLDivElement>, VariantProps<typeof
 
 const Toast = forwardRef<HTMLDivElement, ToastProps>(
   ({ className, variant, title, description, onClose, ...props }, ref) => {
+    const handleKeyDown = (e: KeyboardEvent<HTMLDivElement>) => {
+      if (e.key === 'Escape' && onClose) {
+        onClose();
+      }
+    };
     return (
-      <div ref={ref} className={cn(toastVariants({ variant }), className)} {...props}>
+      <div
+        ref={ref}
+        role="alert"
+        aria-live="polite"
+        tabIndex={0}
+        onKeyDown={handleKeyDown}
+        className={cn(toastVariants({ variant }), className)}
+        {...props}
+      >
         {/* Content */}
         <div className="flex flex-1 flex-col gap-1">
-          {title && <div className="text-base font-semibold">{title}</div>}
-          {description && <div className="text-sm opacity-90">{description}</div>}
+          {title && (
+            <div className="text-base font-semibold" id={`toast-title-${props.id}`}>
+              {title}
+            </div>
+          )}
+          {description && (
+            <div className="text-sm opacity-90" id={`toast-description-${props.id}`}>
+              {description}
+            </div>
+          )}
         </div>
 
         {/* Close Button */}
         {onClose && (
           <button
             onClick={onClose}
-            className="ml-4 flex h-6 w-6 items-center justify-center rounded-full transition-colors hover:bg-black/10"
+            className="ml-4 flex h-6 w-6 items-center justify-center rounded-full transition-colors hover:bg-black/10 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-offset-2"
             aria-label="닫기"
           >
-            <span className="text-xl leading-none">×</span>
+            <span className="text-xl leading-none" aria-hidden={false}>
+              ×
+            </span>
           </button>
         )}
       </div>
