@@ -221,10 +221,14 @@ const useDrawing = (canvasRef: RefObject<HTMLCanvasElement>, options?: DrawingOp
   // 히스토리 상태 업데이트
   const updateHistoryState = useCallback(() => {
     const localHistory = strokeHistoryRef.current.filter((entry) => entry.isLocal);
-    const currentIndex = historyPointerRef.current;
 
-    setCanUndo(localHistory.slice(0, currentIndex + 1).length > 0);
-    setCanRedo(localHistory.slice(currentIndex + 1).length > 0);
+    // 전체 히스토리에서 현재 포인터까지의 로컬 항목 개수를 세기
+    const localItemsCount = strokeHistoryRef.current
+      .slice(0, historyPointerRef.current + 1)
+      .filter((entry) => entry.isLocal).length;
+
+    setCanUndo(localItemsCount > 0);
+    setCanRedo(localItemsCount < localHistory.length);
   }, []);
 
   // 드로잉 시작
