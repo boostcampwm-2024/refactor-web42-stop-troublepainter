@@ -1,5 +1,6 @@
 import { useMemo } from 'react';
 import { useParams } from 'react-router-dom';
+import { InviteButton } from '@/components/invite/InviteButton';
 import { Setting } from '@/components/setting/Setting';
 import { Button } from '@/components/ui/Button';
 import { gameSocketHandlers } from '@/handlers/socket/gameSocket.handler';
@@ -12,8 +13,6 @@ const LobbyPage = () => {
 
   // 현재 사용자가 방장인지 확인
   const isHost = useMemo(() => room?.hostId === currentPlayerId, [room?.hostId, currentPlayerId]);
-
-  //console.log(players, room);
 
   const buttonConfig = useMemo(() => {
     if (!isHost) return START_BUTTON_STATUS.NOT_HOST;
@@ -49,15 +48,7 @@ const LobbyPage = () => {
             {buttonConfig.content}
           </Button>
 
-          <Button
-            className={cn(
-              'h-full rounded-none border-0 bg-halfbaked-400 text-xl hover:bg-halfbaked-500',
-              // 데스크톱
-              'sm:rounded-2xl sm:border-2 lg:text-2xl',
-            )}
-          >
-            초대
-          </Button>
+          <InviteButton />
         </div>
       </div>
     </>
