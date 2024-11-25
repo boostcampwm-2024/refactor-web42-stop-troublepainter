@@ -1,4 +1,3 @@
-import { useState } from 'react';
 import { PlayerRole } from '@troublepainter/core';
 import { GameCanvas } from '@/components/canvas/GameCanvas';
 import RoleModal from '@/components/modal/RoleModal';
@@ -6,10 +5,9 @@ import { QuizTitle } from '@/components/ui/QuizTitle';
 import { useGameSocketStore } from '@/stores/socket/gameSocket.store';
 
 const GameRoomPage = () => {
-  const [remainingTime] = useState(30);
-  const { players, currentPlayerId, room, roomSettings } = useGameSocketStore();
+  const { players, room, roomSettings, timer: drawingTimer } = useGameSocketStore();
 
-  if (!room || !players || !currentPlayerId || !roomSettings) return null;
+  if (!room || !players || !roomSettings || !room.currentWord) return null;
 
   return (
     <>
@@ -18,8 +16,8 @@ const GameRoomPage = () => {
       <QuizTitle
         currentRound={room.currentRound}
         totalRound={roomSettings.totalRounds}
-        title="뭘까요?뭘까요?뭘까요?뭘까요?"
-        remainingTime={remainingTime}
+        title={room.currentWord}
+        remainingTime={drawingTimer ?? roomSettings.drawTime - 5}
       />
       <GameCanvas role={PlayerRole.PAINTER} maxPixels={100000} />
     </>
