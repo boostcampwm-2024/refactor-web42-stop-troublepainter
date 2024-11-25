@@ -8,6 +8,7 @@ export const InviteButton = () => {
   const { actions } = useToastStore();
 
   const handleCopyInvite = async () => {
+    if (copied) return;
     try {
       await navigator.clipboard.writeText(window.location.href);
       setCopied(true);
@@ -15,7 +16,7 @@ export const InviteButton = () => {
 
       actions.addToast({
         title: '초대 링크 복사',
-        description: '친구에게 공유해보세요!',
+        description: '친구에게 링크를 공유해 방에 초대해보세요!',
         variant: 'success',
         duration: 2000,
       });
@@ -39,7 +40,7 @@ export const InviteButton = () => {
     >
       <span
         className={cn(
-          'absolute inset-0 flex items-center justify-center bg-halfbaked-400',
+          'absolute inset-0 flex items-center justify-center bg-halfbaked-700',
           'transition-transform duration-300',
           copied ? 'translate-y-0' : 'translate-y-14',
         )}
