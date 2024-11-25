@@ -1,6 +1,8 @@
 import { create } from 'zustand';
 import { devtools } from 'zustand/middleware';
 
+const MAX_TOASTS = 5;
+
 export interface ToastConfig {
   id?: string;
   title?: string;
@@ -41,19 +43,34 @@ export const useToastStore = create<ToastState>()(
       actions: {
         addToast: (config) => {
           const id = crypto.randomUUID();
-          const toast = { ...config, id };
+          // 새로운 토스트 준비
+          const newToast = {
+            ...config,
+            id,
+          };
 
-          set((state) => ({
-            toasts: [...state.toasts, toast],
-          }));
+          set((state) => {
+            if (config.duration !== Infinity) {
+              setTimeout(() => {
+                set((state) => ({
+                  toasts: state.toasts.filter((t) => t.id !== id),
+                }));
+              }, config.duration || 3000);
+            }
 
-          if (config.duration !== Infinity) {
-            setTimeout(() => {
-              set((state) => ({
-                toasts: state.toasts.filter((t) => t.id !== id),
-              }));
-            }, config.duration || 3000);
-          }
+            // 현재 토스트가 최대 개수에 도달한 경우
+            if (state.toasts.length >= MAX_TOASTS) {
+              // 가장 오래된 토스트를 제외하고 새 토스트 추가
+              return {
+                toasts: [...state.toasts.slice(1), newToast],
+              };
+            }
+
+            // 최대 개수에 도달하지 않은 경우 단순 추가
+            return {
+              toasts: [...state.toasts, newToast],
+            };
+          });
         },
 
         removeToast: (id) =>
