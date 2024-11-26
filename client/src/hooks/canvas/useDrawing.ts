@@ -46,7 +46,7 @@ export const useDrawing = (canvasRef: RefObject<HTMLCanvasElement>, options?: { 
     [state, operation],
   );
 
-  const draw = useCallback(
+  const continueDrawing = useCallback(
     (point: Point): CRDTUpdateMessage | null => {
       if (!state.crdtRef.current || state.inkRemaining <= 0) return null;
       if (state.drawingMode === DRAWING_MODE.FILL) return null;
@@ -230,7 +230,7 @@ export const useDrawing = (canvasRef: RefObject<HTMLCanvasElement>, options?: { 
     canUndo: state.canUndo,
     canRedo: state.canRedo,
     startDrawing,
-    draw,
+    continueDrawing,
     stopDrawing,
     applyDrawing,
     undo,

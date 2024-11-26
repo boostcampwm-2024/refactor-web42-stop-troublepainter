@@ -57,7 +57,7 @@ const GameCanvas = ({ role, maxPixels = 100000 }: GameCanvasProps) => {
     setDrawingMode,
     inkRemaining,
     startDrawing,
-    draw,
+    continueDrawing,
     stopDrawing,
     applyDrawing,
     canUndo,
@@ -110,12 +110,12 @@ const GameCanvas = ({ role, maxPixels = 100000 }: GameCanvasProps) => {
       const point = getDrawPoint(e, canvas);
       const convertPoint = convertCoordinate(point);
 
-      const crdtDrawingData = draw(convertPoint);
+      const crdtDrawingData = continueDrawing(convertPoint);
       if (crdtDrawingData) {
         void drawingSocketHandlers.sendDrawing(crdtDrawingData);
       }
     },
-    [draw, convertCoordinate, isConnected],
+    [continueDrawing, convertCoordinate, isConnected],
   );
 
   const handleDrawEnd = useCallback(() => {
