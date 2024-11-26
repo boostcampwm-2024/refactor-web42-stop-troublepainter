@@ -8,16 +8,14 @@ const GameRoomPage = () => {
   const { players, room, roomSettings, timer: drawingTimer } = useGameSocketStore();
 
   if (!room || !players || !roomSettings || !room.currentWord) return null;
-
   return (
     <>
       <RoleModal />
-      {/* 중앙 영역 - 게임 화면 */}
       <QuizTitle
         currentRound={room.currentRound}
         totalRound={roomSettings.totalRounds}
         title={room.currentWord}
-        remainingTime={drawingTimer ?? roomSettings.drawTime - 5}
+        remainingTime={drawingTimer ?? roomSettings.drawTime}
       />
       <GameCanvas role={PlayerRole.PAINTER} maxPixels={100000} />
     </>
