@@ -42,7 +42,7 @@ export const useToastStore = create<ToastState>()(
       toasts: [],
       actions: {
         addToast: (config) => {
-          const id = crypto.randomUUID();
+          const id = new Date().getTime().toString();
           // 새로운 토스트 준비
           const newToast = {
             ...config,

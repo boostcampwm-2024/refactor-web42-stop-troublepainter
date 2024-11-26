@@ -18,7 +18,7 @@ export const useDrawing = (canvasRef: RefObject<HTMLCanvasElement>, options?: { 
 
   const startDrawing = useCallback(
     (point: Point): CRDTUpdateMessage | null => {
-      if (state.inkRemaining <= 0 || !state.crdtRef.current) return null;
+      if (state.checkInkAvailability() === false || !state.crdtRef.current) return null;
 
       state.currentStrokeIdsRef.current = [];
       const drawingData =
