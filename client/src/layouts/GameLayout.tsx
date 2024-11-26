@@ -3,10 +3,14 @@ import { Chat } from '@/components/chat/Chat';
 import { PlayerCardList } from '@/components/player/PlayerCardList';
 import { Logo } from '@/components/ui/Logo';
 import { useGameSocket } from '@/hooks/socket/useGameSocket';
+import { usePageLeaveConfirm } from '@/hooks/usePageLeaveConfirm';
 import { cn } from '@/utils/cn';
 
 const GameLayout = () => {
   const { isConnected } = useGameSocket();
+  usePageLeaveConfirm({
+    message: '게임을 나가실 건가요? 퇴장하면 다시 돌아오기 힘들어요! 🥺💔',
+  });
   // console.log(players, room, roomSettings);
 
   // 연결 상태에 따른 로딩 표시
