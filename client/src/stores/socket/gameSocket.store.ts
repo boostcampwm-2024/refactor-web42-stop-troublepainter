@@ -9,6 +9,11 @@ interface GameState {
   currentPlayerId: string | null;
 }
 
+interface GameSelectors {
+  // 특정 데이터 구조에서 필요한 데이터를 선택하거나 추출하는 함수나 로직
+  isHost: boolean;
+}
+
 interface GameActions {
   // 상태 업데이트 액션
 
@@ -63,10 +68,14 @@ const initialState: GameState = {
  *
  * @category Store
  */
-export const useGameSocketStore = create<GameState & { actions: GameActions }>()(
+export const useGameSocketStore = create<GameState & GameSelectors & { actions: GameActions }>()(
   devtools(
-    (set) => ({
+    (set, get) => ({
       ...initialState,
+
+      get isHost() {
+        return get().room?.hostId === get().currentPlayerId;
+      },
 
       actions: {
         // 상태 업데이트 액션
