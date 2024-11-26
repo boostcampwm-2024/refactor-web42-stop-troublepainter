@@ -21,6 +21,43 @@ const checkColorisNotEqual = (pos: number, startColor: RGBA, pixelArray: Uint8Cl
   );
 };
 
+/**
+ * 캔버스의 실제 드로잉 작업을 수행하는 Hook입니다.
+ *
+ * @remarks
+ * 캔버스의 실제 드로잉 작업들을 관리합니다.
+ * - 스트로크 그리기
+ * - 영역 채우기 작업
+ * - 캔버스 다시 그리기
+ * - 스타일 관리
+ *
+ * useDrawingState와 함께 작동하여 드로잉 컨텍스트를 유지하고
+ * 캔버스의 실제 픽셀 조작을 처리합니다.
+ *
+ * @param canvasRef - 캔버스 엘리먼트의 RefObject
+ * @param state - useDrawingState에서 반환된 드로잉 상태
+ *
+ * @example
+ * ```tsx
+ * const canvasRef = useRef<HTMLCanvasElement>(null);
+ * const state = useDrawingState({ maxPixels: 1000 });
+ * const operations = useDrawingOperation(canvasRef, state);
+ *
+ * // 드로잉 작업 사용 예시
+ * operations.drawStroke({
+ *   points: [{x: 0, y: 0}, {x: 10, y: 10}],
+ *   style: operations.getCurrentStyle()
+ * });
+ * ```
+ *
+ * @returns 드로잉 작업 메소드들을 포함하는 객체
+ * @property getCurrentStyle - 현재 상태를 기반으로 스트로크 스타일을 반환하는 함수
+ * @property drawStroke - 캔버스에 단일 스트로크를 그리는 함수
+ * @property redrawCanvas - 저장된 스트로크들을 기반으로 전체 캔버스를 다시 그리는 함수
+ * @property floodFill - 지정된 좌표에서 영역 채우기를 수행하는 함수
+ *
+ * @category Hooks
+ */
 export const useDrawingOperation = (
   canvasRef: RefObject<HTMLCanvasElement>,
   state: ReturnType<typeof useDrawingState>,
