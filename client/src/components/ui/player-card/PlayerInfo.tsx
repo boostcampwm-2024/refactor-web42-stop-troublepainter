@@ -1,4 +1,5 @@
 import { PlayerRole } from '@troublepainter/core';
+import { PLAYING_ROLE_TEXT } from '@/constants/gameConstant';
 import { cn } from '@/utils/cn';
 
 interface PlayerCardInfoProps {
@@ -26,7 +27,7 @@ export const PlayerCardInfo = ({ nickname, role, className }: PlayerCardInfoProp
       </div>
       <div className="h-3 text-stroke-sm lg:h-auto">
         <div
-          title={role || '???'}
+          title={role ? PLAYING_ROLE_TEXT[role] : '???'}
           className={cn(
             'w-20 truncate pl-0.5 text-[0.625rem] text-gray-50',
             'lg:w-full lg:max-w-28 lg:text-sm',
@@ -34,7 +35,7 @@ export const PlayerCardInfo = ({ nickname, role, className }: PlayerCardInfoProp
             '2xl:max-w-52',
           )}
         >
-          {role || '???'}
+          {role ? PLAYING_ROLE_TEXT[role] : '???'}
         </div>
       </div>
     </div>
