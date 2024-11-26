@@ -1,4 +1,4 @@
-import { Outlet } from 'react-router-dom';
+import { Outlet, useNavigate } from 'react-router-dom';
 import { Chat } from '@/components/chat/Chat';
 import { PlayerCardList } from '@/components/player/PlayerCardList';
 import { Logo } from '@/components/ui/Logo';
@@ -7,10 +7,11 @@ import { usePageLeaveConfirm } from '@/hooks/usePageLeaveConfirm';
 import { cn } from '@/utils/cn';
 
 const GameLayout = () => {
-  const { isConnected } = useGameSocket();
   usePageLeaveConfirm({
-    message: '게임을 나가실 건가요? 퇴장하면 다시 돌아오기 힘들어요! 🥺💔',
+    message: '게임을 나가실 건가요? 퇴장하면 다시 못 돌아온다는 걸 알아주세요! 🥺💔',
   });
+  const navigate = useNavigate();
+  const { isConnected } = useGameSocket();
   // console.log(players, room, roomSettings);
 
   // 연결 상태에 따른 로딩 표시
@@ -28,7 +29,12 @@ const GameLayout = () => {
     <div className="flex min-h-screen flex-col justify-start bg-gradient-to-b from-violet-950 via-violet-800 to-fuchsia-800 lg:py-5">
       {/* 상단 헤더 */}
       <header className="flex items-center justify-center">
-        <Logo variant="side" />
+        <button
+          onClick={() => navigate('/', { replace: true })}
+          className="transition-transform hover:scale-105 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-violet-500 focus-visible:ring-offset-2"
+        >
+          <Logo variant="side" />
+        </button>
       </header>
 
       <main className="mx-auto">
