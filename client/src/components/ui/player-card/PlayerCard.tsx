@@ -1,8 +1,8 @@
 import { PlayerRole } from '@troublepainter/core';
 import { cva, type VariantProps } from 'class-variance-authority';
-import { PlayerInfo } from '@/components/ui/player-card/PlayerInfo';
-import { PlayerProfile } from '@/components/ui/player-card/PlayerProfile';
-import { PlayerStatus } from '@/components/ui/player-card/PlayerStatus';
+import { PlayerCardInfo } from '@/components/ui/player-card/PlayerInfo';
+import { PlayerCardProfile } from '@/components/ui/player-card/PlayerProfile';
+import { PlayerCardStatus } from '@/components/ui/player-card/PlayerStatus';
 import { cn } from '@/utils/cn';
 
 const playerCardVariants = cva(
@@ -83,7 +83,7 @@ const PlayerCard = ({
   return (
     <div className={cn(playerCardVariants({ status, isMe }), className)}>
       <div className="flex flex-col items-center justify-center lg:flex-row lg:gap-1 xl:gap-1.5">
-        <PlayerProfile
+        <PlayerCardProfile
           nickname={nickname}
           profileImage={profileImage}
           isWinner={isWinner}
@@ -92,9 +92,9 @@ const PlayerCard = ({
           isMe={isMe}
           showScore={status === 'PLAYING'}
         />
-        <PlayerInfo nickname={nickname} role={role} />
+        <PlayerCardInfo nickname={nickname} role={role} />
       </div>
-      <PlayerStatus score={score} isHost={isHost} isPlaying={status === 'PLAYING'} isMe={isMe} />
+      <PlayerCardStatus score={score} isHost={isHost} isPlaying={status === 'PLAYING'} isMe={isMe} />
     </div>
   );
 };

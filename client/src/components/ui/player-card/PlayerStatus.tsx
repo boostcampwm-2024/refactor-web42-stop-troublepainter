@@ -1,6 +1,6 @@
 import { cn } from '@/utils/cn';
 
-interface PlayerStatusProps {
+interface PlayerCardStatusProps {
   score?: number;
   isHost: boolean | null;
   isPlaying: boolean;
@@ -8,7 +8,7 @@ interface PlayerStatusProps {
   className?: string;
 }
 
-export const PlayerStatus = ({ score, isHost, isPlaying, isMe, className }: PlayerStatusProps) => {
+export const PlayerCardStatus = ({ score, isHost, isPlaying, isMe, className }: PlayerCardStatusProps) => {
   if (!score && !isHost) return null;
 
   return (

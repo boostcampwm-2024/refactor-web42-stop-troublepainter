@@ -1,13 +1,13 @@
 import { PlayerRole } from '@troublepainter/core';
 import { cn } from '@/utils/cn';
 
-interface PlayerInfoProps {
+interface PlayerCardInfoProps {
   nickname: string;
   role?: PlayerRole | null;
   className?: string;
 }
 
-export const PlayerInfo = ({ nickname, role, className }: PlayerInfoProps) => {
+export const PlayerCardInfo = ({ nickname, role, className }: PlayerCardInfoProps) => {
   return (
     /* 사용자 정보 섹션 */
     <div className={cn('relative flex -translate-y-1 flex-col text-center lg:translate-y-0 lg:items-start', className)}>

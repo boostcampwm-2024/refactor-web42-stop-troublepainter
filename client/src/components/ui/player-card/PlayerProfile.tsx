@@ -2,7 +2,7 @@ import crownFirst from '@/assets/crown-first.png';
 import profilePlaceholder from '@/assets/profile-placeholder.png';
 import { cn } from '@/utils/cn';
 
-interface PlayerProfileProps {
+interface PlayerCardProfileProps {
   nickname: string;
   profileImage?: string;
   isWinner?: boolean;
@@ -13,7 +13,7 @@ interface PlayerProfileProps {
   className?: string;
 }
 
-export const PlayerProfile = ({
+export const PlayerCardProfile = ({
   nickname,
   profileImage,
   isWinner,
@@ -22,7 +22,7 @@ export const PlayerProfile = ({
   isMe,
   showScore = false,
   className,
-}: PlayerProfileProps) => {
+}: PlayerCardProfileProps) => {
   // 순위에 따른 Crown Image 렌더링 로직
   const showCrown = isWinner !== undefined;
 
@@ -33,7 +33,7 @@ export const PlayerProfile = ({
           'relative flex h-12 w-12 items-center justify-center overflow-hidden lg:h-14 lg:w-14',
           'rounded-full border-2 bg-white/20 lg:rounded-xl',
           // 본인 여부에 따른 테두리 색상
-          isMe ? 'border-violet-900' : 'border-halfbaked-900',
+          isMe ? (isHost ? 'border-halfbaked-900' : 'border-violet-900') : 'border-halfbaked-900',
         )}
       >
         <img
