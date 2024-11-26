@@ -100,7 +100,7 @@ export const useDrawing = (canvasRef: RefObject<HTMLCanvasElement>, options?: { 
 
       const strokeId = state.crdtRef.current.addStroke(drawingData);
       state.currentStrokeIdsRef.current.push(strokeId);
-      operation.drawStroke(drawingData);
+      if (state.drawingMode === DRAWING_MODE.PEN) operation.drawStroke(drawingData);
 
       return {
         type: CRDTMessageTypes.UPDATE,
