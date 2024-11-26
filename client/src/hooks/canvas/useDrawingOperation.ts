@@ -73,6 +73,27 @@ export const useDrawingOperation = (
     [currentColor, brushSize],
   );
 
+  const drawSmoothLine = (drawingData: DrawingData, canvasRef: RefObject<HTMLCanvasElement>) => {
+    const { ctx } = getCanvasContext(canvasRef);
+    const { points } = drawingData;
+
+    if (points.length < 2) return;
+
+    ctx.beginPath();
+    ctx.moveTo(points[0].x, points[0].y);
+
+    for (let i = 1; i < points.length - 1; i++) {
+      const midPoint = {
+        x: (points[i].x + points[i + 1].x) / 2,
+        y: (points[i].y + points[i + 1].y) / 2,
+      };
+
+      ctx.quadraticCurveTo(points[i].x, points[i].y, midPoint.x, midPoint.y);
+    }
+
+    ctx.stroke();
+  };
+
   const drawStroke = useCallback((drawingData: DrawingData) => {
     const { ctx } = getCanvasContext(canvasRef);
     const { points, style } = drawingData;
@@ -89,9 +110,7 @@ export const useDrawingOperation = (
       ctx.arc(point.x, point.y, style.width / 2, 0, Math.PI * 2);
       ctx.fill();
     } else {
-      ctx.moveTo(points[0].x, points[0].y);
-      points.slice(1).forEach((point) => ctx.lineTo(point.x, point.y));
-      ctx.stroke();
+      drawSmoothLine(drawingData, canvasRef);
     }
   }, []);
 
