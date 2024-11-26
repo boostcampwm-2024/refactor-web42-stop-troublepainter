@@ -1,5 +1,5 @@
 import { useCallback, useEffect, useRef, useState } from 'react';
-import { LWWMap } from '@troublepainter/core';
+import { DrawingData, LWWMap } from '@troublepainter/core';
 import { useParams } from 'react-router-dom';
 import { COLORS_INFO, DRAWING_MODE, LINEWIDTH_VARIABLE, DEFAULT_MAX_PIXELS } from '@/constants/canvasConstants';
 import { useToastStore } from '@/stores/toast.store';
@@ -89,6 +89,20 @@ export const useDrawingState = (options?: { maxPixels?: number }) => {
   const currentStrokeIdsRef = useRef<string[]>([]);
   const historyPointerRef = useRef<number>(-1);
 
+  interface DrawingLine {
+    type: 'line';
+    data: DrawingData;
+  }
+
+  interface DrawingRedraw {
+    type: 'redraw';
+    data: DrawingData[];
+  }
+
+  type DrawingBuffer = DrawingLine | DrawingRedraw;
+
+  const drawingBufferRef = useRef<DrawingBuffer[]>([]);
+
   useEffect(() => {
     crdtRef.current = new LWWMap(currentPlayerId || 'player');
   }, [currentPlayerId]);
@@ -132,6 +146,7 @@ export const useDrawingState = (options?: { maxPixels?: number }) => {
     strokeHistoryRef,
     currentStrokeIdsRef,
     historyPointerRef,
+    drawingBufferRef,
     updateHistoryState,
     checkInkAvailability,
   };
