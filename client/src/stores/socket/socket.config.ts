@@ -113,9 +113,7 @@ type SocketCreator<T extends SocketType> = (auth?: SocketAuth) => T;
  * @returns 생성된 소켓 인스턴스
  */
 const createSocket = <T extends SocketType>(namespace: SocketNamespace, auth?: SocketAuth): T => {
-  const options = auth
-    ? { ...SOCKET_CONFIG.BASE_OPTIONS, auth: { roomId: '213', playerId: '123sas' } }
-    : SOCKET_CONFIG.BASE_OPTIONS;
+  const options = auth ? { ...SOCKET_CONFIG.BASE_OPTIONS, auth } : SOCKET_CONFIG.BASE_OPTIONS;
   return io(`${SOCKET_CONFIG.URL}${SOCKET_CONFIG.PATHS[namespace]}`, options) as T;
 };
 
