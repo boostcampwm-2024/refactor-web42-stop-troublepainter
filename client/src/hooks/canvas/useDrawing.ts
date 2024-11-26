@@ -100,10 +100,7 @@ export const useDrawing = (canvasRef: RefObject<HTMLCanvasElement>, options?: { 
 
       const strokeId = state.crdtRef.current.addStroke(drawingData);
       state.currentStrokeIdsRef.current.push(strokeId);
-      if (state.drawingMode === DRAWING_MODE.PEN)
-        //operation.drawStroke(drawingData); requestAnimationFrame 미사용
-        state.drawingBufferRef.current.push({ type: 'line', data: drawingData });
-
+      if (state.drawingMode === DRAWING_MODE.PEN) operation.drawStroke(drawingData);
       return {
         type: CRDTMessageTypes.UPDATE,
         state: {
@@ -137,8 +134,7 @@ export const useDrawing = (canvasRef: RefObject<HTMLCanvasElement>, options?: { 
 
       const strokeId = state.crdtRef.current.addStroke(updatedDrawing);
       state.currentStrokeIdsRef.current.push(strokeId);
-      //operation.drawStroke(updatedDrawing); requestAnimationFrame 미사용
-      state.drawingBufferRef.current.push({ type: 'line', data: updatedDrawing });
+      operation.drawStroke(updatedDrawing);
 
       return {
         type: CRDTMessageTypes.UPDATE,

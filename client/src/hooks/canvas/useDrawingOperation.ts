@@ -1,4 +1,4 @@
-import { RefObject, useCallback, useEffect } from 'react';
+import { RefObject, useCallback } from 'react';
 import { DrawingData, Point, StrokeStyle } from '@troublepainter/core';
 import { useDrawingState } from './useDrawingState';
 import { MAINCANVAS_RESOLUTION_HEIGHT, MAINCANVAS_RESOLUTION_WIDTH } from '@/constants/canvasConstants';
@@ -101,23 +101,12 @@ export const useDrawingOperation = (
     const { canvas, ctx } = getCanvasContext(canvasRef);
     ctx.clearRect(0, 0, canvas.width, canvas.height);
 
-    const redrawList: DrawingData[] = state.crdtRef.current.strokes
-      .filter((stroke) => stroke.stroke !== null)
-      .map(({ stroke }) => stroke);
-
-    state.drawingBufferRef.current.push({
-      type: 'redraw',
-      data: redrawList,
-    });
-
-    /* requestAnimationFrame 미사용 로직
     state.crdtRef.current.strokes
       .filter((stroke) => stroke.stroke !== null)
       .forEach(({ stroke }) => {
-        //drawStroke(stroke);
+        drawStroke(stroke);
       });
-    */
-  }, [state.drawingBufferRef.current]);
+  }, [drawStroke]);
 
   const floodFill = useCallback(
     (startX: number, startY: number) => {
@@ -179,35 +168,6 @@ export const useDrawingOperation = (
     },
     [currentColor, inkRemaining, getCurrentStyle],
   );
-
-  useEffect(() => {
-    let lastTime: DOMHighResTimeStamp = 0;
-    const drawingBuffer = state.drawingBufferRef.current;
-
-    const drawAnimation = (timestemp: DOMHighResTimeStamp) => {
-      if (timestemp - lastTime > 16) {
-        if (drawingBuffer.length >= 0) {
-          const currentDraw = drawingBuffer.shift();
-          if (currentDraw) {
-            if (currentDraw.type === 'line') drawStroke(currentDraw.data);
-            if (currentDraw.type === 'redraw')
-              currentDraw.data.forEach((drawingData) => {
-                drawStroke(drawingData);
-              });
-          }
-        }
-
-        lastTime = timestemp;
-      }
-
-      requestAnimationFrame(drawAnimation);
-    };
-    const aniId = requestAnimationFrame(drawAnimation);
-
-    return () => {
-      if (aniId) cancelAnimationFrame(aniId);
-    };
-  }, [drawStroke, state.drawingBufferRef.current]);
 
   return {
     getCurrentStyle,
