@@ -161,6 +161,20 @@ export class GameService {
 
     if (!room) throw new RoomNotFoundException('Room not found');
 
+    if (room.currentRound >= roomSettings.totalRounds) {
+      await this.gameRepository.updateRoom(roomId, { status: RoomStatus.WAITING, currentRound: 0, currentWord: null });
+      await Promise.all(
+        players.map(({ playerId }) =>
+          this.gameRepository.updatePlayer(roomId, playerId, {
+            status: PlayerStatus.NOT_PLAYING,
+            role: null,
+            score: 0,
+          }),
+        ),
+      );
+      return { gameEnded: true };
+    }
+
     const roomUpdates = {
       status: RoomStatus.DRAWING,
       currentWord: this.words.shift(),

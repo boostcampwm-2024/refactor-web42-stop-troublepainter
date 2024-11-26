@@ -88,7 +88,11 @@ export class GameGateway implements OnGatewayDisconnect {
   }
 
   private async startNewRound(roomId: string) {
-    await this.gameService.setupRound(roomId);
+    const gameState = await this.gameService.setupRound(roomId);
+    if (gameState.gameEnded) {
+      this.server.to(roomId).emit('gameEnded');
+      return;
+    }
 
     const { room, roomSettings, roles, players } = gameState;
 
