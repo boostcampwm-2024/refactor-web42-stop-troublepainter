@@ -19,13 +19,18 @@ export type MapState = {
   [key: string]: RegisterState<DrawingData | null>;
 };
 
+export enum CRDTMessageTypes {
+  SYNC = 'sync',
+  UPDATE = 'update',
+}
+
 export type CRDTSyncMessage = {
-  type: 'sync';
+  type: CRDTMessageTypes.SYNC;
   state: MapState;
 };
 
 export type CRDTUpdateMessage = {
-  type: 'update';
+  type: CRDTMessageTypes.UPDATE;
   state: {
     key: string;
     register: RegisterState<DrawingData | null>;

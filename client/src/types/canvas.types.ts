@@ -1,10 +1,11 @@
 import { MouseEvent, TouchEvent } from 'react';
+import { DrawingData } from '@troublepainter/core';
 import { DRAWING_MODE } from '@/constants/canvasConstants';
 
 interface PenOptions {
   mode: number;
   colorNum: number;
-  lineWidth: number; //짝수 단위가 좋음
+  lineWidth: number;
 }
 
 export type SelectingPenOptions = Partial<PenOptions>;
@@ -28,7 +29,15 @@ export interface RGBA {
   a: number;
 }
 
-// 아래 태연님 코드 관련
+export interface StrokeHistoryEntry {
+  strokeIds: string[];
+  isLocal: boolean;
+  drawingData: DrawingData;
+}
+
+export interface DrawingOptions {
+  maxPixels?: number;
+}
 
 export type DrawingMode = (typeof DRAWING_MODE)[keyof typeof DRAWING_MODE];
 

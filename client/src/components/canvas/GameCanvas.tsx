@@ -3,9 +3,9 @@ import { PlayerRole } from '@troublepainter/core';
 import { Canvas } from '@/components/canvas/CanvasUI';
 import { COLORS_INFO, MAINCANVAS_RESOLUTION_WIDTH } from '@/constants/canvasConstants';
 import { drawingSocketHandlers } from '@/handlers/socket/drawingSocket.handler';
+import { useDrawing } from '@/hooks/canvas/useDrawing';
 import { useDrawingSocket } from '@/hooks/socket/useDrawingSocket';
 import { useCoordinateScale } from '@/hooks/useCoordinateScale';
-import { useDrawing } from '@/hooks/useDrawing';
 import { CanvasEventHandlers } from '@/types/canvas.types';
 import { getCanvasContext } from '@/utils/getCanvasContext';
 import { getDrawPoint } from '@/utils/getDrawPoint';
@@ -133,11 +133,9 @@ const GameCanvas = ({ role, maxPixels = 100000 }: GameCanvasProps) => {
 
   const handleRedo = useCallback(() => {
     if (!isDrawable || !isConnected) return;
-    const updates = redo();
-    if (!updates) return;
-    updates.forEach((update) => {
-      void drawingSocketHandlers.sendDrawing(update);
-    });
+    const update = redo();
+    if (!update) return;
+    void drawingSocketHandlers.sendDrawing(update);
   }, [redo, isConnected, isDrawable]);
 
   const canvasEventHandlers: CanvasEventHandlers = {
