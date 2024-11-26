@@ -13,10 +13,6 @@ interface RoomSettingItem {
   options: number[];
 }
 
-interface SettingProps extends HTMLAttributes<HTMLDivElement> {
-  type: 'host' | 'participant';
-}
-
 export const ROOM_SETTINGS: RoomSettingItem[] = [
   { label: '라운드 수', key: 'totalRounds', options: [3, 5] },
   { label: '최대 플레이어 수', key: 'maxPlayers', options: [4, 5] },
@@ -24,8 +20,8 @@ export const ROOM_SETTINGS: RoomSettingItem[] = [
   //{ label: '픽셀 수', key: 'maxPixels', options: [300, 500] },
 ];
 
-const Setting = ({ className, type, ...props }: SettingProps) => {
-  const { roomSettings } = useGameSocketStore();
+const Setting = ({ className, ...props }: HTMLAttributes<HTMLDivElement>) => {
+  const { roomSettings, isHost } = useGameSocketStore();
 
   const [selectedValues, setSelectedValues] = useState<Partial<RoomSettings>>({
     totalRounds: undefined,
@@ -39,9 +35,9 @@ const Setting = ({ className, type, ...props }: SettingProps) => {
   }, [roomSettings]);
 
   useEffect(() => {
-    if (type === 'participant') return;
+    if (!isHost) return;
     void gameSocketHandlers.updateSettings({ settings: selectedValues });
-  }, [selectedValues, type]);
+  }, [selectedValues]);
 
   const handleChange = (key: SettingKey) => (value: string) => {
     setSelectedValues((prev) => ({
@@ -66,7 +62,7 @@ const Setting = ({ className, type, ...props }: SettingProps) => {
           {ROOM_SETTINGS.map(({ label, key, options }) => (
             <div key={label} className="flex w-full max-w-80 items-center justify-between lg:max-w-[80%]">
               <span>{label}</span>
-              {type === 'participant' ? (
+              {!isHost ? (
                 <span>{roomSettings?.[key] || ''}</span>
               ) : (
                 <Dropdown

@@ -40,7 +40,7 @@ export const InviteButton = () => {
     >
       <span
         className={cn(
-          'absolute inset-0 flex items-center justify-center bg-halfbaked-700',
+          'absolute inset-0 flex items-center justify-center bg-halfbaked-500',
           'transition-transform duration-300',
           copied ? 'translate-y-0' : 'translate-y-14',
         )}
