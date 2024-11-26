@@ -14,6 +14,7 @@ import { Player, Room, RoomSettings } from 'src/common/types/game.types';
 import { BadRequestException } from 'src/exceptions/game.exception';
 import { PlayerRole } from 'src/common/enums/game.status.enum';
 import { TimerService } from 'src/common/services/timer.service';
+import { TimerType } from 'src/common/enums/game.timer.enum';
 
 @WebSocketGateway({
   cors: '*',
@@ -98,16 +99,18 @@ export class GameGateway implements OnGatewayDisconnect {
 
     await this.notifyPlayersRoundStart(roomId, room, roomSettings, roles, players);
 
-    await this.runTimer(roomId, roomSettings.drawTime * 1000);
+    await this.runTimer(roomId, roomSettings.drawTime * 1000, TimerType.DRAWING);
 
-    this.server.to(roomId).emit('drawingTimeEnded');
-    await this.gameService.handleDrawingTimeout(roomId);
+    const roomStatus = await this.gameService.handleDrawingTimeout(roomId);
+    this.server.to(roomId).emit('drawingTimeEnded', {
+      roomStatus,
+    });
 
-    await this.runTimer(roomId, 10000);
+    await this.runTimer(roomId, 10000, TimerType.GUESSING);
     const result = await this.gameService.handleGuessingTimeout(roomId);
     this.server.to(roomId).emit('roundEnded', result);
 
-    await this.runTimer(roomId, 10000);
+    await this.runTimer(roomId, 10000, TimerType.ENDING);
     await this.startNewRound(roomId);
   }
 
@@ -128,6 +131,7 @@ export class GameGateway implements OnGatewayDisconnect {
         assignedRole: player.role,
         roles,
         drawTime: roomSettings.drawTime,
+        roomStatus: room.status,
       };
 
       if (player.role === PlayerRole.PAINTER || player.role === PlayerRole.DEVIL) {
@@ -144,11 +148,11 @@ export class GameGateway implements OnGatewayDisconnect {
     }
   }
 
-  private async runTimer(roomId: string, duration: number) {
+  private async runTimer(roomId: string, duration: number, timerType: TimerType) {
     return new Promise<void>((resolve) => {
       this.timerService.startTimer(this.server, roomId, duration, {
         onTick: (remaining: number) => {
-          this.server.to(roomId).emit('timerSync', { remaining });
+          this.server.to(roomId).emit('timerSync', { remaining, timerType });
         },
         onTimeUp: () => resolve(),
       });
@@ -168,7 +172,7 @@ export class GameGateway implements OnGatewayDisconnect {
       this.timerService.stopGameTimer(roomId);
       this.server.to(roomId).emit('roundEnded', result);
 
-      await this.runTimer(roomId, 10000);
+      await this.runTimer(roomId, 10000, TimerType.ENDING);
       await this.startNewRound(roomId);
     }
   }

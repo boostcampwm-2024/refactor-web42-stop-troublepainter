@@ -237,6 +237,8 @@ export class GameService {
     if (!room) throw new RoomNotFoundException('Room not found');
 
     await this.gameRepository.updateRoom(roomId, { status: RoomStatus.GUESSING });
+
+    return RoomStatus.GUESSING;
   }
 
   async checkAnswer(roomId: string, playerId: string, answer: string) {
