@@ -157,7 +157,7 @@ export const useGameSocket = () => {
         guessers?.forEach((playerId) => gameActions.updatePlayerRole(playerId, PlayerRole.GUESSER));
         if (devil) gameActions.updatePlayerRole(devil, PlayerRole.DEVIL);
         if (word) gameActions.updateCurrentWord(word);
-        navigate(`/game/${roomId}`);
+        navigate(`/game/${roomId}`, { replace: true }); // replace: true로 설정, 히스토리에서 대기방 제거
       },
 
       guesserRoundStarted: (response: RoundStartResponse) => {
@@ -165,7 +165,7 @@ export const useGameSocket = () => {
         const { guessers } = roles;
         gameActions.updateCurrentRound(roundNumber);
         guessers?.forEach((playerId) => gameActions.updatePlayerRole(playerId, PlayerRole.GUESSER));
-        navigate(`/game/${roomId}`);
+        navigate(`/game/${roomId}`, { replace: true });
       },
 
       timerSync: (response: TimerSyncResponse) => {
