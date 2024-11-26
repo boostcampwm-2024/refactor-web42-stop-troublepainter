@@ -150,18 +150,34 @@ export class GameService {
     const roomSettings = await this.gameRepository.getRoomSettings(roomId);
 
     this.words = await this.clovaClient.getDrawingWords(Difficulty.HARD, roomSettings.totalRounds);
+  }
+
+  async setupRound(roomId: string) {
+    const [room, roomSettings, players] = await Promise.all([
+      this.gameRepository.getRoom(roomId),
+      this.gameRepository.getRoomSettings(roomId),
+      this.gameRepository.getRoomPlayers(roomId),
+    ]);
+
+    if (!room) throw new RoomNotFoundException('Room not found');
 
     const roomUpdates = {
       status: RoomStatus.DRAWING,
       currentWord: this.words.shift(),
+      currentRound: room.currentRound + 1,
     };
     await this.gameRepository.updateRoom(roomId, { ...roomUpdates });
 
     const playersWithRoles = await this.distributeRoles(roomId, players);
-
     const roles = this.categorizePlayerRoles(playersWithRoles);
 
-    return { room: { ...room, ...roomUpdates }, roomSettings, roles, players: playersWithRoles };
+    return {
+      gameEnded: false,
+      room: { ...room, ...roomUpdates },
+      roomSettings,
+      roles,
+      players: playersWithRoles,
+    };
   }
 
   private async distributeRoles(roomId: string, players: Player[]) {
@@ -230,8 +246,6 @@ export class GameService {
     const isCorrect = room.currentWord.trim() === answer.trim();
     if (!isCorrect) return { isCorrect };
 
-    await this.gameRepository.updateRoom(roomId, { currentRound: room.currentRound + 1, status: RoomStatus.DRAWING });
-
     const updatedPlayers = this.calculateScores(players, playerId);
     await Promise.all(
       updatedPlayers.map((p) => this.gameRepository.updatePlayer(roomId, p.playerId, { score: p.score })),
@@ -275,8 +289,6 @@ export class GameService {
     if (room.status !== RoomStatus.GUESSING) {
       throw new BadRequestException('Room is not in guessing state');
     }
-
-    await this.gameRepository.updateRoom(roomId, { currentRound: room.currentRound + 1, status: RoomStatus.DRAWING });
 
     const updatedPlayers = players.map((p) => {
       const updatedPlayer = { ...p };

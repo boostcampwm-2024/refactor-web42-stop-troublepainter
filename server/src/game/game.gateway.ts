@@ -10,7 +10,7 @@ import { Server, Socket } from 'socket.io';
 import { GameService } from './game.service';
 import { UseFilters } from '@nestjs/common';
 import { WsExceptionFilter } from 'src/filters/ws-exception.filter';
-import { RoomSettings } from 'src/common/types/game.types';
+import { Player, Room, RoomSettings } from 'src/common/types/game.types';
 import { BadRequestException } from 'src/exceptions/game.exception';
 import { PlayerRole } from 'src/common/enums/game.status.enum';
 import { TimerService } from 'src/common/services/timer.service';
@@ -82,10 +82,39 @@ export class GameGateway implements OnGatewayDisconnect {
     const { playerId, roomId } = client.data;
     if (!playerId || !roomId) throw new BadRequestException('Room ID and Player ID are required');
 
-    const { room, roomSettings, roles, players } = await this.gameService.startGame(roomId, playerId);
+    await this.gameService.startGame(roomId, playerId);
 
+    await this.startNewRound(roomId);
+  }
+
+  private async startNewRound(roomId: string) {
+    await this.gameService.setupRound(roomId);
+
+    const { room, roomSettings, roles, players } = gameState;
+
+    await this.notifyPlayersRoundStart(roomId, room, roomSettings, roles, players);
+
+    await this.runTimer(roomId, roomSettings.drawTime * 1000);
+
+    this.server.to(roomId).emit('drawingTimeEnded');
+    await this.gameService.handleDrawingTimeout(roomId);
+
+    await this.runTimer(roomId, 10000);
+    const result = await this.gameService.handleGuessingTimeout(roomId);
+    this.server.to(roomId).emit('roundEnded', result);
+
+    await this.runTimer(roomId, 10000);
+    await this.startNewRound(roomId);
+  }
+
+  private async notifyPlayersRoundStart(
+    roomId: string,
+    room: Room,
+    roomSettings: RoomSettings,
+    roles: { painters: string[]; devils: string[]; guessers: string[] },
+    players: Player[],
+  ) {
     const sockets = await this.server.in(roomId).fetchSockets();
-
     for (const player of players) {
       const playerSocket = sockets.find((socket) => socket.data.playerId === player.playerId);
       if (!playerSocket) continue;
@@ -109,31 +138,15 @@ export class GameGateway implements OnGatewayDisconnect {
         });
       }
     }
+  }
 
-    await new Promise<void>((resolve) => {
-      this.timerService.startTimer(this.server, roomId, roomSettings.drawTime * 1000, {
+  private async runTimer(roomId: string, duration: number) {
+    return new Promise<void>((resolve) => {
+      this.timerService.startTimer(this.server, roomId, duration, {
         onTick: (remaining: number) => {
           this.server.to(roomId).emit('timerSync', { remaining });
         },
-        onTimeUp: () => {
-          resolve();
-        },
-      });
-    });
-
-    this.server.to(roomId).emit('drawingTimeEnded');
-    await this.gameService.handleDrawingTimeout(roomId);
-
-    await new Promise<void>((resolve) => {
-      this.timerService.startTimer(this.server, roomId, 10000, {
-        onTick: (remaining: number) => {
-          this.server.to(roomId).emit('timerSync', { remaining });
-        },
-        onTimeUp: async () => {
-          const result = await this.gameService.handleGuessingTimeout(roomId);
-          this.server.to(roomId).emit('roundEnded', result);
-          resolve();
-        },
+        onTimeUp: () => resolve(),
       });
     });
   }
@@ -150,6 +163,9 @@ export class GameGateway implements OnGatewayDisconnect {
     if (result.isCorrect) {
       this.timerService.stopGameTimer(roomId);
       this.server.to(roomId).emit('roundEnded', result);
+
+      await this.runTimer(roomId, 10000);
+      await this.startNewRound(roomId);
     }
   }
 
