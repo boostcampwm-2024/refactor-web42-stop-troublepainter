@@ -56,7 +56,7 @@ export const PlayerCardProfile = ({
                   isHost ? 'bg-halfbaked-500/50' : 'bg-violet-500/50',
                 )}
               >
-                <span className="text-xs text-stroke-sm">{isHost ? '방장' : '나!'}</span>
+                <span className="text-xs text-stroke-sm">{isMe ? '나!' : '방장'}</span>
               </div>
             )}
           </>
