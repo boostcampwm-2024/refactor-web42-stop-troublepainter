@@ -1,4 +1,4 @@
-import { Player, PlayerRole, Room, RoomSettings } from '@troublepainter/core';
+import { Player, PlayerRole, Room, RoomSettings, RoomStatus, TimerType } from '@troublepainter/core';
 import { create } from 'zustand';
 import { devtools } from 'zustand/middleware';
 
@@ -6,9 +6,11 @@ interface GameState {
   room: Room | null;
   roomSettings: RoomSettings | null;
   players: Player[];
+  roundWinner: Player | null;
+  roundAssignedRole: PlayerRole | null;
   currentPlayerId: string | null;
   isHost: boolean | null;
-  timer: number | null;
+  timers: Record<TimerType, number | null>;
 }
 
 interface GameActions {
@@ -18,6 +20,7 @@ interface GameActions {
   updateRoom: (room: Room) => void;
   updateCurrentRound: (currentRound: number) => void;
   updateCurrentWord: (currentWord: string) => void;
+  updateRoomStatus: (status: RoomStatus) => void;
 
   // roomSetting 상태 업데이트
   updateRoomSettings: (settings: RoomSettings) => void;
@@ -27,12 +30,17 @@ interface GameActions {
   removePlayer: (playerId: string) => void;
   updatePlayerRole: (playerId: string, role: PlayerRole) => void;
 
+  // 나의 상태 업데이트
   updateCurrentPlayerId: (currentPlayerId: string) => void;
   updateIsHost: (isHost: boolean) => void;
+  updateRoundAssignedRole: (role: PlayerRole) => void;
 
   // timer 상태 업데이트
-  updateTimer: (remaining: number) => void;
-  decreaseTimer: () => void;
+  updateTimer: (timerType: TimerType, time: number) => void;
+  decreaseTimer: (timerType: TimerType) => void;
+
+  // 승자 상태 업데이트
+  updateRoundWinner: (player: Player) => void;
 
   // 상태 초기화
   reset: () => void;
@@ -44,7 +52,9 @@ const initialState: GameState = {
   players: [],
   currentPlayerId: null,
   isHost: null,
-  timer: null,
+  timers: { DRAWING: null, ENDING: null, GUESSING: null },
+  roundWinner: null,
+  roundAssignedRole: null,
 };
 
 /**
@@ -95,6 +105,10 @@ export const useGameSocketStore = create<GameState & { actions: GameActions }>()
           }));
         },
 
+        updateRoomStatus: (status) => {
+          set((state) => ({ room: state.room && { ...state.room, status } }));
+        },
+
         updateRoomSettings: (settings) => {
           set({ roomSettings: settings });
         },
@@ -123,14 +137,30 @@ export const useGameSocketStore = create<GameState & { actions: GameActions }>()
           set({ isHost });
         },
 
-        updateTimer: (remaining) => {
-          set({ timer: remaining });
+        updateRoundAssignedRole: (playerRole) => {
+          set({ roundAssignedRole: playerRole });
         },
 
-        decreaseTimer: () => {
+        updateTimer: (timerType, time) => {
           set((state) => ({
-            timer: state.timer && state.timer - 1,
+            timers: {
+              ...state.timers,
+              [timerType]: time,
+            },
           }));
+        },
+
+        decreaseTimer: (timerType) => {
+          set((state) => ({
+            timers: {
+              ...state.timers,
+              [timerType]: Math.max(0, (state.timers?.[timerType] ?? 0) - 1),
+            },
+          }));
+        },
+
+        updateRoundWinner: (player) => {
+          set({ roundWinner: player });
         },
 
         // 상태 초기화
