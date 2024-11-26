@@ -40,18 +40,28 @@ export const useTimer = ({ timer, onTick }: UseTimerProps) => {
   const intervalIdRef = useRef<NodeJS.Timeout | null>(null);
 
   useEffect(() => {
-    if (timer !== null && timer > 0 && !intervalIdRef.current) {
-      intervalIdRef.current = setInterval(onTick, 1000);
-    } else if ((timer === null || timer <= 0) && intervalIdRef.current) {
-      clearInterval(intervalIdRef.current);
-      intervalIdRef.current = null;
-    }
+    const isTimerActive = timer !== null && timer > 0;
+    const hasInterval = intervalIdRef.current !== null;
 
-    return () => {
-      if (intervalIdRef.current) {
-        clearInterval(intervalIdRef.current);
+    const startTimer = () => {
+      if (!hasInterval) {
+        intervalIdRef.current = setInterval(onTick, 1000);
+      }
+    };
+
+    const stopTimer = () => {
+      if (hasInterval) {
+        clearInterval(intervalIdRef.current!);
         intervalIdRef.current = null;
       }
     };
+
+    if (isTimerActive) {
+      startTimer();
+    } else {
+      stopTimer();
+    }
+
+    return () => stopTimer();
   }, [timer !== null && timer > 0]);
 };
