@@ -133,9 +133,11 @@ const GameCanvas = ({ role, maxPixels = 100000 }: GameCanvasProps) => {
 
   const handleRedo = useCallback(() => {
     if (!isDrawable || !isConnected) return;
-    const update = redo();
-    if (!update) return;
-    void drawingSocketHandlers.sendDrawing(update);
+    const updates = redo();
+    if (!updates) return;
+    updates.forEach((update) => {
+      void drawingSocketHandlers.sendDrawing(update);
+    });
   }, [redo, isConnected, isDrawable]);
 
   const canvasEventHandlers: CanvasEventHandlers = {

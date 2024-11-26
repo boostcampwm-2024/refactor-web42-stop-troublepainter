@@ -133,7 +133,7 @@ export const useDrawing = (canvasRef: RefObject<HTMLCanvasElement>, options?: { 
     return updates;
   }, [state, operation]);
 
-  const redo = useCallback((): CRDTUpdateMessage | null => {
+  const redo = useCallback((): CRDTUpdateMessage[] | null => {
     if (!state.crdtRef.current || state.historyPointerRef.current >= state.strokeHistoryRef.current.length - 1)
       return null;
 
@@ -149,22 +149,24 @@ export const useDrawing = (canvasRef: RefObject<HTMLCanvasElement>, options?: { 
 
     if (!nextEntry?.isLocal) return null;
 
-    const strokeId = state.crdtRef.current.addStroke(nextEntry.drawingData);
-    if (!strokeId) return null;
+    const updates = nextEntry.strokeIds.map((): CRDTUpdateMessage => {
+      const strokeId = state.crdtRef.current!.addStroke(nextEntry.drawingData);
+      return {
+        type: CRDTMessageTypes.UPDATE,
+        state: {
+          key: strokeId,
+          register: state.crdtRef.current!.state[strokeId],
+        },
+      };
+    });
 
-    nextEntry.strokeIds = [strokeId];
+    nextEntry.strokeIds = updates.map((update) => update.state.key);
 
     state.historyPointerRef.current++;
     state.updateHistoryState();
     operation.redrawCanvas();
 
-    return {
-      type: CRDTMessageTypes.UPDATE,
-      state: {
-        key: strokeId,
-        register: state.crdtRef.current.state[strokeId],
-      },
-    };
+    return updates;
   }, [state, operation]);
 
   const applyDrawing = useCallback(
