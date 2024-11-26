@@ -8,6 +8,7 @@ interface GameState {
   players: Player[];
   currentPlayerId: string | null;
   isHost: boolean | null;
+  timer: number | null;
 }
 
 interface GameActions {
@@ -29,6 +30,10 @@ interface GameActions {
   updateCurrentPlayerId: (currentPlayerId: string) => void;
   updateIsHost: (isHost: boolean) => void;
 
+  // timer 상태 업데이트
+  updateTimer: (remaining: number) => void;
+  decreaseTimer: () => void;
+
   // 상태 초기화
   reset: () => void;
 }
@@ -39,6 +44,7 @@ const initialState: GameState = {
   players: [],
   currentPlayerId: null,
   isHost: null,
+  timer: null,
 };
 
 /**
@@ -115,6 +121,15 @@ export const useGameSocketStore = create<GameState & { actions: GameActions }>()
 
         updateIsHost: (isHost) => {
           set({ isHost });
+          
+        updateTimer: (remaining) => {
+          set({ timer: remaining });
+        },
+
+        decreaseTimer: () => {
+          set((state) => ({
+            timer: state.timer && state.timer - 1,
+          }));
         },
 
         // 상태 초기화
