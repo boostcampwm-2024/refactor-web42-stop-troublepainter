@@ -5,7 +5,7 @@ import type { Meta, StoryObj } from '@storybook/react';
 type Story = StoryObj<typeof PlayerCard>;
 
 export default {
-  title: 'components/game/PlayerCard',
+  title: 'components/ui/player-card/PlayerCard',
   component: PlayerCard,
   argTypes: {
     status: {
@@ -17,9 +17,9 @@ export default {
       control: 'text',
       description: '사용자 이름',
     },
-    rank: {
-      control: 'number',
-      description: '사용자의 순위 (1-3등일 경우 왕관 표시)',
+    isWinner: {
+      control: 'boolean',
+      description: '1등 여부 (왕관 표시)',
     },
     score: {
       control: 'number',
@@ -33,6 +33,10 @@ export default {
     isHost: {
       control: 'boolean',
       description: '방장 여부',
+    },
+    isMe: {
+      control: 'boolean',
+      description: '현재 사용자 여부',
     },
     className: {
       control: 'text',
@@ -48,7 +52,7 @@ export default {
     docs: {
       description: {
         component:
-          '게임 참여자의 정보를 표시하는 카드 컴포넌트입니다. 상태에 따라 게임 진행 중/대기 중 모드로 표시되며, 방장일 경우 별도의 스타일이 적용됩니다.',
+          '게임 참여자의 정보를 표시하는 카드 컴포넌트입니다. 상태(게임 진행/대기)와 역할(본인/방장)에 따라 다른 스타일이 적용됩니다.',
       },
     },
   },
@@ -59,6 +63,8 @@ export const Default: Story = {
   args: {
     nickname: 'Player1',
     status: 'NOT_PLAYING',
+    isHost: null,
+    isMe: false,
   },
   parameters: {
     docs: {
@@ -69,16 +75,49 @@ export const Default: Story = {
   },
 };
 
+export const CurrentUser: Story = {
+  args: {
+    nickname: 'Player1',
+    status: 'NOT_PLAYING',
+    isHost: null,
+    isMe: true,
+  },
+  parameters: {
+    docs: {
+      description: {
+        story: '현재 사용자의 카드 상태입니다. 보라색 테두리와 배경으로 구분됩니다.',
+      },
+    },
+  },
+};
+
 export const Host: Story = {
   args: {
     nickname: 'Player1',
     status: 'NOT_PLAYING',
     isHost: true,
+    isMe: false,
   },
   parameters: {
     docs: {
       description: {
-        story: '방장인 플레이어의 카드 상태입니다. 보라색 배경과 "방장" 태그가 표시됩니다.',
+        story: '방장인 플레이어의 카드 상태입니다. "방장" 태그가 표시됩니다.',
+      },
+    },
+  },
+};
+
+export const HostAndCurrentUser: Story = {
+  args: {
+    nickname: 'Player1',
+    status: 'NOT_PLAYING',
+    isHost: true,
+    isMe: true,
+  },
+  parameters: {
+    docs: {
+      description: {
+        story: '방장이면서 현재 사용자인 카드 상태입니다. 보라색 테마와 방장 태그가 모두 적용됩니다.',
       },
     },
   },
@@ -90,12 +129,14 @@ export const Gaming: Story = {
     status: 'PLAYING',
     role: PlayerRole.PAINTER,
     score: 100,
-    rank: 1,
+    isWinner: true,
+    isHost: null,
+    isMe: false,
   },
   parameters: {
     docs: {
       description: {
-        story: '게임 진행 중인 플레이어의 카드입니다. 역할과 점수가 표시되며, 상위 랭크의 경우 왕관이 표시됩니다.',
+        story: '게임 진행 중인 플레이어의 카드입니다. 역할과 점수가 표시되며, 1등인 경우 왕관이 표시됩니다.',
       },
     },
   },
@@ -107,6 +148,8 @@ export const LongNickname: Story = {
     status: 'PLAYING',
     role: PlayerRole.DEVIL,
     score: 75,
+    isHost: null,
+    isMe: false,
   },
   parameters: {
     docs: {
