@@ -7,11 +7,7 @@ interface GameState {
   roomSettings: RoomSettings | null;
   players: Player[];
   currentPlayerId: string | null;
-}
-
-interface GameSelectors {
-  // 특정 데이터 구조에서 필요한 데이터를 선택하거나 추출하는 함수나 로직
-  isHost: boolean;
+  isHost: boolean | null;
 }
 
 interface GameActions {
@@ -25,12 +21,13 @@ interface GameActions {
   // roomSetting 상태 업데이트
   updateRoomSettings: (settings: RoomSettings) => void;
 
-  //player 상태 업데이트
+  // player 상태 업데이트
   updatePlayers: (players: Player[]) => void;
   removePlayer: (playerId: string) => void;
   updatePlayerRole: (playerId: string, role: PlayerRole) => void;
 
   updateCurrentPlayerId: (currentPlayerId: string) => void;
+  updateIsHost: (isHost: boolean) => void;
 
   // 상태 초기화
   reset: () => void;
@@ -41,6 +38,7 @@ const initialState: GameState = {
   roomSettings: null,
   players: [],
   currentPlayerId: null,
+  isHost: null,
 };
 
 /**
@@ -68,14 +66,10 @@ const initialState: GameState = {
  *
  * @category Store
  */
-export const useGameSocketStore = create<GameState & GameSelectors & { actions: GameActions }>()(
+export const useGameSocketStore = create<GameState & { actions: GameActions }>()(
   devtools(
-    (set, get) => ({
+    (set) => ({
       ...initialState,
-
-      get isHost() {
-        return get().room?.hostId === get().currentPlayerId;
-      },
 
       actions: {
         // 상태 업데이트 액션
@@ -117,6 +111,10 @@ export const useGameSocketStore = create<GameState & GameSelectors & { actions: 
           set((state) => ({
             players: state.players.map((player) => (player.playerId === playerId ? { ...player, role } : player)),
           }));
+        },
+
+        updateIsHost: (isHost) => {
+          set({ isHost });
         },
 
         // 상태 초기화
