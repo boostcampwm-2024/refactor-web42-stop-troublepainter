@@ -84,16 +84,6 @@ export class GameGateway implements OnGatewayDisconnect {
 
     const { room, roomSettings, roles, players } = await this.gameService.startGame(roomId, playerId);
 
-    this.timerService.startTimer(this.server, roomId, roomSettings.drawTime * 1000, {
-      onTick: async (remaining: number) => {
-        this.server.to(roomId).emit('timerSync', { remaining });
-      },
-      onTimeUp: async () => {
-        console.log('Game ended');
-        this.server.to(roomId).emit('drawingTimeEnded');
-      },
-    });
-
     const sockets = await this.server.in(roomId).fetchSockets();
 
     for (const player of players) {
@@ -118,6 +108,48 @@ export class GameGateway implements OnGatewayDisconnect {
           roles: { guessers: roles.guessers },
         });
       }
+    }
+
+    await new Promise<void>((resolve) => {
+      this.timerService.startTimer(this.server, roomId, roomSettings.drawTime * 1000, {
+        onTick: (remaining: number) => {
+          this.server.to(roomId).emit('timerSync', { remaining });
+        },
+        onTimeUp: () => {
+          resolve();
+        },
+      });
+    });
+
+    this.server.to(roomId).emit('drawingTimeEnded');
+    await this.gameService.handleDrawingTimeout(roomId);
+
+    await new Promise<void>((resolve) => {
+      this.timerService.startTimer(this.server, roomId, 10000, {
+        onTick: (remaining: number) => {
+          this.server.to(roomId).emit('timerSync', { remaining });
+        },
+        onTimeUp: async () => {
+          const result = await this.gameService.handleGuessingTimeout(roomId);
+          this.server.to(roomId).emit('roundEnded', result);
+          resolve();
+        },
+      });
+    });
+  }
+
+  @SubscribeMessage('checkAnswer')
+  async handleCheckAnswer(@ConnectedSocket() client: Socket, @MessageBody() data: { answer: string }) {
+    const roomId = client.data.roomId;
+    const playerId = client.data.playerId;
+
+    if (!roomId || !playerId) throw new BadRequestException('Room ID and Player ID are required');
+
+    const result = await this.gameService.checkAnswer(roomId, playerId, data.answer);
+
+    if (result.isCorrect) {
+      this.timerService.stopGameTimer(roomId);
+      this.server.to(roomId).emit('roundEnded', result);
     }
   }
 

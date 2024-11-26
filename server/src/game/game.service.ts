@@ -8,6 +8,7 @@ import {
   RoomNotFoundException,
   BadRequestException,
   InsufficientPlayersException,
+  ForbiddenException,
 } from 'src/exceptions/game.exception';
 import { RoomStatus, PlayerStatus, PlayerRole, Difficulty } from 'src/common/enums/game.status.enum';
 import { ClovaClient } from 'src/common/clova-client';
@@ -141,27 +142,26 @@ export class GameService {
     if (!room) throw new RoomNotFoundException('Room not found');
     if (room.hostId !== playerId) throw new BadRequestException('Player is not the host');
 
+    const players = await this.gameRepository.getRoomPlayers(roomId);
+    if (!players || players.length < 4) {
+      throw new InsufficientPlayersException('Not enough players to start game');
+    }
+
     const roomSettings = await this.gameRepository.getRoomSettings(roomId);
 
     this.words = await this.clovaClient.getDrawingWords(Difficulty.HARD, roomSettings.totalRounds);
 
     const roomUpdates = {
       status: RoomStatus.DRAWING,
-      currentRound: room.currentRound + 1,
       currentWord: this.words.shift(),
     };
-    await this.gameRepository.updateRoom(roomId, roomUpdates);
-
-    const players = await this.gameRepository.getRoomPlayers(roomId);
-    if (!players || players.length < 4) {
-      throw new InsufficientPlayersException('Not enough players to start game');
-    }
+    await this.gameRepository.updateRoom(roomId, { ...roomUpdates });
 
     const playersWithRoles = await this.distributeRoles(roomId, players);
 
     const roles = this.categorizePlayerRoles(playersWithRoles);
 
-    return { room: { ...room, roomUpdates }, roomSettings, roles, players: playersWithRoles };
+    return { room: { ...room, ...roomUpdates }, roomSettings, roles, players: playersWithRoles };
   }
 
   private async distributeRoles(roomId: string, players: Player[]) {
@@ -200,5 +200,104 @@ export class GameService {
       },
       { painters: [], devils: [], guessers: [] },
     );
+  }
+
+  async handleDrawingTimeout(roomId: string) {
+    const room = await this.gameRepository.getRoom(roomId);
+    if (!room) throw new RoomNotFoundException('Room not found');
+
+    await this.gameRepository.updateRoom(roomId, { status: RoomStatus.GUESSING });
+  }
+
+  async checkAnswer(roomId: string, playerId: string, answer: string) {
+    const [room, players] = await Promise.all([
+      this.gameRepository.getRoom(roomId),
+      this.gameRepository.getRoomPlayers(roomId),
+    ]);
+
+    if (!room) throw new RoomNotFoundException('Room not found');
+    if (room.status !== RoomStatus.GUESSING) {
+      throw new BadRequestException('Room is not in guessing state');
+    }
+
+    const currentPlayer = players.find((p) => p.playerId === playerId);
+    if (!currentPlayer) throw new PlayerNotFoundException('Player not found');
+
+    if (currentPlayer.role === PlayerRole.PAINTER || currentPlayer.role === PlayerRole.DEVIL) {
+      throw new ForbiddenException('Painters and Devils are not allowed to submit answers');
+    }
+
+    const isCorrect = room.currentWord.trim() === answer.trim();
+    if (!isCorrect) return { isCorrect };
+
+    await this.gameRepository.updateRoom(roomId, { currentRound: room.currentRound + 1, status: RoomStatus.DRAWING });
+
+    const updatedPlayers = this.calculateScores(players, playerId);
+    await Promise.all(
+      updatedPlayers.map((p) => this.gameRepository.updatePlayer(roomId, p.playerId, { score: p.score })),
+    );
+
+    const winner = currentPlayer;
+
+    return {
+      isCorrect,
+      roundNumber: room.currentRound,
+      word: room.currentWord,
+      winner,
+      players: updatedPlayers,
+    };
+  }
+
+  private calculateScores(players: Player[], winnerId: string): Player[] {
+    return players.map((player) => {
+      const updatedPlayer = { ...player };
+      switch (player.role) {
+        case PlayerRole.PAINTER:
+          updatedPlayer.score += 2;
+          break;
+        case PlayerRole.GUESSER:
+          if (player.playerId === winnerId) {
+            updatedPlayer.score += 1;
+          }
+          break;
+      }
+      return updatedPlayer;
+    });
+  }
+
+  async handleGuessingTimeout(roomId: string) {
+    const [room, players] = await Promise.all([
+      this.gameRepository.getRoom(roomId),
+      this.gameRepository.getRoomPlayers(roomId),
+    ]);
+
+    if (!room) throw new RoomNotFoundException('Room not found');
+    if (room.status !== RoomStatus.GUESSING) {
+      throw new BadRequestException('Room is not in guessing state');
+    }
+
+    await this.gameRepository.updateRoom(roomId, { currentRound: room.currentRound + 1, status: RoomStatus.DRAWING });
+
+    const updatedPlayers = players.map((p) => {
+      const updatedPlayer = { ...p };
+      if (p.role === PlayerRole.DEVIL) {
+        updatedPlayer.score += 3;
+      }
+      return updatedPlayer;
+    });
+
+    await Promise.all(
+      updatedPlayers.map((p) => this.gameRepository.updatePlayer(roomId, p.playerId, { score: p.score })),
+    );
+
+    const winner = updatedPlayers.find((p) => p.role === PlayerRole.DEVIL);
+    if (!winner) throw new PlayerNotFoundException('Player not found');
+
+    return {
+      roundNumber: room.currentRound,
+      word: room.currentWord,
+      winner,
+      players: updatedPlayers,
+    };
   }
 }
