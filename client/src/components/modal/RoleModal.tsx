@@ -10,11 +10,11 @@ const RoleModal = () => {
 
   const myRole = players.find((player) => player.playerId === currentPlayerId)?.role || null;
 
-  if (!myRole) return null;
-
   useEffect(() => {
     if (myRole) openModal();
   }, [myRole, room?.currentRound]);
+
+  if (!myRole) return null;
 
   return (
     <Modal

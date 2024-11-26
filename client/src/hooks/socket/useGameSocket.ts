@@ -105,16 +105,6 @@ export const useGameSocket = () => {
   }, [roomId]);
 
   useEffect(() => {
-    if (clientTimer === 0 || clientTimer === null) return;
-
-    const intervalId = setInterval(() => {
-      gameActions.decreaseTimer();
-    }, 1000);
-
-    return () => clearInterval(intervalId);
-  }, [clientTimer, gameActions]);
-
-  useEffect(() => {
     const socket = sockets.game;
     if (!socket || !roomId) return;
 
@@ -150,21 +140,23 @@ export const useGameSocket = () => {
       },
 
       drawingGroupRoundStarted: (response: RoundStartResponse) => {
-        const { roundNumber, roles, word } = response;
+        const { roundNumber, roles, word, drawTime } = response;
         const { painters, devil, guessers } = roles;
         gameActions.updateCurrentRound(roundNumber);
         painters?.forEach((playerId) => gameActions.updatePlayerRole(playerId, PlayerRole.PAINTER));
         guessers?.forEach((playerId) => gameActions.updatePlayerRole(playerId, PlayerRole.GUESSER));
         if (devil) gameActions.updatePlayerRole(devil, PlayerRole.DEVIL);
         if (word) gameActions.updateCurrentWord(word);
+        gameActions.updateTimer(drawTime);
         navigate(`/game/${roomId}`);
       },
 
       guesserRoundStarted: (response: RoundStartResponse) => {
-        const { roundNumber, roles } = response;
+        const { roundNumber, roles, drawTime } = response;
         const { guessers } = roles;
         gameActions.updateCurrentRound(roundNumber);
         guessers?.forEach((playerId) => gameActions.updatePlayerRole(playerId, PlayerRole.GUESSER));
+        gameActions.updateTimer(drawTime);
         navigate(`/game/${roomId}`);
       },
 
@@ -174,10 +166,6 @@ export const useGameSocket = () => {
         if (clientTimer === null || checkTimerDifference(serverTimer, clientTimer, 1))
           gameActions.updateTimer(serverTimer);
       },
-
-      /*       drawingTimeEnded: () => {
-        console.log('drawingTimeEnded Trigger');
-      }, */
     };
 
     // 이벤트 리스너 등록
