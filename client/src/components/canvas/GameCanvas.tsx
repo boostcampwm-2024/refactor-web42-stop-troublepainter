@@ -3,6 +3,7 @@ import { PlayerRole } from '@troublepainter/core';
 import { Canvas } from '@/components/canvas/CanvasUI';
 import { COLORS_INFO, MAINCANVAS_RESOLUTION_WIDTH } from '@/constants/canvasConstants';
 import { drawingSocketHandlers } from '@/handlers/socket/drawingSocket.handler';
+import useCursor from '@/hooks/canvas/useCursor';
 import { useDrawing } from '@/hooks/canvas/useDrawing';
 import { useDrawingSocket } from '@/hooks/socket/useDrawingSocket';
 import { useCoordinateScale } from '@/hooks/useCoordinateScale';
@@ -46,6 +47,7 @@ interface GameCanvasProps {
  */
 const GameCanvas = ({ role, maxPixels = 100000 }: GameCanvasProps) => {
   const canvasRef = useRef<HTMLCanvasElement>(null);
+  const cursorCanvasRef = useRef<HTMLCanvasElement>(null);
   const { convertCoordinate } = useCoordinateScale(MAINCANVAS_RESOLUTION_WIDTH, canvasRef);
 
   const {
@@ -67,6 +69,8 @@ const GameCanvas = ({ role, maxPixels = 100000 }: GameCanvasProps) => {
   } = useDrawing(canvasRef, {
     maxPixels,
   });
+
+  const { handleInCanvas, handleOutCanvas } = useCursor(cursorCanvasRef);
 
   const { isConnected } = useDrawingSocket({
     onDrawUpdate: (response) => {
@@ -110,12 +114,31 @@ const GameCanvas = ({ role, maxPixels = 100000 }: GameCanvasProps) => {
       const point = getDrawPoint(e, canvas);
       const convertPoint = convertCoordinate(point);
 
+      handleInCanvas(convertPoint, brushSize);
+
       const crdtDrawingData = continueDrawing(convertPoint);
       if (crdtDrawingData) {
         void drawingSocketHandlers.sendDrawing(crdtDrawingData);
       }
     },
     [continueDrawing, convertCoordinate, isConnected],
+  );
+
+  const handleDrawLeave = useCallback(
+    (e: ReactMouseEvent<HTMLCanvasElement> | ReactTouchEvent<HTMLCanvasElement>) => {
+      const { canvas } = getCanvasContext(canvasRef);
+      const point = getDrawPoint(e, canvas);
+      const convertPoint = convertCoordinate(point);
+
+      const crdtDrawingData = continueDrawing(convertPoint);
+      if (crdtDrawingData) {
+        void drawingSocketHandlers.sendDrawing(crdtDrawingData);
+      }
+
+      handleOutCanvas();
+      stopDrawing();
+    },
+    [continueDrawing, handleOutCanvas, stopDrawing],
   );
 
   const handleDrawEnd = useCallback(() => {
@@ -144,7 +167,7 @@ const GameCanvas = ({ role, maxPixels = 100000 }: GameCanvasProps) => {
     onMouseDown: handleDrawStart,
     onMouseMove: handleDrawMove,
     onMouseUp: handleDrawEnd,
-    onMouseLeave: handleDrawEnd,
+    onMouseLeave: handleDrawLeave,
     onTouchStart: handleDrawStart,
     onTouchMove: handleDrawMove,
     onTouchEnd: handleDrawEnd,
@@ -154,6 +177,7 @@ const GameCanvas = ({ role, maxPixels = 100000 }: GameCanvasProps) => {
   return (
     <Canvas
       canvasRef={canvasRef}
+      cursorCanvasRef={cursorCanvasRef}
       isDrawable={isDrawable}
       colors={isDrawable ? COLORS : []}
       brushSize={brushSize}

@@ -80,6 +80,7 @@ interface ColorButton {
 
 interface CanvasProps extends HTMLAttributes<HTMLDivElement> {
   canvasRef: RefObject<HTMLCanvasElement>;
+  cursorCanvasRef: RefObject<HTMLCanvasElement>;
   isDrawable: boolean;
   colors: ColorButton[];
   canUndo: boolean;
@@ -101,6 +102,7 @@ const Canvas = forwardRef<HTMLDivElement, CanvasProps>(
     {
       className,
       canvasRef,
+      cursorCanvasRef,
       isDrawable = true,
       colors = [],
       onUndo,
@@ -135,6 +137,16 @@ const Canvas = forwardRef<HTMLDivElement, CanvasProps>(
             height={MAINCANVAS_RESOLUTION_HEIGHT}
             className={cn(
               'absolute left-0 top-0 h-full w-full object-contain',
+              isDrawable ? 'touch-none' : 'pointer-events-none',
+            )}
+            aria-label={isDrawable ? '그림판' : '그림 보기'}
+          />
+          <canvas
+            ref={cursorCanvasRef}
+            width={MAINCANVAS_RESOLUTION_WIDTH}
+            height={MAINCANVAS_RESOLUTION_HEIGHT}
+            className={cn(
+              'absolute left-0 top-0 h-full w-full cursor-none object-contain',
               isDrawable ? 'touch-none' : 'pointer-events-none',
             )}
             aria-label={isDrawable ? '그림판' : '그림 보기'}
