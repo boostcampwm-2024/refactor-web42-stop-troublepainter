@@ -38,3 +38,9 @@ export class InsufficientPlayersException extends GameException {
     super(SocketErrorCode.INSUFFICIENT_PLAYERS, message);
   }
 }
+
+export class ForbiddenException extends GameException {
+  constructor(message: string = 'Forbidden') {
+    super(SocketErrorCode.FORBIDDEN, message);
+  }
+}
