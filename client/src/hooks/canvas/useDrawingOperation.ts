@@ -129,8 +129,8 @@ export const useDrawingOperation = (
 
     notNoneStrokes.forEach(({ stroke }, idx) => {
       const points = stroke.points;
-      if (notNoneStrokes.length - 1 === idx) drawStroke(stroke, true);
-      else if (points.length >= notNoneStrokes[idx + 1].stroke.points.length) drawStroke(stroke, true);
+      if (notNoneStrokes.length - 1 === idx || points.length >= notNoneStrokes[idx + 1].stroke.points.length)
+        drawStroke(stroke, true);
       else drawStroke(stroke, false);
     });
   }, [drawStroke]);
