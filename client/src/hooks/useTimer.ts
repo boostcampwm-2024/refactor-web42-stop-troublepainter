@@ -24,15 +24,15 @@ export const useTimer = () => {
       }
     };
 
-    Object.entries(timers).forEach(([type, value]) => {
-      manageTimer(type as TimerType, value);
+    Object.keys(timers).forEach((key) => {
+      if (!(key in TimerType)) return;
+      const timerType = key as TimerType;
+      manageTimer(timerType, timers[timerType]);
     });
 
     return () => {
       Object.values(intervalRefs.current).forEach((interval) => {
-        if (interval) {
-          clearInterval(interval);
-        }
+        if (interval) clearInterval(interval);
       });
     };
   }, [
