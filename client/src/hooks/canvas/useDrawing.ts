@@ -286,6 +286,23 @@ export const useDrawing = (canvasRef: RefObject<HTMLCanvasElement>, options?: { 
     [state.currentPlayerId, operation.redrawCanvas, state.updateHistoryState],
   );
 
+  const getAllDrawingData = useCallback((): CRDTMessage[] | null => {
+    if (!state.crdtRef.current) return null;
+
+    // CRDT 모든 레지스터 상태 수집
+    const allRegisters = Object.entries(state.crdtRef.current.state).map(
+      ([key, register]): CRDTUpdateMessage => ({
+        type: CRDTMessageTypes.UPDATE,
+        state: {
+          key,
+          register,
+        },
+      }),
+    );
+
+    return allRegisters;
+  }, [state.crdtRef]);
+
   return {
     currentColor: state.currentColor,
     setCurrentColor: state.setCurrentColor,
@@ -302,5 +319,6 @@ export const useDrawing = (canvasRef: RefObject<HTMLCanvasElement>, options?: { 
     applyDrawing,
     undo,
     redo,
+    getAllDrawingData,
   };
 };

@@ -3,6 +3,7 @@ import { PlayerRole } from '@troublepainter/core';
 import { Canvas } from '@/components/canvas/CanvasUI';
 import { COLORS_INFO, MAINCANVAS_RESOLUTION_WIDTH } from '@/constants/canvasConstants';
 import { drawingSocketHandlers } from '@/handlers/socket/drawingSocket.handler';
+import { gameSocketHandlers } from '@/handlers/socket/gameSocket.handler';
 import { useDrawing } from '@/hooks/canvas/useDrawing';
 import { useDrawingSocket } from '@/hooks/socket/useDrawingSocket';
 import { useCoordinateScale } from '@/hooks/useCoordinateScale';
@@ -64,6 +65,7 @@ const GameCanvas = ({ role, maxPixels = 100000 }: GameCanvasProps) => {
     canRedo,
     undo,
     redo,
+    getAllDrawingData,
   } = useDrawing(canvasRef, {
     maxPixels,
   });
@@ -73,6 +75,20 @@ const GameCanvas = ({ role, maxPixels = 100000 }: GameCanvasProps) => {
       if (response.drawingData) {
         applyDrawing(response.drawingData);
       }
+    },
+    onSubmitRequest: () => {
+      if (!isDrawable || !isConnected) return;
+
+      const allDrawingData = getAllDrawingData();
+      if (!allDrawingData || allDrawingData.length === 0) return;
+
+      void gameSocketHandlers.submittedDrawing(allDrawingData);
+    },
+    onDrawingTimeEnded: (response) => {
+      if (!response.drawing) return;
+      response.drawing.forEach((drawingData) => {
+        applyDrawing(drawingData);
+      });
     },
   });
 

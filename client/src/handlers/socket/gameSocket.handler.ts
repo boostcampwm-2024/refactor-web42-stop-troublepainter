@@ -1,4 +1,10 @@
-import type { JoinRoomRequest, JoinRoomResponse, ReconnectRequest, UpdateSettingsRequest } from '@troublepainter/core';
+import type {
+  CRDTMessage,
+  JoinRoomRequest,
+  JoinRoomResponse,
+  ReconnectRequest,
+  UpdateSettingsRequest,
+} from '@troublepainter/core';
 import { useSocketStore } from '@/stores/socket/socket.store';
 
 // socket 요청만 처리하는 핸들러
@@ -37,6 +43,16 @@ export const gameSocketHandlers = {
 
     return new Promise((resolve) => {
       socket.emit('gameStart', request);
+      resolve();
+    });
+  },
+
+  submittedDrawing: (drawing: CRDTMessage[]): Promise<void> => {
+    const socket = useSocketStore.getState().sockets.game;
+    if (!socket) throw new Error('Socket not connected');
+
+    return new Promise((resolve) => {
+      socket.emit('submittedDrawing', { drawing });
       resolve();
     });
   },
