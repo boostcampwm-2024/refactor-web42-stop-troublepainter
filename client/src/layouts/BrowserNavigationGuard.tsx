@@ -1,9 +1,11 @@
 import { useEffect } from 'react';
 import { useLocation, useNavigate } from 'react-router-dom';
+import { useNavigationModalStore } from '@/stores/navigationModal.store';
 
 const BrowserNavigationGuard = () => {
   const navigate = useNavigate();
   const location = useLocation();
+  const { actions: modalActions } = useNavigationModalStore();
 
   useEffect(() => {
     // 새로고침, beforeunload 이벤트 핸들러
@@ -22,15 +24,10 @@ const BrowserNavigationGuard = () => {
     // popstate 이벤트 핸들러 (브라우저 뒤로가기/앞으로가기)
     const handlePopState = (e: PopStateEvent) => {
       e.preventDefault(); // 기본 동작 중단
+      modalActions.openModal();
 
-      const confirmNavigation = window.confirm('게임을 나가실 건가요? 퇴장하면 다시 못 돌아온다는 걸 알아주세요! 🥺💔');
-
-      if (confirmNavigation) {
-        navigate('/', { replace: true });
-      } else {
-        // 취소 시 현재 URL 유지를 위해 history stack에 다시 추가하도록 조작
-        window.history.pushState(null, '', location.pathname);
-      }
+      // 취소 시 현재 URL 유지를 위해 history stack에 다시 추가하도록 조작
+      window.history.pushState(null, '', location.pathname);
     };
 
     // 초기 진입 시 history stack에 현재 상태 추가
