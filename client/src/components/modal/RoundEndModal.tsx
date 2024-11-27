@@ -6,11 +6,15 @@ import { useGameSocketStore } from '@/stores/socket/gameSocket.store';
 
 const RoundEndModal = () => {
   const { room, roundWinner, players, timers } = useGameSocketStore();
-  const { isModalOpened, openModal } = useModal(10000);
+  const { isModalOpened, openModal, closeModal } = useModal();
 
   useEffect(() => {
     if (roundWinner) openModal();
   }, [roundWinner]);
+
+  useEffect(() => {
+    if (timers.ENDING === 0) closeModal();
+  }, [timers.ENDING]);
 
   const devil = players.find((player) => player.role === PlayerRole.DEVIL);
 

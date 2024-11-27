@@ -115,7 +115,7 @@ export const useGameSocket = () => {
       joinedRoom: (response: JoinRoomResponse) => {
         const { room, roomSettings, players, playerId } = response;
         gameActions.updateRoom(room);
-        gameActions.updateRoomSettings(roomSettings);
+        gameActions.updateRoomSettings({ ...roomSettings, drawTime: roomSettings.drawTime - 5 });
         gameActions.updatePlayers(players);
         if (playerId) {
           playerIdStorageUtils.setPlayerId(roomId, playerId);
@@ -127,7 +127,7 @@ export const useGameSocket = () => {
       playerJoined: (response: JoinRoomResponse) => {
         const { room, roomSettings, players } = response;
         gameActions.updateRoom(room);
-        gameActions.updateRoomSettings(roomSettings);
+        gameActions.updateRoomSettings({ ...roomSettings, drawTime: roomSettings.drawTime - 5 });
         gameActions.updatePlayers(players);
       },
 
@@ -139,7 +139,7 @@ export const useGameSocket = () => {
 
       settingsUpdated: (response: UpdateSettingsResponse) => {
         const { settings } = response;
-        gameActions.updateRoomSettings(settings);
+        gameActions.updateRoomSettings({ ...settings, drawTime: settings.drawTime - 5 });
       },
 
       drawingGroupRoundStarted: (response: RoundStartResponse) => {
@@ -187,13 +187,7 @@ export const useGameSocket = () => {
         gameActions.updateCurrentWord(word);
         gameActions.updateRoundWinner(winner);
         gameActions.updateTimer(TimerType.ENDING, 10);
-        const updatedPlayer = players.map((player) => {
-          const prevScore =
-            useGameSocketStore.getState().players.find((targetPlayer) => targetPlayer.playerId === player.playerId)
-              ?.score || 0;
-          return { ...player, score: player.score + prevScore };
-        });
-        gameActions.updatePlayers(updatedPlayer);
+        gameActions.updatePlayers(players);
       },
     };
 

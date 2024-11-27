@@ -6,7 +6,7 @@ import { useGameSocketStore } from '@/stores/socket/gameSocket.store';
 
 const RoleModal = () => {
   const { roundAssignedRole, room } = useGameSocketStore();
-  const { isModalOpened, closeModal, handleKeyDown, openModal } = useModal(3000);
+  const { isModalOpened, closeModal, handleKeyDown, openModal } = useModal(5000);
 
   useEffect(() => {
     if (roundAssignedRole) openModal();
