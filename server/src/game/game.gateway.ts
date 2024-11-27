@@ -27,6 +27,7 @@ export class GameGateway implements OnGatewayDisconnect {
 
   private disconnectTimeouts: Map<string, NodeJS.Timeout> = new Map();
   private readonly DISCONNECT_TIMEOUT = 10000;
+  private finalDrawing: any;
 
   constructor(
     private readonly gameService: GameService,
@@ -101,9 +102,22 @@ export class GameGateway implements OnGatewayDisconnect {
 
     await this.runTimer(roomId, roomSettings.drawTime * 1000, TimerType.DRAWING);
 
+    const sockets = await this.server.in(roomId).fetchSockets();
+    for (const socket of sockets) {
+      if (
+        socket.data.playerId &&
+        (roles.painters.includes(socket.data.playerId) || roles.devils.includes(socket.data.playerId))
+      ) {
+        this.server.to(socket.id).emit('submitDrawing');
+        break;
+      }
+    }
+    await new Promise((resolve) => setTimeout(resolve, 1000));
+
     const roomStatus = await this.gameService.handleDrawingTimeout(roomId);
     this.server.to(roomId).emit('drawingTimeEnded', {
       roomStatus,
+      drawing: this.finalDrawing,
     });
 
     await this.runTimer(roomId, 10000, TimerType.GUESSING);
@@ -157,6 +171,11 @@ export class GameGateway implements OnGatewayDisconnect {
         onTimeUp: () => resolve(),
       });
     });
+  }
+
+  @SubscribeMessage('submittedDrawing')
+  async handleSummitDrawing(@ConnectedSocket() client: Socket, @MessageBody() data: { drawing: any }) {
+    this.finalDrawing = data.drawing;
   }
 
   @SubscribeMessage('checkAnswer')
