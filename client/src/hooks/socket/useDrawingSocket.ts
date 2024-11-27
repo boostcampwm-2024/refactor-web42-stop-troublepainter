@@ -61,7 +61,7 @@ export const useDrawingSocket = ({ onDrawUpdate, onDrawingTimeEnded, onSubmitReq
   const { sockets, connected, actions: socketActions } = useSocketStore();
   const { currentPlayerId } = useGameSocketStore(); // roomId가 있다고 가정
 
-  // 콜백들을 useCallback으로 메모이제이션
+  // 소켓 연결 설정
   const handleDrawUpdate = useCallback(
     (response: DrawUpdateResponse) => {
       if (response.playerId !== currentPlayerId) {
@@ -83,7 +83,6 @@ export const useDrawingSocket = ({ onDrawUpdate, onDrawingTimeEnded, onSubmitReq
     [onDrawingTimeEnded],
   );
 
-  // 소켓 연결 설정 (drawing 네임스페이스)
   useEffect(() => {
     if (!roomId || !currentPlayerId) return;
 
@@ -97,14 +96,12 @@ export const useDrawingSocket = ({ onDrawUpdate, onDrawingTimeEnded, onSubmitReq
     };
   }, [roomId, currentPlayerId, socketActions]);
 
-  // 이벤트 리스너 설정 (drawing과 game 네임스페이스 모두)
+  // 이벤트 리스너 설정
   useEffect(() => {
     const drawingSocket = sockets.drawing;
     const gameSocket = sockets.game;
 
     if (!drawingSocket || !gameSocket) return;
-
-    console.log('Setting up socket event handlers');
 
     // drawing 네임스페이스 이벤트
     drawingSocket.on('drawUpdated', handleDrawUpdate);
