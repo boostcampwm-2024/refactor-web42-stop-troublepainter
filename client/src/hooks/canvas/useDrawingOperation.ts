@@ -167,21 +167,23 @@ export const useDrawingOperation = (
         ]) {
           const [nextX, nextY] = [currentX + move[0], currentY + move[1]];
           if (
-            nextX >= 0 &&
-            nextX < MAINCANVAS_RESOLUTION_WIDTH &&
-            nextY >= 0 &&
-            nextY < MAINCANVAS_RESOLUTION_HEIGHT &&
-            !checkArray[nextY][nextX]
-          ) {
-            const nextArrayIndex = (nextY * MAINCANVAS_RESOLUTION_WIDTH + nextX) * 4;
-            if (checkColorisEqual(nextArrayIndex, startColor, pixelArray)) {
-              checkArray[nextY][nextX] = true;
-              fillTargetColor(nextArrayIndex, fillColor, pixelArray);
-              pixelsToCheck.push([nextX, nextY]);
-              filledPoints.push({ x: nextX, y: nextY });
-              pixelCount++;
-            }
-          }
+            nextX < 0 ||
+            nextX >= MAINCANVAS_RESOLUTION_WIDTH ||
+            nextY < 0 ||
+            nextY >= MAINCANVAS_RESOLUTION_HEIGHT ||
+            checkArray[nextY][nextX]
+          )
+            continue;
+
+          const nextArrayIndex = (nextY * MAINCANVAS_RESOLUTION_WIDTH + nextX) * 4;
+
+          if (!checkColorisEqual(nextArrayIndex, startColor, pixelArray)) continue;
+
+          checkArray[nextY][nextX] = true;
+          fillTargetColor(nextArrayIndex, fillColor, pixelArray);
+          pixelsToCheck.push([nextX, nextY]);
+          filledPoints.push({ x: nextX, y: nextY });
+          pixelCount++;
         }
       }
 
