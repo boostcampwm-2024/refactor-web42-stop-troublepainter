@@ -73,7 +73,7 @@ export const useDrawingOperation = (
     [currentColor, brushSize],
   );
 
-  const drawSmoothLine = (drawingData: DrawingData, canvasRef: RefObject<HTMLCanvasElement>) => {
+  const drawSmoothLine = (drawingData: DrawingData, canvasRef: RefObject<HTMLCanvasElement>, isLastStroke: boolean) => {
     const { ctx } = getCanvasContext(canvasRef);
     const { points } = drawingData;
 
@@ -91,10 +91,12 @@ export const useDrawingOperation = (
       ctx.quadraticCurveTo(points[i].x, points[i].y, midPoint.x, midPoint.y);
     }
 
+    if (isLastStroke) ctx.lineTo(points[points.length - 1].x, points[points.length - 1].y);
+
     ctx.stroke();
   };
 
-  const drawStroke = useCallback((drawingData: DrawingData) => {
+  const drawStroke = useCallback((drawingData: DrawingData, isLastStroke: boolean) => {
     const { ctx } = getCanvasContext(canvasRef);
     const { points, style } = drawingData;
 
@@ -110,7 +112,7 @@ export const useDrawingOperation = (
       ctx.arc(point.x, point.y, style.width / 2, 0, Math.PI * 2);
       ctx.fill();
     } else {
-      drawSmoothLine(drawingData, canvasRef);
+      drawSmoothLine(drawingData, canvasRef, isLastStroke);
     }
   }, []);
 
@@ -120,11 +122,15 @@ export const useDrawingOperation = (
     const { canvas, ctx } = getCanvasContext(canvasRef);
     ctx.clearRect(0, 0, canvas.width, canvas.height);
 
-    state.crdtRef.current.strokes
-      .filter((stroke) => stroke.stroke !== null)
-      .forEach(({ stroke }) => {
-        drawStroke(stroke);
-      });
+    const strokes = state.crdtRef.current.strokes;
+    const notNoneStrokes = strokes.filter((stroke) => stroke.stroke !== null);
+
+    notNoneStrokes.forEach(({ stroke }, idx) => {
+      const points = stroke.points;
+      if (notNoneStrokes.length - 1 === idx) drawStroke(stroke, true);
+      else if (points.length >= notNoneStrokes[idx + 1].stroke.points.length) drawStroke(stroke, true);
+      else drawStroke(stroke, false);
+    });
   }, [drawStroke]);
 
   const floodFill = useCallback(

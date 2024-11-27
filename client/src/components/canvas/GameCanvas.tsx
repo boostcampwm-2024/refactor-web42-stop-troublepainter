@@ -116,7 +116,7 @@ const GameCanvas = ({ role, maxPixels = 100000 }: GameCanvasProps) => {
 
       handleInCanvas(convertPoint, brushSize);
 
-      const crdtDrawingData = continueDrawing(convertPoint);
+      const crdtDrawingData = continueDrawing(convertPoint, false);
       if (crdtDrawingData) {
         void drawingSocketHandlers.sendDrawing(crdtDrawingData);
       }
@@ -130,7 +130,7 @@ const GameCanvas = ({ role, maxPixels = 100000 }: GameCanvasProps) => {
       const point = getDrawPoint(e, canvas);
       const convertPoint = convertCoordinate(point);
 
-      const crdtDrawingData = continueDrawing(convertPoint);
+      const crdtDrawingData = continueDrawing(convertPoint, true);
       if (crdtDrawingData) {
         void drawingSocketHandlers.sendDrawing(crdtDrawingData);
       }

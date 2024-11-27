@@ -100,7 +100,7 @@ export const useDrawing = (canvasRef: RefObject<HTMLCanvasElement>, options?: { 
 
       const strokeId = state.crdtRef.current.addStroke(drawingData);
       state.currentStrokeIdsRef.current.push(strokeId);
-      if (state.drawingMode === DRAWING_MODE.PEN) operation.drawStroke(drawingData);
+      if (state.drawingMode === DRAWING_MODE.PEN) operation.drawStroke(drawingData, false);
       return {
         type: CRDTMessageTypes.UPDATE,
         state: {
@@ -113,7 +113,7 @@ export const useDrawing = (canvasRef: RefObject<HTMLCanvasElement>, options?: { 
   );
 
   const continueDrawing = useCallback(
-    (point: Point): CRDTUpdateMessage | null => {
+    (point: Point, isLastStroke: boolean): CRDTUpdateMessage | null => {
       if (!state.crdtRef.current || state.inkRemaining <= 0) return null;
       if (state.drawingMode === DRAWING_MODE.FILL) return null;
 
@@ -134,7 +134,7 @@ export const useDrawing = (canvasRef: RefObject<HTMLCanvasElement>, options?: { 
 
       const strokeId = state.crdtRef.current.addStroke(updatedDrawing);
       state.currentStrokeIdsRef.current.push(strokeId);
-      operation.drawStroke(updatedDrawing);
+      operation.drawStroke(updatedDrawing, isLastStroke);
 
       return {
         type: CRDTMessageTypes.UPDATE,
