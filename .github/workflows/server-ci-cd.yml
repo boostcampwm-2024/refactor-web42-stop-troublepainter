@@ -58,7 +58,7 @@ jobs:
         uses: docker/build-push-action@v5
         with:
           context: .
-          file: ./Dockerfile
+          file: ./Dockerfile.nestjs
           push: true
           tags: ${{ secrets.DOCKERHUB_USERNAME }}/troublepainter:latest
           build-args: |
@@ -74,11 +74,12 @@ jobs:
           username: mira
           key: ${{ secrets.SSH_PRIVATE_KEY }}
           script: |
-            echo "${{ secrets.DOCKERHUB_TOKEN }}" | docker login -u ${{ secrets.DOCKERHUB_USERNAME }} --password-stdin
-
-            docker pull ${{ secrets.DOCKERHUB_USERNAME }}/troublepainter:latest
-
-            docker stop troublepainter || true
-            docker rm troublepainter || true
-
-            docker run -d --name troublepainter -p 3000:3000 -e REDIS_HOST=${{ secrets.REDIS_HOST }} -e REDIS_PORT=${{ secrets.REDIS_PORT }} -e CLOVA_API_KEY=${{ secrets.CLOVA_API_KEY }} -e CLOVA_GATEWAY_KEY=${{ secrets.CLOVA_GATEWAY_KEY }} --restart unless-stopped ${{ secrets.DOCKERHUB_USERNAME }}/troublepainter:latest
+            cd /home/mira/web30-stop-troublepainter
+            git pull origin develop
+            
+            echo "REDIS_HOST=${{ secrets.REDIS_HOST }}" > .env
+            echo "REDIS_PORT=${{ secrets.REDIS_PORT }}" >> .env
+            echo "CLOVA_API_KEY=${{ secrets.CLOVA_API_KEY }}" >> .env
+            echo "CLOVA_GATEWAY_KEY=${{ secrets.CLOVA_GATEWAY_KEY }}" >> .env
+            
+            docker compose up -d

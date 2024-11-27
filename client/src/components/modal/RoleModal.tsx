@@ -5,16 +5,12 @@ import { useModal } from '@/hooks/useModal';
 import { useGameSocketStore } from '@/stores/socket/gameSocket.store';
 
 const RoleModal = () => {
-  const { players, currentPlayerId, room } = useGameSocketStore();
-  const { isModalOpened, closeModal, handleKeyDown, openModal } = useModal(3000);
-
-  const myRole = players.find((player) => player.playerId === currentPlayerId)?.role || null;
-
-  if (!myRole) return null;
+  const { roundAssignedRole, room } = useGameSocketStore();
+  const { isModalOpened, closeModal, handleKeyDown, openModal } = useModal(5000);
 
   useEffect(() => {
-    if (myRole) openModal();
-  }, [myRole, room?.currentRound]);
+    if (roundAssignedRole) openModal();
+  }, [roundAssignedRole, room?.currentRound]);
 
   return (
     <Modal
@@ -25,7 +21,7 @@ const RoleModal = () => {
       className="w-80"
     >
       <span className="flex min-h-28 items-center justify-center text-3xl text-violet-950">
-        {PLAYING_ROLE_TEXT[myRole]}
+        {roundAssignedRole ? PLAYING_ROLE_TEXT[roundAssignedRole] : ''}
       </span>
     </Modal>
   );

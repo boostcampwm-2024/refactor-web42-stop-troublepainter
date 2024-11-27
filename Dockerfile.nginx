@@ -1,0 +1,18 @@
+FROM node:20-alpine AS builder
+
+RUN corepack enable && corepack prepare pnpm@9.12.3 --activate
+
+WORKDIR /app
+
+COPY . .
+
+RUN pnpm install --frozen-lockfile && pnpm build
+
+FROM nginx:alpine
+
+COPY nginx.conf /etc/nginx/templates/default.conf.template
+COPY --from=builder /app/client/dist /usr/share/nginx/html
+
+EXPOSE 80
+
+CMD ["nginx", "-g", "daemon off;"]

@@ -39,29 +39,6 @@ jobs:
         working-directory: ./client
         run: pnpm test | true
 
-  deploy:
-    needs: ci
-    runs-on: ubuntu-latest
-    steps:
-      - uses: actions/checkout@v4
-
-      - name: Setup Node.js
-        uses: actions/setup-node@v4
-        with:
-          node-version: '20'
-
-      - name: Setup pnpm
-        uses: pnpm/action-setup@v3
-        with:
-          version: '9'
-
-      - name: Install Dependencies
-        run: pnpm install --frozen-lockfile
-
-      - name: Build Core Package
-        working-directory: ./core
-        run: pnpm build
-
       - name: Build Client
         working-directory: ./client
         env:
@@ -69,11 +46,19 @@ jobs:
           VITE_SOCKET_URL: ${{secrets.VITE_SOCKET_URL}}
         run: pnpm build
 
-      - name: Upload to Object Storage
-        env:
-          AWS_ACCESS_KEY_ID: ${{ secrets.NCP_ACCESS_KEY }}
-          AWS_SECRET_ACCESS_KEY: ${{ secrets.NCP_SECRET_KEY }}
-        run: |
-          aws s3 sync ./client/dist s3://${{ secrets.NCP_BUCKET }}/ \
-            --endpoint-url https://kr.object.ncloudstorage.com \
-            --region kr-standard
+  deploy:
+    needs: ci
+    runs-on: ubuntu-latest
+    steps:
+      - name: Deploy to Server
+        uses: appleboy/ssh-action@v1.0.0
+        with:
+          host: ${{ secrets.SSH_HOST }}
+          username: mira
+          key: ${{ secrets.SSH_PRIVATE_KEY }}
+          script: |
+            cd /home/mira/web30-stop-troublepainter
+            git pull origin develop
+
+            docker compose build nginx
+            docker compose up -d nginx

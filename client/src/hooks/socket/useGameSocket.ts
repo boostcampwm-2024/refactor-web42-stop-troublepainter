@@ -6,6 +6,9 @@ import {
   type RoundStartResponse,
   type UpdateSettingsResponse,
   type TimerSyncResponse,
+  RoundEndResponse,
+  RoomStatus,
+  TimerType,
 } from '@troublepainter/core';
 import { useNavigate, useParams } from 'react-router-dom';
 import { gameSocketHandlers } from '@/handlers/socket/gameSocket.handler';
@@ -70,7 +73,7 @@ import { playerIdStorageUtils } from '@/utils/playerIdStorage';
 export const useGameSocket = () => {
   const { roomId } = useParams<{ roomId: string }>();
   const { sockets, connected, actions: socketActions } = useSocketStore();
-  const { actions: gameActions, timer: clientTimer } = useGameSocketStore();
+  const { actions: gameActions } = useGameSocketStore();
   const navigate = useNavigate();
 
   // 연결 + 재연결 시도
@@ -105,16 +108,6 @@ export const useGameSocket = () => {
   }, [roomId]);
 
   useEffect(() => {
-    if (clientTimer === 0 || clientTimer === null) return;
-
-    const intervalId = setInterval(() => {
-      gameActions.decreaseTimer();
-    }, 1000);
-
-    return () => clearInterval(intervalId);
-  }, [clientTimer, gameActions]);
-
-  useEffect(() => {
     const socket = sockets.game;
     if (!socket || !roomId) return;
 
@@ -122,7 +115,7 @@ export const useGameSocket = () => {
       joinedRoom: (response: JoinRoomResponse) => {
         const { room, roomSettings, players, playerId } = response;
         gameActions.updateRoom(room);
-        gameActions.updateRoomSettings(roomSettings);
+        gameActions.updateRoomSettings({ ...roomSettings, drawTime: roomSettings.drawTime - 5 });
         gameActions.updatePlayers(players);
         if (playerId) {
           playerIdStorageUtils.setPlayerId(roomId, playerId);
@@ -134,7 +127,7 @@ export const useGameSocket = () => {
       playerJoined: (response: JoinRoomResponse) => {
         const { room, roomSettings, players } = response;
         gameActions.updateRoom(room);
-        gameActions.updateRoomSettings(roomSettings);
+        gameActions.updateRoomSettings({ ...roomSettings, drawTime: roomSettings.drawTime - 5 });
         gameActions.updatePlayers(players);
       },
 
@@ -146,38 +139,56 @@ export const useGameSocket = () => {
 
       settingsUpdated: (response: UpdateSettingsResponse) => {
         const { settings } = response;
-        gameActions.updateRoomSettings(settings);
+        gameActions.updateRoomSettings({ ...settings, drawTime: settings.drawTime - 5 });
       },
 
       drawingGroupRoundStarted: (response: RoundStartResponse) => {
-        const { roundNumber, roles, word } = response;
-        const { painters, devil, guessers } = roles;
+        const { roundNumber, roles, word, assignedRole, drawTime } = response;
+        const { painters, devils, guessers } = roles;
         gameActions.updateCurrentRound(roundNumber);
+        gameActions.updateRoundAssignedRole(assignedRole);
         painters?.forEach((playerId) => gameActions.updatePlayerRole(playerId, PlayerRole.PAINTER));
         guessers?.forEach((playerId) => gameActions.updatePlayerRole(playerId, PlayerRole.GUESSER));
-        if (devil) gameActions.updatePlayerRole(devil, PlayerRole.DEVIL);
+        devils?.forEach((playerId) => gameActions.updatePlayerRole(playerId, PlayerRole.DEVIL));
         if (word) gameActions.updateCurrentWord(word);
+        gameActions.updateTimer(TimerType.DRAWING, drawTime);
+        gameActions.updateRoomStatus(RoomStatus.DRAWING);
         navigate(`/game/${roomId}`);
       },
 
       guesserRoundStarted: (response: RoundStartResponse) => {
-        const { roundNumber, roles } = response;
+        const { roundNumber, roles, assignedRole, drawTime } = response;
         const { guessers } = roles;
         gameActions.updateCurrentRound(roundNumber);
+        gameActions.updateRoundAssignedRole(assignedRole);
         guessers?.forEach((playerId) => gameActions.updatePlayerRole(playerId, PlayerRole.GUESSER));
+        gameActions.updateTimer(TimerType.DRAWING, drawTime);
+        gameActions.updateRoomStatus(RoomStatus.DRAWING);
         navigate(`/game/${roomId}`);
       },
 
       timerSync: (response: TimerSyncResponse) => {
-        const { remaining } = response;
-        const serverTimer = Math.floor(remaining / 1000);
-        if (clientTimer === null || checkTimerDifference(serverTimer, clientTimer, 1))
-          gameActions.updateTimer(serverTimer);
+        const { remaining, timerType } = response;
+        const serverTimer = Math.ceil(remaining / 1000);
+        const clientTimer = useGameSocketStore.getState().timers[timerType];
+        if (clientTimer === null || checkTimerDifference(serverTimer, clientTimer, 1)) {
+          gameActions.updateTimer(timerType, serverTimer);
+        }
       },
 
-      /*       drawingTimeEnded: () => {
-        console.log('drawingTimeEnded Trigger');
-      }, */
+      drawingTimeEnded: () => {
+        gameActions.updateRoomStatus(RoomStatus.GUESSING);
+        gameActions.updateTimer(TimerType.GUESSING, 10);
+      },
+
+      roundEnded: (response: RoundEndResponse) => {
+        const { roundNumber, word, winner, players } = response;
+        gameActions.updateCurrentRound(roundNumber);
+        gameActions.updateCurrentWord(word);
+        gameActions.updateRoundWinner(winner);
+        gameActions.updateTimer(TimerType.ENDING, 10);
+        gameActions.updatePlayers(players);
+      },
     };
 
     // 이벤트 리스너 등록

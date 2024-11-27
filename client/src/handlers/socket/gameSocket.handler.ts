@@ -1,5 +1,6 @@
 import type {
   CRDTMessage,
+  CheckAnswerRequest,
   JoinRoomRequest,
   JoinRoomResponse,
   ReconnectRequest,
@@ -37,12 +38,22 @@ export const gameSocketHandlers = {
     });
   },
 
-  gameStart: (request: { roomId: string; playerId: string }): Promise<void> => {
+  gameStart: (): Promise<void> => {
     const socket = useSocketStore.getState().sockets.game;
     if (!socket) throw new Error('Socket not connected');
 
     return new Promise((resolve) => {
-      socket.emit('gameStart', request);
+      socket.emit('gameStart');
+      resolve();
+    });
+  },
+
+  checkAnswer: (request: CheckAnswerRequest): Promise<void> => {
+    const socket = useSocketStore.getState().sockets.game;
+    if (!socket) throw new Error('Socket not connected');
+
+    return new Promise((resolve) => {
+      socket.emit('checkAnswer', request);
       resolve();
     });
   },
