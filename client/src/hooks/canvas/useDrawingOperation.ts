@@ -81,6 +81,8 @@ export const useDrawingOperation = (
 
     ctx.beginPath();
     ctx.moveTo(points[0].x, points[0].y);
+    ctx.lineCap = 'round';
+    ctx.lineJoin = 'round';
 
     for (let i = 1; i < points.length - 1; i++) {
       const midPoint = {
