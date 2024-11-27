@@ -3,13 +3,9 @@ import { Chat } from '@/components/chat/Chat';
 import { PlayerCardList } from '@/components/player/PlayerCardList';
 import { Logo } from '@/components/ui/Logo';
 import { useGameSocket } from '@/hooks/socket/useGameSocket';
-import { usePageLeaveConfirm } from '@/hooks/usePageLeaveConfirm';
 import { cn } from '@/utils/cn';
 
 const GameLayout = () => {
-  usePageLeaveConfirm({
-    message: '게임을 나가실 건가요? 퇴장하면 다시 못 돌아온다는 걸 알아주세요! 🥺💔',
-  });
   const navigate = useNavigate();
   const { isConnected } = useGameSocket();
   // console.log(players, room, roomSettings);

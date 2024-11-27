@@ -1,4 +1,5 @@
 import { createBrowserRouter } from 'react-router-dom';
+import BrowserNavigationGuard from '@/layouts/BrowserNavigationGuard';
 import GameLayout from '@/layouts/GameLayout';
 import RootLayout from '@/layouts/RootLayout';
 import ExamplePageCanvasOnly from '@/pages/ExamplePageCanvasOnly';
@@ -17,7 +18,12 @@ export const router = createBrowserRouter(
           element: <MainPage />,
         },
         {
-          element: <GameLayout />,
+          element: (
+            <>
+              <BrowserNavigationGuard />
+              <GameLayout />
+            </>
+          ),
           children: [
             {
               path: '/lobby/:roomId',
