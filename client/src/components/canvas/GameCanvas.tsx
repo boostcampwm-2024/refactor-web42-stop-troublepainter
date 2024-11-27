@@ -2,8 +2,8 @@ import { MouseEvent as ReactMouseEvent, TouchEvent as ReactTouchEvent, useCallba
 import { PlayerRole } from '@troublepainter/core';
 import { Canvas } from '@/components/canvas/CanvasUI';
 import { COLORS_INFO, MAINCANVAS_RESOLUTION_WIDTH } from '@/constants/canvasConstants';
+import { handleInCanvas, handleOutCanvas } from '@/handlers/canvas/cursorInOutHandler';
 import { drawingSocketHandlers } from '@/handlers/socket/drawingSocket.handler';
-import useCursor from '@/hooks/canvas/useCursor';
 import { useDrawing } from '@/hooks/canvas/useDrawing';
 import { useDrawingSocket } from '@/hooks/socket/useDrawingSocket';
 import { useCoordinateScale } from '@/hooks/useCoordinateScale';
@@ -70,8 +70,6 @@ const GameCanvas = ({ role, maxPixels = 100000 }: GameCanvasProps) => {
     maxPixels,
   });
 
-  const { handleInCanvas, handleOutCanvas } = useCursor(cursorCanvasRef);
-
   const { isConnected } = useDrawingSocket({
     onDrawUpdate: (response) => {
       if (response.drawingData) {
@@ -114,7 +112,7 @@ const GameCanvas = ({ role, maxPixels = 100000 }: GameCanvasProps) => {
       const point = getDrawPoint(e, canvas);
       const convertPoint = convertCoordinate(point);
 
-      handleInCanvas(convertPoint, brushSize);
+      handleInCanvas(cursorCanvasRef, convertPoint, brushSize);
 
       const crdtDrawingData = continueDrawing(convertPoint, false);
       if (crdtDrawingData) {
@@ -135,7 +133,7 @@ const GameCanvas = ({ role, maxPixels = 100000 }: GameCanvasProps) => {
         void drawingSocketHandlers.sendDrawing(crdtDrawingData);
       }
 
-      handleOutCanvas();
+      handleOutCanvas(cursorCanvasRef);
       stopDrawing();
     },
     [continueDrawing, handleOutCanvas, stopDrawing],
