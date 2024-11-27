@@ -150,18 +150,48 @@ export class GameService {
     const roomSettings = await this.gameRepository.getRoomSettings(roomId);
 
     this.words = await this.clovaClient.getDrawingWords(Difficulty.HARD, roomSettings.totalRounds);
+  }
+
+  async setupRound(roomId: string) {
+    const [room, roomSettings, players] = await Promise.all([
+      this.gameRepository.getRoom(roomId),
+      this.gameRepository.getRoomSettings(roomId),
+      this.gameRepository.getRoomPlayers(roomId),
+    ]);
+
+    if (!room) throw new RoomNotFoundException('Room not found');
+
+    if (room.currentRound >= roomSettings.totalRounds) {
+      await this.gameRepository.updateRoom(roomId, { status: RoomStatus.WAITING, currentRound: 0, currentWord: null });
+      await Promise.all(
+        players.map(({ playerId }) =>
+          this.gameRepository.updatePlayer(roomId, playerId, {
+            status: PlayerStatus.NOT_PLAYING,
+            role: null,
+            score: 0,
+          }),
+        ),
+      );
+      return { gameEnded: true };
+    }
 
     const roomUpdates = {
       status: RoomStatus.DRAWING,
       currentWord: this.words.shift(),
+      currentRound: room.currentRound + 1,
     };
     await this.gameRepository.updateRoom(roomId, { ...roomUpdates });
 
     const playersWithRoles = await this.distributeRoles(roomId, players);
-
     const roles = this.categorizePlayerRoles(playersWithRoles);
 
-    return { room: { ...room, ...roomUpdates }, roomSettings, roles, players: playersWithRoles };
+    return {
+      gameEnded: false,
+      room: { ...room, ...roomUpdates },
+      roomSettings,
+      roles,
+      players: playersWithRoles,
+    };
   }
 
   private async distributeRoles(roomId: string, players: Player[]) {
@@ -207,6 +237,8 @@ export class GameService {
     if (!room) throw new RoomNotFoundException('Room not found');
 
     await this.gameRepository.updateRoom(roomId, { status: RoomStatus.GUESSING });
+
+    return RoomStatus.GUESSING;
   }
 
   async checkAnswer(roomId: string, playerId: string, answer: string) {
@@ -229,8 +261,6 @@ export class GameService {
 
     const isCorrect = room.currentWord.trim() === answer.trim();
     if (!isCorrect) return { isCorrect };
-
-    await this.gameRepository.updateRoom(roomId, { currentRound: room.currentRound + 1, status: RoomStatus.DRAWING });
 
     const updatedPlayers = this.calculateScores(players, playerId);
     await Promise.all(
@@ -275,8 +305,6 @@ export class GameService {
     if (room.status !== RoomStatus.GUESSING) {
       throw new BadRequestException('Room is not in guessing state');
     }
-
-    await this.gameRepository.updateRoom(roomId, { currentRound: room.currentRound + 1, status: RoomStatus.DRAWING });
 
     const updatedPlayers = players.map((p) => {
       const updatedPlayer = { ...p };
