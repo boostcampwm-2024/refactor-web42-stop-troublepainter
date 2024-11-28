@@ -78,6 +78,10 @@ export class GameService {
     return { room, roomSettings, player, players: updatedPlayers };
   }
 
+  getRoomStatus(roomId: string) {
+    return this.gameRepository.getRoomStatus(roomId);
+  }
+
   async reconnect(roomId: string, playerId: string) {
     const [room, roomSettings, players] = await Promise.all([
       this.gameRepository.getRoom(roomId),
