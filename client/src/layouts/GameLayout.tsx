@@ -1,4 +1,6 @@
+import { DotLottieReact } from '@lottiefiles/dotlottie-react';
 import { Outlet } from 'react-router-dom';
+import loading from '@/assets/lottie/loading.lottie';
 import { Chat } from '@/components/chat/Chat';
 import { NavigationModal } from '@/components/modal/NavigationModal';
 import { PlayerCardList } from '@/components/player/PlayerCardList';
@@ -14,10 +16,8 @@ const GameLayout = () => {
   // 연결 상태에 따른 로딩 표시
   if (!isConnected) {
     return (
-      <div className="flex h-screen w-screen items-center justify-center">
-        <div className="flex h-96 w-96 animate-spin items-center justify-center text-5xl text-stroke-md">
-          연결 중...
-        </div>
+      <div className="flex h-screen w-full items-center justify-center">
+        <DotLottieReact src={loading} loop autoplay className="h-96 w-96" />
       </div>
     );
   }
