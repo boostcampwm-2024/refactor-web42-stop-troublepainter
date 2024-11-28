@@ -86,11 +86,11 @@ const RoundEndModal = () => {
               <> 정답을 맞춘 구경꾼이 없습니다</>
             ) : (
               <>
-                구경꾼
+                구경꾼{' '}
                 <span className="text-violet-600">
                   {roundWinners?.find((winner) => winner.role === PlayerRole.GUESSER)?.nickname}
                 </span>
-                이 정답을 맞혔습니다
+                이(가) 정답을 맞혔습니다
               </>
             )}
           </p>
@@ -99,7 +99,6 @@ const RoundEndModal = () => {
           <p className="text-center text-xl text-violet-950 sm:text-2xl">
             방해꾼은 <span className="text-violet-600">{devil?.nickname}</span>였습니다.
           </p>
-          <span>{timers.ENDING}</span>
         </div>
       </Modal>
     </>
