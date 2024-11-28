@@ -11,7 +11,7 @@ import { cn } from '@/utils/cn';
 const RoundEndModal = () => {
   const { room, roundWinner, players, timers, currentPlayerId } = useGameSocketStore();
   const { isModalOpened, openModal, closeModal } = useModal();
-  const [showAnimation, setShowAnimation] = useState(true);
+  const [showAnimation, setShowAnimation] = useState(false);
   const [isAnimationFading, setIsAnimationFading] = useState(false);
 
   useEffect(() => {

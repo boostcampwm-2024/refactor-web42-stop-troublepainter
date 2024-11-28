@@ -48,6 +48,10 @@ export class RedisService {
     await this.redis.lrem(key, count, value);
   }
 
+  async exists(key: string): Promise<number> {
+    return await this.redis.exists(key);
+  }
+
   multi() {
     return this.redis.multi();
   }

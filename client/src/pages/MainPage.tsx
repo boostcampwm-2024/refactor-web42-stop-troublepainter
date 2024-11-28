@@ -1,3 +1,4 @@
+import { useEffect } from 'react';
 import Background from '@/components/ui/BackgroundCanvas';
 import { Button } from '@/components/ui/Button';
 import { Logo } from '@/components/ui/Logo';
@@ -9,6 +10,11 @@ import { cn } from '@/utils/cn';
 const MainPage = () => {
   const { createRoom, isLoading } = useCreateRoom();
   const { isExiting, transitionTo } = usePageTransition();
+
+  useEffect(() => {
+    // 현재 URL을 루트로 변경
+    window.history.replaceState(null, '', '/');
+  }, []);
 
   const handleCreateRoom = async () => {
     // transitionTo(`/lobby/${roomId}`);

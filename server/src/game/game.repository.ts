@@ -39,6 +39,10 @@ export class GameRepository {
     await multi.exec();
   }
 
+  async getRoomStatus(roomId: string) {
+    return this.redisService.hget(`room:${roomId}`, 'status') as Promise<RoomStatus>;
+  }
+
   async getRoomSettings(roomId: string) {
     const settings = await this.redisService.hgetall(`room:${roomId}:settings`);
 

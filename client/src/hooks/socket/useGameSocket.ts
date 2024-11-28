@@ -9,6 +9,7 @@ import {
   RoundEndResponse,
   RoomStatus,
   TimerType,
+  PlayerStatus,
 } from '@troublepainter/core';
 import { useNavigate, useParams } from 'react-router-dom';
 import entrySound from '@/assets/sounds/entry-sound-effect.mp3';
@@ -155,8 +156,10 @@ export const useGameSocket = () => {
       },
 
       drawingGroupRoundStarted: (response: RoundStartResponse) => {
+        gameActions.resetRound();
         const { roundNumber, roles, word, assignedRole, drawTime } = response;
         const { painters, devils, guessers } = roles;
+        gameActions.updatePlayersStatus(PlayerStatus.PLAYING);
         gameActions.updateCurrentRound(roundNumber);
         gameActions.updateRoundAssignedRole(assignedRole);
         painters?.forEach((playerId) => gameActions.updatePlayerRole(playerId, PlayerRole.PAINTER));
@@ -169,8 +172,10 @@ export const useGameSocket = () => {
       },
 
       guesserRoundStarted: (response: RoundStartResponse) => {
+        gameActions.resetRound();
         const { roundNumber, roles, assignedRole, drawTime } = response;
         const { guessers } = roles;
+        gameActions.updatePlayersStatus(PlayerStatus.PLAYING);
         gameActions.updateCurrentRound(roundNumber);
         gameActions.updateRoundAssignedRole(assignedRole);
         guessers?.forEach((playerId) => gameActions.updatePlayerRole(playerId, PlayerRole.GUESSER));
@@ -200,6 +205,11 @@ export const useGameSocket = () => {
         gameActions.updateRoundWinner(winner);
         gameActions.updateTimer(TimerType.ENDING, 10);
         gameActions.updatePlayers(players);
+      },
+
+      gameEnded: () => {
+        gameActions.resetGame();
+        navigate(`/lobby/${roomId}`, { replace: true });
       },
     };
 

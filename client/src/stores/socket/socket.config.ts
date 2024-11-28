@@ -85,9 +85,9 @@ export const SOCKET_CONFIG = {
   },
   /** 네임스페이스별 경로 */
   PATHS: {
-    [SocketNamespace.GAME]: '/game',
-    [SocketNamespace.DRAWING]: '/drawing',
-    [SocketNamespace.CHAT]: '/chat',
+    [SocketNamespace.GAME]: '/socket.io/game',
+    [SocketNamespace.DRAWING]: '/socket.io/drawing',
+    [SocketNamespace.CHAT]: '/socket.io/chat',
   },
 } as const;
 

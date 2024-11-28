@@ -1,4 +1,4 @@
-import { PlayerRole } from '@troublepainter/core';
+import { PlayerRole, PlayerStatus } from '@troublepainter/core';
 import { PlayerCard } from '@/components/ui/player-card/PlayerCard';
 import { useGameSocketStore } from '@/stores/socket/gameSocket.store';
 
@@ -24,7 +24,7 @@ const PlayerCardList = () => {
             status={player.status}
             role={playerRole}
             score={player.score}
-            isHost={player.playerId === room?.hostId} // 이 플레이어가 방장인지
+            isHost={player.status === PlayerStatus.NOT_PLAYING && player.playerId === room?.hostId} // 이 플레이어가 방장인지
             isMe={player.playerId === currentPlayerId}
           />
         );

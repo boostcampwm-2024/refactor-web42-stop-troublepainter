@@ -1,9 +1,16 @@
+import { useEffect } from 'react';
 import { Outlet } from 'react-router-dom';
 import helpIcon from '@/assets/help-icon.svg';
 import BackgroundMusicButton from '@/components/bgm-button/BackgroundMusicButton';
 import { Button } from '@/components/ui/Button';
+import { playerIdStorageUtils } from '@/utils/playerIdStorage';
 
 const RootLayout = () => {
+  // 레이아웃 마운트 시 localStorage 초기화
+  useEffect(() => {
+    playerIdStorageUtils.removeAllPlayerIds();
+  }, []);
+
   return (
     <div className="relative min-h-screen min-w-80 bg-violet-950 bg-fixed antialiased">
       <BackgroundMusicButton />

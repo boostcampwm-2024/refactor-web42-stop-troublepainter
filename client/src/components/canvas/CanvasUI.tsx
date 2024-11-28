@@ -94,6 +94,7 @@ interface CanvasProps extends HTMLAttributes<HTMLDivElement> {
   inkRemaining: number;
   maxPixels: number;
   canvasEvents: CanvasEventHandlers;
+  isHidden: boolean;
 }
 
 const Canvas = forwardRef<HTMLDivElement, CanvasProps>(
@@ -115,6 +116,7 @@ const Canvas = forwardRef<HTMLDivElement, CanvasProps>(
       inkRemaining,
       maxPixels,
       canvasEvents,
+      isHidden,
       ...props
     },
     ref,
@@ -123,7 +125,9 @@ const Canvas = forwardRef<HTMLDivElement, CanvasProps>(
       <div
         ref={ref}
         className={cn(
-          'relative flex w-full max-w-screen-sm flex-col border-violet-500 bg-white sm:rounded-lg sm:border-4 sm:shadow-xl',
+          'relative flex w-full max-w-screen-sm flex-col border-violet-500 bg-white',
+          'sm:rounded-lg sm:border-4 sm:shadow-xl',
+          isHidden && 'hidden',
           className,
         )}
         {...props}

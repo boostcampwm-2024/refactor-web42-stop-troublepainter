@@ -78,6 +78,10 @@ export class GameService {
     return { room, roomSettings, player, players: updatedPlayers };
   }
 
+  getRoomStatus(roomId: string) {
+    return this.gameRepository.getRoomStatus(roomId);
+  }
+
   async reconnect(roomId: string, playerId: string) {
     const [room, roomSettings, players] = await Promise.all([
       this.gameRepository.getRoom(roomId),
@@ -266,14 +270,14 @@ export class GameService {
     await Promise.all(
       updatedPlayers.map((p) => this.gameRepository.updatePlayer(roomId, p.playerId, { score: p.score })),
     );
-
-    const winner = currentPlayer;
+    const painters = updatedPlayers.filter((p) => p.role === PlayerRole.PAINTER);
+    const winner = updatedPlayers.find((p) => p.playerId === playerId);
 
     return {
       isCorrect,
       roundNumber: room.currentRound,
       word: room.currentWord,
-      winner,
+      winners: [winner, ...painters],
       players: updatedPlayers,
     };
   }
@@ -324,7 +328,7 @@ export class GameService {
     return {
       roundNumber: room.currentRound,
       word: room.currentWord,
-      winner,
+      winners: [winner],
       players: updatedPlayers,
     };
   }

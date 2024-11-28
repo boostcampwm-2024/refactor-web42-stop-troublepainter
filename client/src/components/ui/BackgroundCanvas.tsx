@@ -22,9 +22,9 @@ interface PatternData {
   type: ImgType;
 }
 
-interface PatternLists {
-  patternList: PatternData[];
-  particleList: PatternData[];
+interface patterns {
+  pattern: PatternData[];
+  particle: PatternData[];
 }
 
 const randomizeWidth = () => Math.random() * RANDOM_POINT_RANGE_Width - RANDOM_POINT_RANGE_Width / 2;
@@ -34,8 +34,8 @@ const redraw = (
   canvas: HTMLCanvasElement,
   cursorCanvas: HTMLCanvasElement,
   ctx: CanvasRenderingContext2D,
-  patternList: { img: HTMLImageElement; type: string }[],
-  particleList: { img: HTMLImageElement; type: string }[],
+  pattern: { img: HTMLImageElement; type: string }[],
+  particle: { img: HTMLImageElement; type: string }[],
 ) => {
   canvas.width = canvas.offsetWidth;
   canvas.height = canvas.offsetHeight;
@@ -61,7 +61,7 @@ const redraw = (
       ctx.translate(patternX + SIZE / 2, patternY + SIZE / 2);
       ctx.rotate(Math.random() * 2 * Math.PI);
       ctx.drawImage(
-        patternList[Math.floor(Math.random() * patternList.length)].img,
+        pattern[Math.floor(Math.random() * pattern.length)].img,
         -SIZE / 2 + randomizeWidth(),
         -SIZE / 2 + randomizeHeight(),
         SIZE + random1,
@@ -76,7 +76,7 @@ const redraw = (
       ctx.translate(particleX + PARTICLE_SIZE / 2, particleY + PARTICLE_SIZE / 2);
       ctx.rotate(Math.random() * 2 * Math.PI);
       ctx.drawImage(
-        particleList[Math.floor(Math.random() * particleList.length)].img,
+        particle[Math.floor(Math.random() * particle.length)].img,
         -PARTICLE_SIZE / 2 + randomizeWidth(),
         -PARTICLE_SIZE / 2,
         PARTICLE_SIZE + random2,
@@ -96,10 +96,10 @@ const getPatternType = (src: string): ImgType => {
   return type;
 };
 
-const getImageLists = (patterns: string[]): PatternLists => {
-  const lists: PatternLists = {
-    patternList: [],
-    particleList: [],
+const getImageLists = (patterns: string[]): patterns => {
+  const lists: patterns = {
+    pattern: [],
+    particle: [],
   };
 
   patterns.forEach((src) => {
@@ -107,7 +107,7 @@ const getImageLists = (patterns: string[]): PatternLists => {
     img.src = src;
     const type = getPatternType(src);
 
-    lists[type as keyof PatternLists].push({ img, type });
+    lists[type as keyof patterns].push({ img, type });
   });
 
   return lists;
@@ -129,21 +129,21 @@ const Background = ({ className }: { className: string }) => {
     const { canvas, ctx } = getCanvasContext(bgCanvasRef);
     const { canvas: cursorCanvas } = getCanvasContext(cursorCanvasRef);
 
-    const { patternList, particleList } = getImageLists(patterns);
+    const { pattern, particle } = getImageLists(patterns);
 
     Promise.all([
-      Promise.all(patternList.map((imgData) => new Promise((res) => (imgData.img.onload = res)))),
-      Promise.all(particleList.map((imgData) => new Promise((res) => (imgData.img.onload = res)))),
+      Promise.all(pattern.map((imgData) => new Promise((res) => (imgData.img.onload = res)))),
+      Promise.all(particle.map((imgData) => new Promise((res) => (imgData.img.onload = res)))),
     ])
       .then(() => {
-        redraw(canvas, cursorCanvas, ctx, patternList, particleList);
+        redraw(canvas, cursorCanvas, ctx, pattern, particle);
       })
       .catch((err) => {
         console.error(err);
       });
 
     const handleResize = () => {
-      redraw(canvas, cursorCanvas, ctx, patternList, particleList);
+      redraw(canvas, cursorCanvas, ctx, pattern, particle);
     };
 
     window.addEventListener('resize', handleResize);

@@ -17,4 +17,14 @@ export class ChatRepository {
       score: parseInt(player.score, 10) || 0,
     } as Player;
   }
+
+  async existsRoom(roomId: string) {
+    const exists = await this.redisService.exists(`room:${roomId}`);
+    return exists === 1;
+  }
+
+  async existsPlayer(roomId: string, playerId: string) {
+    const exists = await this.redisService.exists(`room:${roomId}:player:${playerId}`);
+    return exists === 1;
+  }
 }
