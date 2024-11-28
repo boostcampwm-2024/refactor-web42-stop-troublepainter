@@ -1,3 +1,4 @@
+import Background from '@/components/ui/BackgroundCanvas';
 import { Button } from '@/components/ui/Button';
 import { Logo } from '@/components/ui/Logo';
 import { PixelTransitionContainer } from '@/components/ui/PixelTransitionContainer';
@@ -21,10 +22,11 @@ const MainPage = () => {
     <PixelTransitionContainer isExiting={isExiting}>
       <main
         className={cn(
-          'flex min-h-screen flex-col items-center justify-center gap-8 px-4 sm:gap-16',
+          'relative z-10 flex min-h-screen flex-col items-center justify-center gap-8 px-4 sm:gap-16',
           isExiting ? 'bg-transparent' : 'bg-gradient-to-b from-violet-950 via-violet-800 to-fuchsia-700',
         )}
       >
+        <Background className={cn('absolute -z-10 h-full w-full')} />
         <div className="duration-1000 animate-in fade-in slide-in-from-top-8">
           <Logo variant="main" className="w-full transition duration-300 hover:scale-110 hover:brightness-[1.12]" />
         </div>
