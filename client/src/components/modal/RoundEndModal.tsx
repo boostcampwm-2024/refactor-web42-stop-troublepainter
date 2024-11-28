@@ -15,10 +15,6 @@ const RoundEndModal = () => {
   const [isAnimationFading, setIsAnimationFading] = useState(false);
 
   useEffect(() => {
-    openModal();
-  }, []);
-
-  useEffect(() => {
     if (roundWinner) {
       setIsAnimationFading(false);
       setShowAnimation(true);
@@ -36,15 +32,15 @@ const RoundEndModal = () => {
 
   useEffect(() => {
     if (showAnimation) {
-      // 2.5초 후에 페이드아웃 시작
+      // 3초 후에 페이드아웃 시작
       const fadeTimer = setTimeout(() => {
         setIsAnimationFading(true);
-      }, 2500);
+      }, 3000);
 
-      // 3초 후에 컴포넌트 제거
+      // 3.5초 후에 컴포넌트 제거
       const removeTimer = setTimeout(() => {
         setShowAnimation(false);
-      }, 3000);
+      }, 3500);
 
       return () => {
         clearTimeout(fadeTimer);
@@ -73,7 +69,7 @@ const RoundEndModal = () => {
             autoplay
             loop={false}
             className={cn(
-              'absolute left-1/2 top-1/2 z-50 w-full -translate-x-1/2 -translate-y-1/2 transition-opacity duration-500',
+              'absolute left-1/2 top-1/2 z-50 h-[50vh] w-full -translate-x-1/2 -translate-y-1/2 transition-opacity duration-500',
               isAnimationFading && 'opacity-0',
             )}
           />
