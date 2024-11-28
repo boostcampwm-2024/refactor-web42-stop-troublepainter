@@ -21,12 +21,12 @@ export const ROOM_SETTINGS: RoomSettingItem[] = [
 ];
 
 const Setting = ({ className, ...props }: HTMLAttributes<HTMLDivElement>) => {
-  const { roomSettings, isHost } = useGameSocketStore();
+  const { roomSettings, isHost, actions } = useGameSocketStore();
 
-  const [selectedValues, setSelectedValues] = useState<Partial<RoomSettings>>({
-    totalRounds: undefined,
-    maxPlayers: undefined,
-    drawTime: undefined,
+  const [selectedValues, setSelectedValues] = useState<RoomSettings>({
+    totalRounds: 5,
+    maxPlayers: 5,
+    drawTime: 30,
   });
 
   useEffect(() => {
@@ -39,6 +39,7 @@ const Setting = ({ className, ...props }: HTMLAttributes<HTMLDivElement>) => {
     void gameSocketHandlers.updateSettings({
       settings: { ...selectedValues, drawTime: selectedValues.drawTime + 5 },
     });
+    actions.updateRoomSettings(selectedValues);
   }, [selectedValues]);
 
   const handleChange = (key: SettingKey) => (value: string) => {
