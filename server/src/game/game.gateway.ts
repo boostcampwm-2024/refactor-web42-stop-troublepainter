@@ -11,7 +11,7 @@ import { GameService } from './game.service';
 import { UseFilters } from '@nestjs/common';
 import { WsExceptionFilter } from 'src/filters/ws-exception.filter';
 import { Player, Room, RoomSettings } from 'src/common/types/game.types';
-import { BadRequestException, RoomNotFoundException } from 'src/exceptions/game.exception';
+import { BadRequestException, GameAlreadyStartedException, RoomNotFoundException } from 'src/exceptions/game.exception';
 import { PlayerRole, RoomStatus } from 'src/common/enums/game.status.enum';
 import { TimerService } from 'src/common/services/timer.service';
 import { TimerType } from 'src/common/enums/game.timer.enum';
@@ -39,7 +39,7 @@ export class GameGateway implements OnGatewayDisconnect {
     const roomStatus = await this.gameService.getRoomStatus(data.roomId);
     if (!roomStatus) throw new RoomNotFoundException('Room not found');
     if (roomStatus === RoomStatus.GUESSING || roomStatus === RoomStatus.DRAWING) {
-      throw new BadRequestException('Cannot join room while game is in progress');
+      throw new GameAlreadyStartedException('Cannot join room while game is in progress');
     }
 
     const { room, roomSettings, player, players } = await this.gameService.joinRoom(data.roomId);
