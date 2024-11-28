@@ -6,10 +6,17 @@ import RoundEndModal from '@/components/modal/RoundEndModal';
 import { QuizTitle } from '@/components/ui/QuizTitle';
 import { useTimer } from '@/hooks/useTimer';
 import { useGameSocketStore } from '@/stores/socket/gameSocket.store';
+import { cn } from '@/utils/cn';
 
 const GameRoomPage = () => {
   const { players, room, roomSettings, roundAssignedRole } = useGameSocketStore();
   const timers = useTimer();
+
+  const shouldHideCanvas = useMemo(() => {
+    const isGuesser = roundAssignedRole === PlayerRole.GUESSER;
+    const isDrawing = room?.status === 'DRAWING';
+    return isGuesser && isDrawing;
+  }, [roundAssignedRole, room?.status]);
 
   const remainingTime = useMemo(() => {
     switch (room?.status) {
@@ -35,7 +42,10 @@ const GameRoomPage = () => {
         remainingTime={remainingTime || 0}
       />
       <div
-        style={{ display: roundAssignedRole === PlayerRole.GUESSER && room.status === 'DRAWING' ? 'none' : 'block' }}
+        className={cn(
+          'relative flex h-[800px] w-full items-center justify-center',
+          shouldHideCanvas ? 'hidden' : 'block',
+        )}
       >
         <GameCanvas
           currentRound={room.currentRound}
