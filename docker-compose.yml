@@ -1,15 +1,6 @@
-version: '3'
-
 services:
   api:
-    build:
-      context: .
-      dockerfile: Dockerfile.nestjs
-      args:
-        - REDIS_HOST=${REDIS_HOST}
-        - REDIS_PORT=${REDIS_PORT}
-        - CLOVA_API_KEY=${CLOVA_API_KEY}
-        - CLOVA_GATEWAY_KEY=${CLOVA_GATEWAY_KEY}
+    image: ${DOCKERHUB_USERNAME}/troublepainter-api:latest
     container_name: troublepainter_api
     environment:
       - NODE_ENV=production
@@ -22,14 +13,13 @@ services:
     restart: unless-stopped
 
   nginx:
-    build:
-      context: .
-      dockerfile: Dockerfile.nginx
-    environment:
-      - SERVER_IP=${SSH_HOST}
+    image: ${DOCKERHUB_USERNAME}/troublepainter-nginx:latest
     container_name: troublepainter_nginx
+    volumes:
+      - /etc/letsencrypt:/etc/letsencrypt
     ports:
       - "80:80"
+      - "443:443"
     depends_on:
       - api
     networks:
@@ -38,4 +28,5 @@ services:
 
 networks:
   app_network:
+    name: app_network
     driver: bridge

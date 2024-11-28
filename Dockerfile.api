@@ -28,13 +28,8 @@ RUN corepack enable && corepack prepare pnpm@9.12.3 --activate && cd server && p
 
 WORKDIR /app/server
 
-ARG REDIS_HOST
-ARG REDIS_PORT
-
 ENV NODE_ENV=production
 ENV PORT=3000
-ENV REDIS_HOST=$REDIS_HOST
-ENV REDIS_PORT=$REDIS_PORT
 
 EXPOSE 3000
 

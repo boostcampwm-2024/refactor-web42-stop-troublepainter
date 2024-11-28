@@ -29,6 +29,7 @@ interface GameActions {
   updatePlayers: (players: Player[]) => void;
   removePlayer: (playerId: string) => void;
   updatePlayerRole: (playerId: string, role: PlayerRole) => void;
+  updatePlayersStatus: (status: PlayerStatus) => void;
 
   // 나의 상태 업데이트
   updateCurrentPlayerId: (currentPlayerId: string) => void;
@@ -125,6 +126,10 @@ export const useGameSocketStore = create<GameState & { actions: GameActions }>()
 
         updatePlayers: (players) => {
           set({ players });
+        },
+
+        updatePlayersStatus: (status) => {
+          set((state) => ({ players: state.players.map((player) => ({ ...player, status })) }));
         },
 
         updateCurrentPlayerId: (currentPlayerId) => {

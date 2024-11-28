@@ -58,9 +58,9 @@ jobs:
         uses: docker/build-push-action@v5
         with:
           context: .
-          file: ./Dockerfile
+          file: ./Dockerfile.api
           push: true
-          tags: ${{ secrets.DOCKERHUB_USERNAME }}/troublepainter:latest
+          tags: ${{ secrets.DOCKERHUB_USERNAME }}/troublepainter-api:latest
           build-args: |
             REDIS_HOST=${{ secrets.REDIS_HOST }}
             REDIS_PORT=${{ secrets.REDIS_PORT }}
@@ -75,11 +75,6 @@ jobs:
           key: ${{ secrets.SSH_PRIVATE_KEY }}
           script: |
             cd /home/mira/web30-stop-troublepainter
-            git pull origin develop
-            
-            export REDIS_HOST=${{ secrets.REDIS_HOST }}
-            export REDIS_PORT=${{ secrets.REDIS_PORT }}
-            export CLOVA_API_KEY=${{ secrets.CLOVA_API_KEY }}
-            export CLOVA_GATEWAY_KEY=${{ secrets.CLOVA_GATEWAY_KEY }}
-            
-            docker compose up -d
+            export DOCKERHUB_USERNAME=${{ secrets.DOCKERHUB_USERNAME }}
+            docker pull ${{ secrets.DOCKERHUB_USERNAME }}/troublepainter-api:latest
+            docker compose up -d api

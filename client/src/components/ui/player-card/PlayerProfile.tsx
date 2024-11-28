@@ -44,7 +44,12 @@ export const PlayerCardProfile = ({
 
         {/* 모바일 상태 오버레이 */}
         {showScore ? (
-          <div className="absolute inset-0 flex items-center justify-center rounded-full bg-black/50 lg:hidden">
+          <div
+            className={cn(
+              'absolute inset-0 flex items-center justify-center rounded-full lg:hidden',
+              isMe ? 'bg-violet-500/50' : 'bg-black/50',
+            )}
+          >
             <span className="text-xl font-bold text-white text-stroke-sm">{score}</span>
           </div>
         ) : (
