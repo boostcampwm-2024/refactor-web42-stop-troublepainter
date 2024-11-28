@@ -1,9 +1,9 @@
 import { useEffect, useState } from 'react';
 import { DotLottieReact } from '@lottiefiles/dotlottie-react';
 import { PlayerRole } from '@troublepainter/core';
-import { Modal } from '../ui/Modal';
 import roundLoss from '@/assets/lottie/round-loss.lottie';
 import roundWin from '@/assets/lottie/round-win.lottie';
+import { Modal } from '@/components/ui/Modal';
 import { useModal } from '@/hooks/useModal';
 import { useGameSocketStore } from '@/stores/socket/gameSocket.store';
 import { cn } from '@/utils/cn';
