@@ -1,5 +1,5 @@
-import { MouseEvent as ReactMouseEvent, TouchEvent as ReactTouchEvent, useCallback, useRef } from 'react';
-import { PlayerRole } from '@troublepainter/core';
+import { MouseEvent as ReactMouseEvent, TouchEvent as ReactTouchEvent, useCallback, useEffect, useRef } from 'react';
+import { PlayerRole, RoomStatus } from '@troublepainter/core';
 import { Canvas } from '@/components/canvas/CanvasUI';
 import { COLORS_INFO, MAINCANVAS_RESOLUTION_WIDTH } from '@/constants/canvasConstants';
 import { drawingSocketHandlers } from '@/handlers/socket/drawingSocket.handler';
@@ -15,6 +15,8 @@ interface GameCanvasProps {
   role: PlayerRole;
   maxPixels?: number;
   handleDrawingReveal: (value: boolean) => void;
+  currentRound: number;
+  roomStatus: RoomStatus;
 }
 
 /**
@@ -46,7 +48,7 @@ interface GameCanvasProps {
  *
  * @category Components
  */
-const GameCanvas = ({ role, maxPixels = 100000, handleDrawingReveal }: GameCanvasProps) => {
+const GameCanvas = ({ role, maxPixels = 100000, handleDrawingReveal, currentRound, roomStatus }: GameCanvasProps) => {
   const canvasRef = useRef<HTMLCanvasElement>(null);
   const { convertCoordinate } = useCoordinateScale(MAINCANVAS_RESOLUTION_WIDTH, canvasRef);
 
@@ -67,9 +69,14 @@ const GameCanvas = ({ role, maxPixels = 100000, handleDrawingReveal }: GameCanva
     undo,
     redo,
     getAllDrawingData,
-  } = useDrawing(canvasRef, {
+    resetCanvas,
+  } = useDrawing(canvasRef, roomStatus, {
     maxPixels,
   });
+
+  useEffect(() => {
+    resetCanvas();
+  }, [currentRound, resetCanvas]);
 
   const { isConnected } = useDrawingSocket({
     onDrawUpdate: (response) => {
@@ -81,15 +88,16 @@ const GameCanvas = ({ role, maxPixels = 100000, handleDrawingReveal }: GameCanva
       if (!isDrawable || !isConnected) return;
 
       const allDrawingData = getAllDrawingData();
-      if (!allDrawingData || allDrawingData.length === 0) return;
+      if (!allDrawingData) return;
 
       void gameSocketHandlers.submittedDrawing(allDrawingData);
     },
     onDrawingTimeEnded: (response) => {
       if (!response.drawing) return;
-      response.drawing.forEach((drawingData) => {
-        applyDrawing(drawingData);
-      });
+
+      resetCanvas();
+
+      applyDrawing(response.drawing);
       handleDrawingReveal(true);
     },
   });

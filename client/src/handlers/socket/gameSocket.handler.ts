@@ -1,5 +1,5 @@
 import type {
-  CRDTMessage,
+  CRDTSyncMessage,
   CheckAnswerRequest,
   JoinRoomRequest,
   JoinRoomResponse,
@@ -58,7 +58,7 @@ export const gameSocketHandlers = {
     });
   },
 
-  submittedDrawing: (drawing: CRDTMessage[]): Promise<void> => {
+  submittedDrawing: (drawing: CRDTSyncMessage): Promise<void> => {
     const socket = useSocketStore.getState().sockets.game;
     if (!socket) throw new Error('Socket not connected');
 

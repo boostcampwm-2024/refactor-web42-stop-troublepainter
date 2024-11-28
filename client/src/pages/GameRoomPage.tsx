@@ -49,6 +49,8 @@ const GameRoomPage = () => {
       />
       {showCanvas && (
         <GameCanvas
+          currentRound={room.currentRound}
+          roomStatus={room.status}
           role={roundAssignedRole || PlayerRole.GUESSER}
           maxPixels={100000}
           handleDrawingReveal={handleDrawingReveal}

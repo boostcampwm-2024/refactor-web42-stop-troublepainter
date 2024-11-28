@@ -161,7 +161,7 @@ export interface DrawUpdateResponse {
 
 export interface DrawSubmitResponse {
   roomStatus: any;
-  drawing: CRDTMessage[];
+  drawing: CRDTMessage;
 }
 
 // Socket.IO 이벤트 타입 정의
