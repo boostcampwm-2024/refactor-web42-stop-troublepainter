@@ -1,8 +1,9 @@
 import { FormEvent, useState } from 'react';
-import type { ChatResponse } from '@troublepainter/core';
+import { RoomStatus, type ChatResponse } from '@troublepainter/core';
 import { ChatBubble } from '@/components/chat/ChatBubbleUI';
 import { Input } from '@/components/ui/Input';
 import { chatSocketHandlers } from '@/handlers/socket/chatSocket.handler';
+import { gameSocketHandlers } from '@/handlers/socket/gameSocket.handler';
 import { useChatSocket } from '@/hooks/socket/useChatSocket';
 import { useScrollToBottom } from '@/hooks/useScrollToBottom';
 import { useChatSocketStore } from '@/stores/socket/chatSocket.store';
@@ -11,7 +12,7 @@ import { useGameSocketStore } from '@/stores/socket/gameSocket.store';
 export const Chat = () => {
   const [inputMessage, setInputMessage] = useState('');
   const { messages, isConnected, currentPlayerId } = useChatSocket();
-  const { players } = useGameSocketStore();
+  const { players, room } = useGameSocketStore();
   const { actions } = useChatSocketStore();
   const { containerRef } = useScrollToBottom([messages]);
 
@@ -29,6 +30,10 @@ export const Chat = () => {
       createdAt: new Date().toISOString(),
     };
     actions.addMessage(messageData);
+
+    if (room?.status === RoomStatus.GUESSING) {
+      void gameSocketHandlers.checkAnswer({ answer: inputMessage });
+    }
 
     setInputMessage('');
   };

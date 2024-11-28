@@ -1,0 +1,21 @@
+FROM node:20-alpine AS builder
+
+RUN corepack enable && corepack prepare pnpm@9.12.3 --activate
+
+WORKDIR /app
+
+COPY . .
+
+ARG VITE_API_URL
+ARG VITE_SOCKET_URL
+
+RUN if [ -z "$VITE_API_URL" ]; then echo "VITE_API_URL is empty" && exit 1; fi && if [ -z "$VITE_SOCKET_URL" ]; then echo "VITE_SOCKET_URL is empty" && exit 1; fi && echo "VITE_API_URL=$VITE_API_URL" >> client/.env && echo "VITE_SOCKET_URL=$VITE_SOCKET_URL" >> client/.env && pnpm install --frozen-lockfile && pnpm build
+
+FROM nginx:alpine
+
+COPY nginx.conf /etc/nginx/templates/default.conf.template
+COPY --from=builder /app/client/dist /usr/share/nginx/html
+
+EXPOSE 80 443
+
+CMD ["nginx", "-g", "daemon off;"]

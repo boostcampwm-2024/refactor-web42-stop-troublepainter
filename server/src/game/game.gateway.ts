@@ -18,7 +18,7 @@ import { TimerType } from 'src/common/enums/game.timer.enum';
 
 @WebSocketGateway({
   cors: '*',
-  namespace: 'game',
+  namespace: '/socket.io/game',
 })
 @UseFilters(WsExceptionFilter)
 export class GameGateway implements OnGatewayDisconnect {
@@ -27,6 +27,7 @@ export class GameGateway implements OnGatewayDisconnect {
 
   private disconnectTimeouts: Map<string, NodeJS.Timeout> = new Map();
   private readonly DISCONNECT_TIMEOUT = 10000;
+  private finalDrawing: any;
 
   constructor(
     private readonly gameService: GameService,
@@ -51,12 +52,12 @@ export class GameGateway implements OnGatewayDisconnect {
   async handleReconnect(@ConnectedSocket() client: Socket, @MessageBody() data: { roomId: string; playerId: string }) {
     const { roomId, playerId } = data;
 
-    const { room, players, roomSettings } = await this.gameService.reconnect(roomId, playerId);
-
     client.data.playerId = playerId;
     client.data.roomId = roomId;
 
     await client.join(roomId);
+
+    const { room, players, roomSettings } = await this.gameService.reconnect(roomId, playerId);
 
     this.server.to(client.id).emit('joinedRoom', {
       room,
@@ -101,9 +102,22 @@ export class GameGateway implements OnGatewayDisconnect {
 
     await this.runTimer(roomId, roomSettings.drawTime * 1000, TimerType.DRAWING);
 
+    const sockets = await this.server.in(roomId).fetchSockets();
+    for (const socket of sockets) {
+      if (
+        socket.data.playerId &&
+        (roles.painters.includes(socket.data.playerId) || roles.devils.includes(socket.data.playerId))
+      ) {
+        this.server.to(socket.id).emit('submitDrawing');
+        break;
+      }
+    }
+    await new Promise((resolve) => setTimeout(resolve, 1000));
+
     const roomStatus = await this.gameService.handleDrawingTimeout(roomId);
     this.server.to(roomId).emit('drawingTimeEnded', {
       roomStatus,
+      drawing: this.finalDrawing,
     });
 
     await this.runTimer(roomId, 10000, TimerType.GUESSING);
@@ -159,6 +173,11 @@ export class GameGateway implements OnGatewayDisconnect {
     });
   }
 
+  @SubscribeMessage('submittedDrawing')
+  async handleSummitDrawing(@ConnectedSocket() client: Socket, @MessageBody() data: { drawing: any }) {
+    this.finalDrawing = data.drawing;
+  }
+
   @SubscribeMessage('checkAnswer')
   async handleCheckAnswer(@ConnectedSocket() client: Socket, @MessageBody() data: { answer: string }) {
     const roomId = client.data.roomId;
@@ -177,7 +196,7 @@ export class GameGateway implements OnGatewayDisconnect {
     }
   }
 
-  async handleDisconnect(client: Socket) {
+  async handleDisconnect(@ConnectedSocket() client: Socket) {
     const { playerId, roomId } = client.data;
     if (!playerId || !roomId) throw new BadRequestException('Room ID and Player ID are required');
 

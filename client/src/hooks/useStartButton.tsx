@@ -31,10 +31,7 @@ export const useGameStart = () => {
 
   const handleStartGame = () => {
     if (!room || buttonConfig.disabled || !room.roomId || !currentPlayerId) return;
-    void gameSocketHandlers.gameStart({
-      roomId: room.roomId,
-      playerId: currentPlayerId,
-    });
+    void gameSocketHandlers.gameStart();
   };
 
   return {

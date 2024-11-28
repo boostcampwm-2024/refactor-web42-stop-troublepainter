@@ -35,8 +35,10 @@ const Setting = ({ className, ...props }: HTMLAttributes<HTMLDivElement>) => {
   }, [roomSettings]);
 
   useEffect(() => {
-    if (!isHost) return;
-    void gameSocketHandlers.updateSettings({ settings: selectedValues });
+    if (!isHost || !selectedValues || !selectedValues.drawTime) return;
+    void gameSocketHandlers.updateSettings({
+      settings: { ...selectedValues, drawTime: selectedValues.drawTime + 5 },
+    });
   }, [selectedValues]);
 
   const handleChange = (key: SettingKey) => (value: string) => {

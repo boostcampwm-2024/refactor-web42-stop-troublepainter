@@ -35,3 +35,9 @@ export enum RoomStatus {
   DRAWING = "DRAWING",
   GUESSING = "GUESSING",
 }
+
+export enum TimerType {
+  DRAWING = "DRAWING",
+  GUESSING = "GUESSING",
+  ENDING = "ENDING",
+}

@@ -7,7 +7,7 @@ import { BadRequestException } from 'src/exceptions/game.exception';
 
 @WebSocketGateway({
   cors: '*',
-  namespace: 'chat',
+  namespace: '/socket.io/chat',
 })
 @UseFilters(WsExceptionFilter)
 export class ChatGateway {

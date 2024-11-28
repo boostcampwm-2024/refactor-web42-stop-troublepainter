@@ -1,5 +1,11 @@
 import { CRDTMessage, DrawingData } from "@/types/crdt.types";
-import { Player, PlayerRole, Room, RoomSettings } from "@/types/game.types";
+import {
+  Player,
+  PlayerRole,
+  Room,
+  RoomSettings,
+  TimerType,
+} from "@/types/game.types";
 
 // 웹소켓 이벤트의 기본 응답 형식을 정의하는 제네릭 인터페이스
 // export interface SocketResponse<T = unknown> {
@@ -82,6 +88,7 @@ export interface UpdateSettingsResponse {
 
 export interface TimerSyncResponse {
   remaining: number;
+  timerType: TimerType;
 }
 
 export interface DrawingTimeEnded {
@@ -105,10 +112,11 @@ export interface GameStartResponse {
 
 // 3. 게임 진행
 export interface RoundStartResponse {
+  assignedRole: PlayerRole;
   roundNumber: number;
   roles: {
     painters?: string[];
-    devil?: string;
+    devils?: string[];
     guessers: string[];
   };
   word?: string;
@@ -123,7 +131,7 @@ export interface RoundTimeUpdateResponse {
 export interface RoundEndResponse {
   roundNumber: number;
   word: string;
-  winnerRole: PlayerRole;
+  winner: Player;
   players: Player[];
 }
 
@@ -136,6 +144,10 @@ export interface ChatResponse {
   nickname: string;
   message: string;
   createdAt: string; // Redis X
+}
+
+export interface CheckAnswerRequest {
+  answer: string;
 }
 
 export interface DrawRequest {

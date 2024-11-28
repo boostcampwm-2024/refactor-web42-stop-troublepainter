@@ -3,13 +3,11 @@ import { PlayerCard } from '@/components/ui/player-card/PlayerCard';
 import { useGameSocketStore } from '@/stores/socket/gameSocket.store';
 
 const PlayerCardList = () => {
-  const { players, currentPlayerId, room } = useGameSocketStore();
+  const { players, room, roundAssignedRole, currentPlayerId } = useGameSocketStore();
 
   if (!players?.length) return null;
 
-  const myRole = players.find((player) => player.playerId === currentPlayerId)?.role || undefined;
-
-  const getPlayerRole = (playerRole: PlayerRole | undefined, myRole: PlayerRole | undefined) => {
+  const getPlayerRole = (playerRole: PlayerRole | undefined, myRole: PlayerRole | null) => {
     if (myRole === PlayerRole.GUESSER) return playerRole === PlayerRole.GUESSER ? playerRole : null;
     return playerRole;
   };
@@ -17,7 +15,7 @@ const PlayerCardList = () => {
   return (
     <>
       {players.map((player) => {
-        const playerRole = getPlayerRole(player.role, myRole) || null;
+        const playerRole = getPlayerRole(player.role, roundAssignedRole) || null;
 
         return (
           <PlayerCard
