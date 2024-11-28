@@ -195,14 +195,14 @@ export const useGameSocket = () => {
 
       drawingTimeEnded: () => {
         gameActions.updateRoomStatus(RoomStatus.GUESSING);
-        gameActions.updateTimer(TimerType.GUESSING, 10);
+        gameActions.updateTimer(TimerType.GUESSING, 15);
       },
 
       roundEnded: (response: RoundEndResponse) => {
-        const { roundNumber, word, winner, players } = response;
+        const { roundNumber, word, winners, players } = response;
         gameActions.updateCurrentRound(roundNumber);
         gameActions.updateCurrentWord(word);
-        gameActions.updateRoundWinner(winner);
+        gameActions.updateRoundWinners(winners);
         gameActions.updateTimer(TimerType.ENDING, 10);
         gameActions.updatePlayers(players);
       },

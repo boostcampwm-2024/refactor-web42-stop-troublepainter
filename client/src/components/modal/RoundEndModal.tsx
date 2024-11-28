@@ -9,26 +9,26 @@ import { useGameSocketStore } from '@/stores/socket/gameSocket.store';
 import { cn } from '@/utils/cn';
 
 const RoundEndModal = () => {
-  const { room, roundWinner, players, timers, currentPlayerId } = useGameSocketStore();
+  const { room, roundWinners, players, timers, currentPlayerId } = useGameSocketStore();
   const { isModalOpened, openModal, closeModal } = useModal();
   const [showAnimation, setShowAnimation] = useState(false);
   const [isAnimationFading, setIsAnimationFading] = useState(false);
 
   useEffect(() => {
-    if (roundWinner) {
+    if (roundWinners) {
       setIsAnimationFading(false);
       setShowAnimation(true);
       openModal();
     }
-  }, [roundWinner]);
+  }, [roundWinners]);
 
   useEffect(() => {
     if (timers.ENDING === 0) closeModal();
   }, [timers.ENDING]);
 
   const devil = players.find((player) => player.role === PlayerRole.DEVIL);
-  const isDevilWin = roundWinner?.role === PlayerRole.DEVIL;
-  const isCurrentPlayerWinner = currentPlayerId === roundWinner?.playerId;
+  const isDevilWin = roundWinners?.some((winner) => winner.role === PlayerRole.DEVIL);
+  const isCurrentPlayerWinner = roundWinners?.some((winner) => winner.playerId === currentPlayerId);
 
   useEffect(() => {
     if (showAnimation) {
@@ -86,7 +86,11 @@ const RoundEndModal = () => {
               <> 정답을 맞춘 구경꾼이 없습니다</>
             ) : (
               <>
-                구경꾼 <span className="text-violet-600">{roundWinner?.nickname}</span>이 정답을 맞혔습니다
+                구경꾼
+                <span className="text-violet-600">
+                  {roundWinners?.find((winner) => winner.role === PlayerRole.GUESSER)?.nickname}
+                </span>
+                이 정답을 맞혔습니다
               </>
             )}
           </p>

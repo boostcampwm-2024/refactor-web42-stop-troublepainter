@@ -6,7 +6,7 @@ interface GameState {
   room: Room | null;
   roomSettings: RoomSettings | null;
   players: Player[];
-  roundWinner: Player | null;
+  roundWinners: Player[] | null;
   roundAssignedRole: PlayerRole | null;
   currentPlayerId: string | null;
   isHost: boolean | null;
@@ -41,7 +41,7 @@ interface GameActions {
   decreaseTimer: (timerType: TimerType) => void;
 
   // 승자 상태 업데이트
-  updateRoundWinner: (player: Player) => void;
+  updateRoundWinners: (players: Player[]) => void;
 
   // 상태 초기화
   resetRound: () => void;
@@ -56,7 +56,7 @@ const initialState: GameState = {
   currentPlayerId: null,
   isHost: null,
   timers: { DRAWING: null, ENDING: null, GUESSING: null },
-  roundWinner: null,
+  roundWinners: null,
   roundAssignedRole: null,
 };
 
@@ -174,8 +174,8 @@ export const useGameSocketStore = create<GameState & { actions: GameActions }>()
           }));
         },
 
-        updateRoundWinner: (player) => {
-          set({ roundWinner: player });
+        updateRoundWinners: (players) => {
+          set({ roundWinners: players });
         },
 
         // 상태 초기화

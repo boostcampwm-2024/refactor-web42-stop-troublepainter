@@ -38,7 +38,7 @@ const QuizGameContent = () => {
       case 'DRAWING':
         return timers.DRAWING ?? roomSettings?.drawTime;
       case 'GUESSING':
-        return timers.GUESSING ?? 10;
+        return timers.GUESSING ?? 15;
       default:
         return 0;
     }

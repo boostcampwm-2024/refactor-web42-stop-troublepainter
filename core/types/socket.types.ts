@@ -1,11 +1,11 @@
-import { CRDTMessage, DrawingData } from '@/types/crdt.types';
+import { CRDTMessage, DrawingData } from "@/types/crdt.types";
 import {
   Player,
   PlayerRole,
   Room,
   RoomSettings,
   TimerType,
-} from '@/types/game.types';
+} from "@/types/game.types";
 
 // 웹소켓 이벤트의 기본 응답 형식을 정의하는 제네릭 인터페이스
 // export interface SocketResponse<T = unknown> {
@@ -131,7 +131,7 @@ export interface RoundTimeUpdateResponse {
 export interface RoundEndResponse {
   roundNumber: number;
   word: string;
-  winner: Player;
+  winners: Player[];
   players: Player[];
 }
 
