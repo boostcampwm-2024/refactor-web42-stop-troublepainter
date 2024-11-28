@@ -1,20 +1,19 @@
 import { useEffect, useRef, MouseEvent } from 'react';
 import { Point } from '@troublepainter/core';
 import patterns from '@/assets/patterns/pattenrs';
+import {
+  CURSOR_LENGTH,
+  CURSOR_WIDTH,
+  DELETE_INTERVAL,
+  GAP,
+  OFFSET,
+  PARTICLE_SIZE,
+  RANDOM_POINT_RANGE_HEIGHT,
+  RANDOM_POINT_RANGE_Width,
+  SIZE,
+} from '@/constants/backgroundConstants';
 import { getCanvasContext } from '@/utils/getCanvasContext';
 import { getDrawPoint } from '@/utils/getDrawPoint';
-
-const SIZE = 55;
-const GAP = 40;
-const OFFSET = SIZE;
-const PARTICLE_SIZE = SIZE / 3;
-
-const RANDOM_POINT_RANGE_Width = 20;
-const RANDOM_POINT_RANGE_HEIGHT = 30;
-
-const CURSOR_WIDTH = 20;
-const CURSOR_LENGTH = 7;
-const DELETE_INTERVAL = 30;
 
 interface PatternData {
   img: HTMLImageElement;
@@ -113,6 +112,7 @@ const Background = ({ className }: { className: string }) => {
   const drawTimeRef = useRef(performance.now());
   const deleteTimeRef = useRef(performance.now());
 
+  // 패턴 찍기
   useEffect(() => {
     const { canvas, ctx } = getCanvasContext(bgCanvasRef);
     const { canvas: cursorCanvas } = getCanvasContext(cursorCanvasRef);
@@ -135,6 +135,7 @@ const Background = ({ className }: { className: string }) => {
     });
   }, []);
 
+  // 커서 그리기
   useEffect(() => {
     const { canvas, ctx } = getCanvasContext(cursorCanvasRef);
 
@@ -204,7 +205,6 @@ const Background = ({ className }: { className: string }) => {
         onMouseMove={handleMouseMove}
         onMouseLeave={handleMouseLeave}
       />
-      ;
     </div>
   );
 };
