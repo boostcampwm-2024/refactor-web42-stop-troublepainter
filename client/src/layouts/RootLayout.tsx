@@ -9,7 +9,6 @@ const RootLayout = () => {
   // 레이아웃 마운트 시 localStorage 초기화
   useEffect(() => {
     playerIdStorageUtils.removeAllPlayerIds();
-    localStorage.removeItem('shouldRedirect');
   }, []);
 
   return (

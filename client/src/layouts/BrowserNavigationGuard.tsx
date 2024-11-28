@@ -14,8 +14,8 @@ const BrowserNavigationGuard = () => {
       e.preventDefault();
       e.returnValue = ''; // 레거시 브라우저 지원
 
-      // 새로고침 시 메인으로 이동하도록 로컬스토리지에 플래그 저장
-      localStorage.setItem('shouldRedirect', 'true');
+      // 새로고침 시 메인으로 이동하도록 세션스토리지에 플래그 저장
+      sessionStorage.setItem('shouldRedirect', 'true');
 
       // 사용자 정의 메시지 반환 (일부 브라우저에서는 무시될 수 있음)
       return '게임을 종료하시겠습니까? 현재 진행 상태가 저장되지 않을 수 있습니다.';
@@ -38,10 +38,10 @@ const BrowserNavigationGuard = () => {
     window.addEventListener('popstate', handlePopState);
 
     // 새로고침 후 리다이렉트 체크
-    const shouldRedirect = localStorage.getItem('shouldRedirect');
+    const shouldRedirect = sessionStorage.getItem('shouldRedirect');
     if (shouldRedirect === 'true' && location.pathname !== '/') {
       navigate('/', { replace: true });
-      localStorage.removeItem('shouldRedirect');
+      sessionStorage.removeItem('shouldRedirect');
     }
 
     return () => {
