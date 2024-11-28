@@ -6,7 +6,7 @@ export const API_CONFIG = {
   BASE_URL,
   ENDPOINTS: {
     GAME: {
-      CREATE_ROOM: '/game/rooms',
+      CREATE_ROOM: '/api/game/rooms',
     },
   },
   OPTIONS: {
@@ -92,7 +92,7 @@ export class ApiError extends Error {
  * };
  */
 export async function fetchApi<T>(endpoint: string, options?: RequestInit): Promise<T> {
-  const response = await fetch(`${API_CONFIG.BASE_URL}${endpoint}`, {
+  const response = await fetch(`${endpoint}`, {
     ...API_CONFIG.OPTIONS,
     ...options,
     headers: {

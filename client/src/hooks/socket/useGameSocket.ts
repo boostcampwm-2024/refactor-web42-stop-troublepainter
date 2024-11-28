@@ -153,7 +153,7 @@ export const useGameSocket = () => {
         if (word) gameActions.updateCurrentWord(word);
         gameActions.updateTimer(TimerType.DRAWING, drawTime);
         gameActions.updateRoomStatus(RoomStatus.DRAWING);
-        navigate(`/game/${roomId}`);
+        navigate(`/game/${roomId}`, { replace: true }); // replace: true로 설정, 히스토리에서 대기방 제거
       },
 
       guesserRoundStarted: (response: RoundStartResponse) => {
@@ -164,7 +164,7 @@ export const useGameSocket = () => {
         guessers?.forEach((playerId) => gameActions.updatePlayerRole(playerId, PlayerRole.GUESSER));
         gameActions.updateTimer(TimerType.DRAWING, drawTime);
         gameActions.updateRoomStatus(RoomStatus.DRAWING);
-        navigate(`/game/${roomId}`);
+        navigate(`/game/${roomId}`, { replace: true });
       },
 
       timerSync: (response: TimerSyncResponse) => {

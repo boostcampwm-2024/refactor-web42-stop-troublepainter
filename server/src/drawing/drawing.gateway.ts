@@ -13,7 +13,7 @@ import { WsExceptionFilter } from 'src/filters/ws-exception.filter';
 
 @WebSocketGateway({
   cors: '*',
-  namespace: 'drawing',
+  namespace: '/socket.io/drawing',
 })
 @UseFilters(WsExceptionFilter)
 export class DrawingGateway implements OnGatewayConnection {

@@ -18,7 +18,7 @@ import { TimerType } from 'src/common/enums/game.timer.enum';
 
 @WebSocketGateway({
   cors: '*',
-  namespace: 'game',
+  namespace: '/socket.io/game',
 })
 @UseFilters(WsExceptionFilter)
 export class GameGateway implements OnGatewayDisconnect {
