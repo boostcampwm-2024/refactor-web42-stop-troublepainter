@@ -1,4 +1,4 @@
-import { Player, PlayerRole, Room, RoomSettings, RoomStatus, TimerType } from '@troublepainter/core';
+import { Player, PlayerRole, PlayerStatus, Room, RoomSettings, RoomStatus, TimerType } from '@troublepainter/core';
 import { create } from 'zustand';
 import { devtools } from 'zustand/middleware';
 
@@ -43,6 +43,8 @@ interface GameActions {
   updateRoundWinner: (player: Player) => void;
 
   // 상태 초기화
+  resetRound: () => void;
+  resetGame: () => void;
   reset: () => void;
 }
 
@@ -56,6 +58,14 @@ const initialState: GameState = {
   roundWinner: null,
   roundAssignedRole: null,
 };
+
+const resetRoundState = (state: GameState) => ({
+  room: state.room ? { ...state.room, currentWord: '' } : null,
+  roundWinner: null,
+  roundAssignedRole: null,
+  timers: { DRAWING: null, ENDING: null, GUESSING: null },
+  players: state.players.map((player) => ({ ...player, role: undefined })),
+});
 
 /**
  * 게임 상태를 관리하는 Store입니다.
@@ -166,6 +176,24 @@ export const useGameSocketStore = create<GameState & { actions: GameActions }>()
         // 상태 초기화
         reset: () => {
           set(initialState);
+        },
+
+        // 라운드 상태 초기화
+        resetRound: () => {
+          set((state) => ({
+            ...state,
+            ...resetRoundState(state),
+          }));
+        },
+
+        // 게임 상태 초기화
+        resetGame: () => {
+          set((state) => ({
+            ...state,
+            ...resetRoundState(state),
+            room: state.room && { ...state.room, status: RoomStatus.WAITING, currentRound: 0 },
+            players: state.players.map((player) => ({ ...player, score: 0, status: PlayerStatus.NOT_PLAYING })),
+          }));
         },
       },
     }),
