@@ -8,8 +8,9 @@ import {
   WebSocketServer,
 } from '@nestjs/websockets';
 import { Server, Socket } from 'socket.io';
-import { BadRequestException } from 'src/exceptions/game.exception';
+import { BadRequestException, PlayerNotFoundException, RoomNotFoundException } from 'src/exceptions/game.exception';
 import { WsExceptionFilter } from 'src/filters/ws-exception.filter';
+import { DrawingService } from './drawing.service';
 
 @WebSocketGateway({
   cors: '*',
@@ -20,11 +21,18 @@ export class DrawingGateway implements OnGatewayConnection {
   @WebSocketServer()
   server: Server;
 
+  constructor(private readonly drawingService: DrawingService) {}
+
   handleConnection(client: Socket) {
     const roomId = client.handshake.auth.roomId;
     const playerId = client.handshake.auth.playerId;
 
     if (!roomId || !playerId) throw new BadRequestException('Room ID and Player ID are required');
+
+    const roomExists = this.drawingService.existsRoom(roomId);
+    if (!roomExists) throw new RoomNotFoundException('Room not found');
+    const playerExists = this.drawingService.existsPlayer(roomId, playerId);
+    if (!playerExists) throw new PlayerNotFoundException('Player not found in room');
 
     client.data.roomId = roomId;
     client.data.playerId = playerId;

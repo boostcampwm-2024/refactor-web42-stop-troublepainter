@@ -21,4 +21,12 @@ export class ChatService {
       createdAt: new Date(),
     };
   }
+
+  async existsRoom(roomId: string) {
+    return await this.chatRepository.existsRoom(roomId);
+  }
+
+  async existsPlayer(roomId: string, playerId: string) {
+    return await this.chatRepository.existsPlayer(roomId, playerId);
+  }
 }
