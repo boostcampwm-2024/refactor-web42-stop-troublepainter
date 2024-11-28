@@ -6,7 +6,7 @@ export const API_CONFIG = {
   BASE_URL,
   ENDPOINTS: {
     GAME: {
-      CREATE_ROOM: '/api/game/rooms',
+      CREATE_ROOM: '/game/rooms',
     },
   },
   OPTIONS: {
