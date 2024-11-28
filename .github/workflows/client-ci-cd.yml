@@ -7,6 +7,7 @@ on:
       - 'client/**'
       - 'core/**'
       - '.github/workflows/client-ci-cd.yml'
+      - 'nginx.conf'
 
 jobs:
   ci:

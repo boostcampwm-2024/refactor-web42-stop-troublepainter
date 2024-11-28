@@ -12,12 +12,14 @@ import {
   PlayerStatus,
 } from '@troublepainter/core';
 import { useNavigate, useParams } from 'react-router-dom';
+import entrySound from '@/assets/sounds/entry-sound-effect.mp3';
 import { gameSocketHandlers } from '@/handlers/socket/gameSocket.handler';
 import { useGameSocketStore } from '@/stores/socket/gameSocket.store';
 import { SocketNamespace } from '@/stores/socket/socket.config';
 import { useSocketStore } from '@/stores/socket/socket.store';
 import { checkTimerDifference } from '@/utils/checkTimerDifference';
 import { playerIdStorageUtils } from '@/utils/playerIdStorage';
+import { SOUND_IDS, SoundManager } from '@/utils/soundManager';
 
 /**
  * 게임 진행에 필요한 소켓 연결과 상태를 관리하는 Hook입니다.
@@ -108,9 +110,17 @@ export const useGameSocket = () => {
     };
   }, [roomId]);
 
+  // 컴포넌트 마운트 시 사운드 미리 로드
+  useEffect(() => {
+    const soundManager = SoundManager.getInstance();
+    soundManager.preloadSound(SOUND_IDS.ENTRY, entrySound);
+  }, []);
+
   useEffect(() => {
     const socket = sockets.game;
     if (!socket || !roomId) return;
+
+    const soundManager = SoundManager.getInstance();
 
     const handlers = {
       joinedRoom: (response: JoinRoomResponse) => {
@@ -122,6 +132,7 @@ export const useGameSocket = () => {
           playerIdStorageUtils.setPlayerId(roomId, playerId);
           gameActions.updateCurrentPlayerId(playerId);
           gameActions.updateIsHost(room.hostId === playerId);
+          void soundManager.playSound(SOUND_IDS.ENTRY, 0.5);
         }
       },
 
@@ -130,6 +141,7 @@ export const useGameSocket = () => {
         gameActions.updateRoom(room);
         gameActions.updateRoomSettings({ ...roomSettings, drawTime: roomSettings.drawTime - 5 });
         gameActions.updatePlayers(players);
+        void soundManager.playSound(SOUND_IDS.ENTRY, 0.5);
       },
 
       playerLeft: (response: PlayerLeftResponse) => {

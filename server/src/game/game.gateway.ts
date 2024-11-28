@@ -197,37 +197,47 @@ export class GameGateway implements OnGatewayDisconnect {
   }
 
   async handleDisconnect(@ConnectedSocket() client: Socket) {
-    const { playerId, roomId } = client.data;
-    if (!playerId || !roomId) throw new BadRequestException('Room ID and Player ID are required');
+    try {
+      const { playerId, roomId } = client.data;
+      if (!playerId || !roomId) {
+        console.error('Disconnect error: Missing room ID or player ID');
+        return;
+      }
 
-    const existingTimeout = this.disconnectTimeouts.get(playerId);
-    if (existingTimeout) {
-      clearTimeout(existingTimeout);
-      this.disconnectTimeouts.delete(playerId);
-    }
-
-    const timeout = setTimeout(async () => {
-      try {
-        const sockets = await this.server.fetchSockets();
-        const isReconnected = sockets.some((socket) => socket.data.playerId === playerId);
-
-        if (!isReconnected) {
-          const { hostId, remainingPlayers } = await this.gameService.leaveRoom(roomId, playerId);
-          if (!remainingPlayers) {
-            this.timerService.stopGameTimer(roomId);
-            return;
-          }
-
-          this.server.to(roomId).emit('playerLeft', {
-            leftPlayerId: playerId,
-            hostId,
-            players: remainingPlayers,
-          });
-        }
-      } finally {
+      const existingTimeout = this.disconnectTimeouts.get(playerId);
+      if (existingTimeout) {
+        clearTimeout(existingTimeout);
         this.disconnectTimeouts.delete(playerId);
       }
-    }, this.DISCONNECT_TIMEOUT);
-    this.disconnectTimeouts.set(playerId, timeout);
+
+      const timeout = setTimeout(async () => {
+        try {
+          const sockets = await this.server.fetchSockets();
+          const isReconnected = sockets.some((socket) => socket.data.playerId === playerId);
+
+          if (!isReconnected) {
+            const { hostId, remainingPlayers } = await this.gameService.leaveRoom(roomId, playerId);
+            if (!remainingPlayers) {
+              this.timerService.stopGameTimer(roomId);
+              return;
+            }
+
+            this.server.to(roomId).emit('playerLeft', {
+              leftPlayerId: playerId,
+              hostId,
+              players: remainingPlayers,
+            });
+          }
+        } catch (error) {
+          console.error('Disconnect timeout error:', error);
+        } finally {
+          this.disconnectTimeouts.delete(playerId);
+        }
+      }, this.DISCONNECT_TIMEOUT);
+
+      this.disconnectTimeouts.set(playerId, timeout);
+    } catch (error) {
+      console.error('Disconnect handler error:', error);
+    }
   }
 }

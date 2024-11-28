@@ -21,6 +21,9 @@ importers:
 
   client:
     dependencies:
+      '@lottiefiles/dotlottie-react':
+        specifier: ^0.10.1
+        version: 0.10.1(react-dom@18.3.1(react@18.3.1))(react@18.3.1)
       '@tanstack/react-query':
         specifier: ^5.59.19
         version: 5.60.6(react@18.3.1)
@@ -995,6 +998,15 @@ packages:
   '@ljharb/through@2.3.13':
     resolution: {integrity: sha512-/gKJun8NNiWGZJkGzI/Ragc53cOdcLNdzjLaIa+GEjguQs0ulsurx8WN0jijdK9yPqDvziX995sMRLyLt1uZMQ==}
     engines: {node: '>= 0.4'}
+
+  '@lottiefiles/dotlottie-react@0.10.1':
+    resolution: {integrity: sha512-+RED+Nhv5viaSOXsMcRDQoAOJsGgwXIHYSovNnatMGD5ioxfum7PYUCuuZicYFScyeLZJsSfjnzr5XaE6pivAg==}
+    peerDependencies:
+      react: ^16.8.0 || ^17.0.0 || ^18.0.0
+      react-dom: ^16.8.0 || ^17.0.0 || ^18.0.0
+
+  '@lottiefiles/dotlottie-web@0.38.0':
+    resolution: {integrity: sha512-3ZAD1TS0NkgtZvIkrfFMTW5BSxRiXTG9UGCwqI98gdZ5UCyDVGxi898dFlhvNhE5vcl30LpxICp5AnuBWonCig==}
 
   '@lukeed/csprng@1.1.0':
     resolution: {integrity: sha512-Z7C/xXCiGWsg0KuKsHTKJxbWhpI3Vs5GwLfOean7MGyVFGqdRgBbAjOCh6u4bbjPc/8MJ2pZmK/0DLdCbivLDA==}
@@ -5942,6 +5954,14 @@ snapshots:
   '@ljharb/through@2.3.13':
     dependencies:
       call-bind: 1.0.7
+
+  '@lottiefiles/dotlottie-react@0.10.1(react-dom@18.3.1(react@18.3.1))(react@18.3.1)':
+    dependencies:
+      '@lottiefiles/dotlottie-web': 0.38.0
+      react: 18.3.1
+      react-dom: 18.3.1(react@18.3.1)
+
+  '@lottiefiles/dotlottie-web@0.38.0': {}
 
   '@lukeed/csprng@1.1.0': {}
 
