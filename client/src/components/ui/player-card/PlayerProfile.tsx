@@ -33,7 +33,7 @@ export const PlayerCardProfile = ({
           'relative flex h-12 w-12 items-center justify-center overflow-hidden lg:h-14 lg:w-14',
           'rounded-full border-2 bg-white/20 lg:rounded-xl',
           // 본인 여부에 따른 테두리 색상
-          isMe ? 'border-violet-900' : 'border-halfbaked-900',
+          isMe ? (isHost ? 'border-halfbaked-900' : 'border-violet-900') : 'border-halfbaked-900',
         )}
       >
         <img
