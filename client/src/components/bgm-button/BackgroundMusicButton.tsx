@@ -8,7 +8,6 @@ export const BackgroundMusicButton = () => {
   const [isHovered, setIsHovered] = useState(false);
 
   const isMuted = volume === 0;
-  console.log(isMuted);
 
   return (
     <div

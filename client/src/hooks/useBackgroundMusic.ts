@@ -57,7 +57,7 @@ export const useBackgroundMusic = () => {
         setVolume(0.5);
       } catch (err) {
         // 자동 재생이 차단된 경우
-        console.log('Auto-play prevented:', err);
+        console.error('Auto-play prevented:', err);
       }
     };
 
