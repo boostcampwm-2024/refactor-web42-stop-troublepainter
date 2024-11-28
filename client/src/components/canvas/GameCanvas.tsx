@@ -14,7 +14,6 @@ import { getDrawPoint } from '@/utils/getDrawPoint';
 interface GameCanvasProps {
   role: PlayerRole;
   maxPixels?: number;
-  handleDrawingReveal: (value: boolean) => void;
   currentRound: number;
   roomStatus: RoomStatus;
 }
@@ -48,7 +47,7 @@ interface GameCanvasProps {
  *
  * @category Components
  */
-const GameCanvas = ({ role, maxPixels = 100000, handleDrawingReveal, currentRound, roomStatus }: GameCanvasProps) => {
+const GameCanvas = ({ role, maxPixels = 100000, currentRound, roomStatus }: GameCanvasProps) => {
   const canvasRef = useRef<HTMLCanvasElement>(null);
   const { convertCoordinate } = useCoordinateScale(MAINCANVAS_RESOLUTION_WIDTH, canvasRef);
 
@@ -85,7 +84,7 @@ const GameCanvas = ({ role, maxPixels = 100000, handleDrawingReveal, currentRoun
       }
     },
     onSubmitRequest: () => {
-      if (!isDrawable || !isConnected) return;
+      if (!isConnected) return;
 
       const allDrawingData = getAllDrawingData();
       if (!allDrawingData) return;
@@ -96,17 +95,9 @@ const GameCanvas = ({ role, maxPixels = 100000, handleDrawingReveal, currentRoun
       if (!response.drawing) return;
 
       resetCanvas();
-
       applyDrawing(response.drawing);
-      handleDrawingReveal(true);
     },
   });
-
-  const isDrawableRole = (role: PlayerRole): role is PlayerRole.PAINTER | PlayerRole.DEVIL => {
-    return role === 'PAINTER' || role === 'DEVIL';
-  };
-
-  const isDrawable = isDrawableRole(role);
 
   const COLORS = COLORS_INFO.map((color) => ({
     ...color,
@@ -116,7 +107,7 @@ const GameCanvas = ({ role, maxPixels = 100000, handleDrawingReveal, currentRoun
 
   const handleDrawStart = useCallback(
     (e: ReactMouseEvent<HTMLCanvasElement> | ReactTouchEvent<HTMLCanvasElement>) => {
-      if (!isDrawable || !isConnected) return;
+      if (!isConnected) return;
 
       const { canvas } = getCanvasContext(canvasRef);
       const point = getDrawPoint(e, canvas);
@@ -127,7 +118,7 @@ const GameCanvas = ({ role, maxPixels = 100000, handleDrawingReveal, currentRoun
         void drawingSocketHandlers.sendDrawing(crdtDrawingData);
       }
     },
-    [startDrawing, convertCoordinate, isConnected, isDrawable],
+    [startDrawing, convertCoordinate, isConnected],
   );
 
   const handleDrawMove = useCallback(
@@ -149,22 +140,22 @@ const GameCanvas = ({ role, maxPixels = 100000, handleDrawingReveal, currentRoun
   }, [stopDrawing]);
 
   const handleUndo = useCallback(() => {
-    if (!isDrawable || !isConnected) return;
+    if (!isConnected) return;
     const updates = undo();
     if (!updates) return;
     updates.forEach((update) => {
       void drawingSocketHandlers.sendDrawing(update);
     });
-  }, [undo, isConnected, isDrawable]);
+  }, [undo, isConnected]);
 
   const handleRedo = useCallback(() => {
-    if (!isDrawable || !isConnected) return;
+    if (!isConnected) return;
     const updates = redo();
     if (!updates) return;
     updates.forEach((update) => {
       void drawingSocketHandlers.sendDrawing(update);
     });
-  }, [redo, isConnected, isDrawable]);
+  }, [redo, isConnected]);
 
   const canvasEventHandlers: CanvasEventHandlers = {
     onMouseDown: handleDrawStart,
@@ -180,8 +171,8 @@ const GameCanvas = ({ role, maxPixels = 100000, handleDrawingReveal, currentRoun
   return (
     <Canvas
       canvasRef={canvasRef}
-      isDrawable={isDrawable}
-      colors={isDrawable ? COLORS : []}
+      isDrawable={(role === 'PAINTER' || role === 'DEVIL') && roomStatus === 'DRAWING'}
+      colors={true ? COLORS : []}
       brushSize={brushSize}
       setBrushSize={setBrushSize}
       drawingMode={drawingMode}

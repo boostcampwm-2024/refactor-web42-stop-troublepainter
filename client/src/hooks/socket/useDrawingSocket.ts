@@ -59,7 +59,7 @@ interface UseDrawingSocketProps {
 export const useDrawingSocket = ({ onDrawUpdate, onDrawingTimeEnded, onSubmitRequest }: UseDrawingSocketProps) => {
   const { roomId } = useParams<{ roomId: string }>();
   const { sockets, connected, actions: socketActions } = useSocketStore();
-  const { currentPlayerId } = useGameSocketStore(); // roomId가 있다고 가정
+  const { currentPlayerId } = useGameSocketStore();
 
   // 소켓 연결 설정
   const handleDrawUpdate = useCallback(

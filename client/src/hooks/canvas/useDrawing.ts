@@ -247,19 +247,17 @@ export const useDrawing = (
         state.crdtRef.current.merge(crdtDrawingData.state);
         operation.redrawCanvas();
 
-        // 드로잉 타임일 때만 히스토리 관리
         if (roomStatus === 'DRAWING') {
           state.strokeHistoryRef.current = [];
           state.historyPointerRef.current = -1;
           state.updateHistoryState();
         }
-      } else if (crdtDrawingData.type === CRDTMessageTypes.UPDATE && roomStatus === 'DRAWING') {
+      } else if (crdtDrawingData.type === CRDTMessageTypes.UPDATE) {
         const { key, register } = crdtDrawingData.state;
         const peerId = key.split('-')[0];
         const isLocalUpdate = peerId === state.currentPlayerId;
 
         if (!state.crdtRef.current.mergeRegister(key, register) || isLocalUpdate) return;
-        // 원격 업데이트의 경우 캔버스 다시 그리기
         operation.redrawCanvas();
 
         const stroke = register[2];
@@ -268,6 +266,7 @@ export const useDrawing = (
         if (state.historyPointerRef.current < state.strokeHistoryRef.current.length - 1) {
           state.strokeHistoryRef.current = state.strokeHistoryRef.current.slice(0, state.historyPointerRef.current + 1);
         }
+
         state.strokeHistoryRef.current.push({
           strokeIds: [key],
           isLocal: false,
@@ -277,7 +276,7 @@ export const useDrawing = (
         state.updateHistoryState();
       }
     },
-    [state.currentPlayerId, operation.redrawCanvas, state.updateHistoryState],
+    [state.currentPlayerId, operation.redrawCanvas, state.updateHistoryState, roomStatus],
   );
 
   const getAllDrawingData = useCallback((): CRDTSyncMessage | null => {
