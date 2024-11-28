@@ -14,6 +14,7 @@ import { getDrawPoint } from '@/utils/getDrawPoint';
 interface GameCanvasProps {
   role: PlayerRole;
   maxPixels?: number;
+  handleDrawingReveal: (value: boolean) => void;
 }
 
 /**
@@ -45,7 +46,7 @@ interface GameCanvasProps {
  *
  * @category Components
  */
-const GameCanvas = ({ role, maxPixels = 100000 }: GameCanvasProps) => {
+const GameCanvas = ({ role, maxPixels = 100000, handleDrawingReveal }: GameCanvasProps) => {
   const canvasRef = useRef<HTMLCanvasElement>(null);
   const { convertCoordinate } = useCoordinateScale(MAINCANVAS_RESOLUTION_WIDTH, canvasRef);
 
@@ -89,6 +90,7 @@ const GameCanvas = ({ role, maxPixels = 100000 }: GameCanvasProps) => {
       response.drawing.forEach((drawingData) => {
         applyDrawing(drawingData);
       });
+      handleDrawingReveal(true);
     },
   });
 
