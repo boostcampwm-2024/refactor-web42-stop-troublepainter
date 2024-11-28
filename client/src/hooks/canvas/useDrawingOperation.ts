@@ -188,14 +188,14 @@ export const useDrawingOperation = (
       }
 
       ctx.putImageData(imageData, 0, 0);
-      setInkRemaining((prev) => Math.max(0, prev - pixelCount));
+      setInkRemaining((prev: number) => Math.max(0, prev - pixelCount));
 
       return {
         points: filledPoints,
         style: getCurrentStyle(),
       };
     },
-    [currentColor, inkRemaining, getCurrentStyle],
+    [currentColor, inkRemaining, getCurrentStyle, setInkRemaining],
   );
 
   return {
