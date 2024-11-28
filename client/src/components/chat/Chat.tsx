@@ -1,5 +1,5 @@
-import { FormEvent, useState } from 'react';
-import { RoomStatus, type ChatResponse } from '@troublepainter/core';
+import { FormEvent, useMemo, useState } from 'react';
+import { PlayerRole, RoomStatus, type ChatResponse } from '@troublepainter/core';
 import { ChatBubble } from '@/components/chat/ChatBubbleUI';
 import { Input } from '@/components/ui/Input';
 import { chatSocketHandlers } from '@/handlers/socket/chatSocket.handler';
@@ -12,7 +12,7 @@ import { useGameSocketStore } from '@/stores/socket/gameSocket.store';
 export const Chat = () => {
   const [inputMessage, setInputMessage] = useState('');
   const { messages, isConnected, currentPlayerId } = useChatSocket();
-  const { players, room } = useGameSocketStore();
+  const { players, room, roundAssignedRole } = useGameSocketStore();
   const { actions } = useChatSocketStore();
   const { containerRef } = useScrollToBottom([messages]);
 
@@ -37,6 +37,12 @@ export const Chat = () => {
 
     setInputMessage('');
   };
+
+  const shouldDisableInput = useMemo(() => {
+    const ispainters = roundAssignedRole !== PlayerRole.GUESSER;
+    const isDrawing = room?.status === 'DRAWING' || room?.status === 'GUESSING';
+    return ispainters && isDrawing;
+  }, [roundAssignedRole, room?.status]);
 
   return (
     <div className="relative flex h-full w-full flex-col">
@@ -65,7 +71,7 @@ export const Chat = () => {
           onChange={(e) => setInputMessage(e.target.value)}
           placeholder="메시지를 입력하세요"
           maxLength={100}
-          disabled={!isConnected}
+          disabled={!isConnected || shouldDisableInput}
           autoComplete="off"
         />
       </form>
