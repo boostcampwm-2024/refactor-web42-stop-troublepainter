@@ -15,9 +15,16 @@ import {
 import { getCanvasContext } from '@/utils/getCanvasContext';
 import { getDrawPoint } from '@/utils/getDrawPoint';
 
+type ImgType = 'particle' | 'pattern';
+
 interface PatternData {
   img: HTMLImageElement;
-  type: 'particle' | 'pattern';
+  type: ImgType;
+}
+
+interface PatternLists {
+  patternList: PatternData[];
+  particleList: PatternData[];
 }
 
 const randomizeWidth = () => Math.random() * RANDOM_POINT_RANGE_Width - RANDOM_POINT_RANGE_Width / 2;
@@ -81,25 +88,30 @@ const redraw = (
   }
 };
 
-const getImageLists = (patterns: string[]) =>
-  patterns.reduce(
-    ([pattern, particle]: [PatternData[], PatternData[]], src: string): [PatternData[], PatternData[]] => {
-      const paths = src.split('/');
-      const type = paths[paths.length - 1].split('-')[0];
-      if (!(type === 'particle' || type === 'pattern')) throw new Error('패턴 이미지 이름이 잘못됐음');
+const getPatternType = (src: string): ImgType => {
+  const paths = src.split('/');
+  const type = paths[paths.length - 1].split('-')[0];
+  if (!(type === 'pattern' || type === 'particle')) throw new Error('파츠 파일명이 잘못되었음.');
 
-      const img = new Image();
-      img.src = src;
+  return type;
+};
 
-      const patternData: PatternData = { img, type };
+const getImageLists = (patterns: string[]): PatternLists => {
+  const lists: PatternLists = {
+    patternList: [],
+    particleList: [],
+  };
 
-      if (type === 'pattern') pattern.push(patternData);
-      if (type === 'particle') particle.push(patternData);
+  patterns.forEach((src) => {
+    const img = new Image();
+    img.src = src;
+    const type = getPatternType(src);
 
-      return [pattern, particle];
-    },
-    [[], []],
-  );
+    lists[type as keyof PatternLists].push({ img, type });
+  });
+
+  return lists;
+};
 
 const Background = ({ className }: { className: string }) => {
   const bgCanvasRef = useRef<HTMLCanvasElement>(null);
@@ -117,7 +129,7 @@ const Background = ({ className }: { className: string }) => {
     const { canvas, ctx } = getCanvasContext(bgCanvasRef);
     const { canvas: cursorCanvas } = getCanvasContext(cursorCanvasRef);
 
-    const [patternList, particleList] = getImageLists(patterns);
+    const { patternList, particleList } = getImageLists(patterns);
 
     Promise.all([
       Promise.all(patternList.map((imgData) => new Promise((res) => (imgData.img.onload = res)))),
@@ -130,9 +142,14 @@ const Background = ({ className }: { className: string }) => {
         console.error(err);
       });
 
-    window.addEventListener('resize', () => {
+    const handleResize = () => {
       redraw(canvas, cursorCanvas, ctx, patternList, particleList);
-    });
+    };
+
+    window.addEventListener('resize', handleResize);
+    return () => {
+      window.removeEventListener('resize', handleResize);
+    };
   }, []);
 
   // 커서 그리기
