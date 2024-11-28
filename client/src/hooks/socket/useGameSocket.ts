@@ -9,6 +9,7 @@ import {
   RoundEndResponse,
   RoomStatus,
   TimerType,
+  PlayerStatus,
 } from '@troublepainter/core';
 import { useNavigate, useParams } from 'react-router-dom';
 import { gameSocketHandlers } from '@/handlers/socket/gameSocket.handler';
@@ -145,6 +146,7 @@ export const useGameSocket = () => {
       drawingGroupRoundStarted: (response: RoundStartResponse) => {
         const { roundNumber, roles, word, assignedRole, drawTime } = response;
         const { painters, devils, guessers } = roles;
+        gameActions.updatePlayersStatus(PlayerStatus.PLAYING);
         gameActions.updateCurrentRound(roundNumber);
         gameActions.updateRoundAssignedRole(assignedRole);
         painters?.forEach((playerId) => gameActions.updatePlayerRole(playerId, PlayerRole.PAINTER));
@@ -159,6 +161,7 @@ export const useGameSocket = () => {
       guesserRoundStarted: (response: RoundStartResponse) => {
         const { roundNumber, roles, assignedRole, drawTime } = response;
         const { guessers } = roles;
+        gameActions.updatePlayersStatus(PlayerStatus.PLAYING);
         gameActions.updateCurrentRound(roundNumber);
         gameActions.updateRoundAssignedRole(assignedRole);
         guessers?.forEach((playerId) => gameActions.updatePlayerRole(playerId, PlayerRole.GUESSER));

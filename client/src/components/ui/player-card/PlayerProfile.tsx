@@ -33,7 +33,7 @@ export const PlayerCardProfile = ({
           'relative flex h-12 w-12 items-center justify-center overflow-hidden lg:h-14 lg:w-14',
           'rounded-full border-2 bg-white/20 lg:rounded-xl',
           // 본인 여부에 따른 테두리 색상
-          isMe ? (isHost ? 'border-halfbaked-900' : 'border-violet-900') : 'border-halfbaked-900',
+          isMe ? 'border-violet-900' : 'border-halfbaked-900',
         )}
       >
         <img
@@ -44,7 +44,12 @@ export const PlayerCardProfile = ({
 
         {/* 모바일 상태 오버레이 */}
         {showScore ? (
-          <div className="absolute inset-0 flex items-center justify-center rounded-full bg-black/50 lg:hidden">
+          <div
+            className={cn(
+              'absolute inset-0 flex items-center justify-center rounded-full lg:hidden',
+              isMe ? 'bg-violet-500/50' : 'bg-black/50',
+            )}
+          >
             <span className="text-xl font-bold text-white text-stroke-sm">{score}</span>
           </div>
         ) : (
