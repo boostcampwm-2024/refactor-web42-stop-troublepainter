@@ -37,11 +37,7 @@ export class LWWMap {
   addStroke(stroke: DrawingData): string {
     const timestamp = Date.now();
     const id = `${this.id}-${timestamp}-${Math.random().toString(36).substring(2, 9)}`;
-    const register = new LWWRegister<DrawingData | null>(this.id, [
-      this.id,
-      timestamp,
-      stroke,
-    ]);
+    const register = new LWWRegister<DrawingData | null>(this.id, [this.id, timestamp, stroke]);
     this.#data.set(id, register);
     return id;
   }
@@ -79,10 +75,7 @@ export class LWWMap {
   }
 
   // 단일 레지스터 업데이트
-  mergeRegister(
-    key: string,
-    remoteRegisterState: RegisterState<DrawingData | null>
-  ): boolean {
+  mergeRegister(key: string, remoteRegisterState: RegisterState<DrawingData | null>): boolean {
     const localRegister = this.#data.get(key);
 
     if (localRegister) {

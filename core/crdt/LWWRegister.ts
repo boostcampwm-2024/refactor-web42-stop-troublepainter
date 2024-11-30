@@ -26,10 +26,7 @@ export class LWWRegister<T> {
     const [remotePeer, remoteTimestamp] = remoteState;
     const [localPeer, localTimestamp] = this.#state;
 
-    if (
-      remoteTimestamp > localTimestamp ||
-      (remoteTimestamp === localTimestamp && remotePeer > localPeer)
-    ) {
+    if (remoteTimestamp > localTimestamp || (remoteTimestamp === localTimestamp && remotePeer > localPeer)) {
       this.#state = remoteState;
       return true;
     }

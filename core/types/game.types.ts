@@ -22,22 +22,22 @@ export interface RoomSettings {
 }
 
 export enum PlayerStatus {
-  NOT_PLAYING = "NOT_PLAYING",
-  PLAYING = "PLAYING",
+  NOT_PLAYING = 'NOT_PLAYING',
+  PLAYING = 'PLAYING',
 }
 export enum PlayerRole {
-  PAINTER = "PAINTER",
-  DEVIL = "DEVIL",
-  GUESSER = "GUESSER",
+  PAINTER = 'PAINTER',
+  DEVIL = 'DEVIL',
+  GUESSER = 'GUESSER',
 }
 export enum RoomStatus {
-  WAITING = "WAITING",
-  DRAWING = "DRAWING",
-  GUESSING = "GUESSING",
+  WAITING = 'WAITING',
+  DRAWING = 'DRAWING',
+  GUESSING = 'GUESSING',
 }
 
 export enum TimerType {
-  DRAWING = "DRAWING",
-  GUESSING = "GUESSING",
-  ENDING = "ENDING",
+  DRAWING = 'DRAWING',
+  GUESSING = 'GUESSING',
+  ENDING = 'ENDING',
 }

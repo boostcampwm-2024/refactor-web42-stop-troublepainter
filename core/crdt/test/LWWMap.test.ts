@@ -2,10 +2,7 @@ import { DrawingData, MapState, RegisterState } from '@/types/crdt.types';
 import { LWWMap } from '@/crdt/LWWMap';
 
 describe('LWWMap', () => {
-  const createTestStroke = (
-    color: string = '#000000',
-    width: number = 2
-  ): DrawingData => ({
+  const createTestStroke = (color: string = '#000000', width: number = 2): DrawingData => ({
     points: [
       { x: 0, y: 0 },
       { x: 2, y: 2 },
@@ -153,11 +150,7 @@ describe('LWWMap', () => {
       const modifyTime = deleteTime + 1000;
       vi.setSystemTime(modifyTime);
       const modifiedStroke = createTestStroke('#0000ff');
-      const modifiedState: RegisterState<DrawingData | null> = [
-        'peer2',
-        modifyTime,
-        modifiedStroke,
-      ];
+      const modifiedState: RegisterState<DrawingData | null> = ['peer2', modifyTime, modifiedStroke];
       map2.mergeRegister(id, modifiedState);
 
       // 양방향 동기화
