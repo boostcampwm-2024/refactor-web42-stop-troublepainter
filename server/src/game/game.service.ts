@@ -9,6 +9,7 @@ import {
   BadRequestException,
   InsufficientPlayersException,
   ForbiddenException,
+  GameAlreadyStartedException,
 } from 'src/exceptions/game.exception';
 import { RoomStatus, PlayerStatus, PlayerRole, Difficulty } from 'src/common/enums/game.status.enum';
 import { ClovaClient } from 'src/common/clova-client';
@@ -50,6 +51,9 @@ export class GameService {
     ]);
 
     if (!room) throw new RoomNotFoundException();
+    if (room.status === RoomStatus.GUESSING || room.status === RoomStatus.DRAWING) {
+      throw new GameAlreadyStartedException('Cannot join room while game is in progress');
+    }
     if (!roomSettings) throw new RoomNotFoundException('Room settings not found');
     if (players.length >= roomSettings.maxPlayers) {
       throw new RoomFullException('Room is full');
@@ -60,7 +64,7 @@ export class GameService {
       playerId,
       role: null,
       status: PlayerStatus.NOT_PLAYING,
-      nickname: `Player ${players.length + 1}`,
+      nickname: this.generateNickname(),
       profileImage: null,
       score: 0,
     };
@@ -78,8 +82,47 @@ export class GameService {
     return { room, roomSettings, player, players: updatedPlayers };
   }
 
-  getRoomStatus(roomId: string) {
-    return this.gameRepository.getRoomStatus(roomId);
+  private generateNickname() {
+    const adjectives = [
+      '귀여운',
+      '용감한',
+      '즐거운',
+      '행복한',
+      '웃는',
+      '똑똑한',
+      '현명한',
+      '멋진',
+      '활발한',
+      '착한',
+      '신나는',
+      '재미있는',
+      '발랄한',
+      '영리한',
+      '친절한',
+    ];
+
+    const nouns = [
+      '판다',
+      '호랑이',
+      '토끼',
+      '강아지',
+      '고양이',
+      '펭귄',
+      '사자',
+      '기린',
+      '코끼리',
+      '곰돌이',
+      '여우',
+      '늑대',
+      '참새',
+      '독수리',
+      '돌고래',
+    ];
+
+    const adj = adjectives[Math.floor(Math.random() * adjectives.length)];
+    const noun = nouns[Math.floor(Math.random() * nouns.length)];
+
+    return `${adj} ${noun}`;
   }
 
   async reconnect(roomId: string, playerId: string) {
