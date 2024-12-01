@@ -17,7 +17,7 @@ import {
   OFFSET,
   PARTICLE_SIZE,
   RANDOM_POINT_RANGE_HEIGHT,
-  RANDOM_POINT_RANGE_Width,
+  RANDOM_POINT_RANGE_WIDTH,
   SIZE,
 } from '@/constants/backgroundConstants';
 import { getCanvasContext } from '@/utils/getCanvasContext';
@@ -35,7 +35,7 @@ interface patterns {
   particle: PatternData[];
 }
 
-const randomizeWidth = () => Math.random() * RANDOM_POINT_RANGE_Width - RANDOM_POINT_RANGE_Width / 2;
+const randomizeWidth = () => Math.random() * RANDOM_POINT_RANGE_WIDTH - RANDOM_POINT_RANGE_WIDTH / 2;
 const randomizeHeight = () => Math.random() * RANDOM_POINT_RANGE_HEIGHT - RANDOM_POINT_RANGE_HEIGHT / 2;
 
 const redraw = (
