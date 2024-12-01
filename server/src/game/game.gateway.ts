@@ -85,6 +85,16 @@ export class GameGateway implements OnGatewayDisconnect {
     client.to(roomId).emit('settingsUpdated', { settings: updatedSettings });
   }
 
+  @SubscribeMessage('updatePlayer')
+  async handle(@ConnectedSocket() client: Socket, @MessageBody() data: { player: Partial<Player> }) {
+    const { playerId, roomId } = client.data;
+    if (!roomId || !playerId) throw new BadRequestException('Room ID and Player ID are required');
+
+    const updatedPlayer = await this.gameService.updatePlayer(roomId, playerId, data.player);
+
+    client.to(roomId).emit('playerUpdated', { player: updatedPlayer });
+  }
+
   @SubscribeMessage('gameStart')
   async handleGameStart(@ConnectedSocket() client: Socket) {
     const { playerId, roomId } = client.data;

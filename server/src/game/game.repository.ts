@@ -83,6 +83,18 @@ export class GameRepository {
     await multi.exec();
   }
 
+  async getPlayer(roomId: string, playerId: string) {
+    const player = await this.redisService.hgetall(`room:${roomId}:players:${playerId}`);
+    if (!player || Object.keys(player).length === 0) return null;
+
+    return {
+      ...player,
+      role: player.role === '' ? null : player.role,
+      profileImage: player.userImg === '' ? null : player.userImg,
+      score: parseInt(player.score, 10) || 0,
+    } as Player;
+  }
+
   async updatePlayer(roomId: string, playerId: string, player: Partial<Player>) {
     await this.redisService.hset(`room:${roomId}:players:${playerId}`, player);
   }

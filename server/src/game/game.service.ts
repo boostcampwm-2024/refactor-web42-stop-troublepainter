@@ -141,6 +141,19 @@ export class GameService {
     return updatedSettings;
   }
 
+  async updatePlayer(roomId: string, playerId: string, data: Partial<Player>) {
+    const room = await this.gameRepository.getRoom(roomId);
+    if (!room) throw new RoomNotFoundException('Room not found');
+
+    const player = await this.gameRepository.getPlayer(roomId, playerId);
+    if (!player) throw new PlayerNotFoundException('Player not found');
+
+    const updatedPlayer = { ...player, ...data };
+    await this.gameRepository.updatePlayer(roomId, playerId, updatedPlayer);
+
+    return updatedPlayer;
+  }
+
   async startGame(roomId: string, playerId: string) {
     const room = await this.gameRepository.getRoom(roomId);
     if (!room) throw new RoomNotFoundException('Room not found');
