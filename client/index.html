@@ -30,7 +30,14 @@
         "availability": "http://schema.org/InStock"
       },
       "inLanguage": "ko",
-      "copyrightYear": 2024
+      "copyrightYear": 2024,
+      "gameServer": "WebSocket",
+      "playMode": "Multiplayer",
+      "audience": "Everyone", 
+      "requirementsMinimum": {
+        "@type": "GamePlayRequirement",
+        "requiresDevice": "Desktop or Mobile Browser with WebSocket support"
+      }
     }
   </script>
   <meta charset="UTF-8">
@@ -42,6 +49,11 @@
 
   <!-- IE 관련 설정, 구버전 IE의 호환성 모드를 방지 -->
   <meta http-equiv="X-UA-Compatible" content="IE=edge">
+
+  <!-- XSS Protection 활성화 -->
+  <meta http-equiv="X-XSS-Protection" content="1; mode=block">
+  <!-- MIME 타입 스니핑 방지 -->
+  <meta http-equiv="X-Content-Type-Options" content="nosniff">
 
   <!-- 모바일 관련 설정 -->
   <!-- iOS 기기에서 웹 앱을 전체 화면 모드로 실행 가능하게 -->
@@ -55,7 +67,7 @@
   <meta property="og:title" content="방해꾼은 못말려: 그림꾼의 역습">
   <meta property="og:description"
     content="잘 그렸나? 망쳤나? 정체를 숨긴 방해꾼이 쏘아올린 혼돈 속에서, 그림꾼들의 진실을 찾아내는 구경꾼들의 훈수가 시작됩니다! 🎨🕵️‍♀️">
-  <meta property="og:image" content="/android-chrome-512x512.png">
+  <meta property="og:image" content="https://troublepainter.site/android-chrome-512x512.png">
   <meta property="og:site_name" content="troublepainter">
 
   <!-- Twitter -->
@@ -64,7 +76,7 @@
   <meta name="twitter:title" content="방해꾼은 못말려: 그림꾼의 역습">
   <meta name="twitter:description"
     content="잘 그렸나? 망쳤나? 정체를 숨긴 방해꾼이 쏘아올린 혼돈 속에서, 그림꾼들의 진실을 찾아내는 구경꾼들의 훈수가 시작됩니다! 🎨🕵️‍♀️">
-  <meta name="twitter:image" content="/android-chrome-512x512.png">
+  <meta property="twitter:image" content="https://troublepainter.site/android-chrome-512x512.png">
 
   <!-- 기본 파비콘 -->
   <link rel="icon" type="image/x-icon" href="/favicon.ico">
