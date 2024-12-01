@@ -56,12 +56,13 @@ export class GameService {
     }
 
     const playerId = v4();
+    const nickname = this.generateNickname();
     const player: Player = {
       playerId,
       role: null,
       status: PlayerStatus.NOT_PLAYING,
-      nickname: `Player ${players.length + 1}`,
-      profileImage: null,
+      nickname,
+      profileImage: `https://api.dicebear.com/9.x/pixel-art/svg?seed=${nickname}`,
       score: 0,
     };
 
@@ -78,8 +79,47 @@ export class GameService {
     return { room, roomSettings, player, players: updatedPlayers };
   }
 
-  getRoomStatus(roomId: string) {
-    return this.gameRepository.getRoomStatus(roomId);
+  private generateNickname() {
+    const adjectives = [
+      '귀여운',
+      '용감한',
+      '즐거운',
+      '행복한',
+      '웃는',
+      '똑똑한',
+      '현명한',
+      '멋진',
+      '활발한',
+      '착한',
+      '신나는',
+      '재미있는',
+      '발랄한',
+      '영리한',
+      '친절한',
+    ];
+
+    const nouns = [
+      '판다',
+      '호랑이',
+      '토끼',
+      '강아지',
+      '고양이',
+      '펭귄',
+      '사자',
+      '기린',
+      '코끼리',
+      '곰돌이',
+      '여우',
+      '늑대',
+      '참새',
+      '독수리',
+      '돌고래',
+    ];
+
+    const adj = adjectives[Math.floor(Math.random() * adjectives.length)];
+    const noun = nouns[Math.floor(Math.random() * nouns.length)];
+
+    return `${adj} ${noun}`;
   }
 
   async reconnect(roomId: string, playerId: string) {
