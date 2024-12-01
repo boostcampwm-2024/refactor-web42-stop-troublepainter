@@ -5,6 +5,9 @@ export default {
   content: ['./index.html', './src/**/*.{js,ts,jsx,tsx}'],
   theme: {
     extend: {
+      backgroundImage : {
+        'patternImg' : `url("/src/assets/patterns/background.png")`
+      },
       screens: {
         xs: '480px', // xs 브레이크포인트 추가
       },
