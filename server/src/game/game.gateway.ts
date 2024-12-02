@@ -212,8 +212,6 @@ export class GameGateway implements OnGatewayDisconnect {
           if (!isReconnected) {
             const { roomStatus, hostId, remainingPlayers } = await this.gameService.leaveRoom(roomId, playerId);
 
-            this.timerService.stopGameTimer(roomId);
-
             if (roomStatus === RoomStatus.WAITING) {
               this.server.to(roomId).emit('playerLeft', {
                 leftPlayerId: playerId,
@@ -222,6 +220,8 @@ export class GameGateway implements OnGatewayDisconnect {
               });
               return;
             }
+
+            this.timerService.stopGameTimer(roomId);
 
             await this.gameService.initializeGame(roomId);
 
