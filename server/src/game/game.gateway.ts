@@ -12,7 +12,7 @@ import { UseFilters } from '@nestjs/common';
 import { WsExceptionFilter } from 'src/filters/ws-exception.filter';
 import { Player, Room, RoomSettings } from 'src/common/types/game.types';
 import { BadRequestException } from 'src/exceptions/game.exception';
-import { PlayerRole } from 'src/common/enums/game.status.enum';
+import { PlayerRole, TerminationType } from 'src/common/enums/game.status.enum';
 import { TimerService } from 'src/common/services/timer.service';
 import { TimerType } from 'src/common/enums/game.timer.enum';
 
@@ -102,7 +102,9 @@ export class GameGateway implements OnGatewayDisconnect {
   private async startNewRound(roomId: string) {
     const gameState = await this.gameService.setupRound(roomId);
     if (gameState.gameEnded) {
-      this.server.to(roomId).emit('gameEnded');
+      this.server.to(roomId).emit('gameEnded', {
+        terminationType: TerminationType.SUCCESS,
+      });
       return;
     }
 
@@ -214,7 +216,10 @@ export class GameGateway implements OnGatewayDisconnect {
               return;
             }
 
-            this.server.to(roomId).emit('playerLeft', {
+            await this.gameService.initializeGame(roomId);
+
+            this.server.to(roomId).emit('gameEnded', {
+              terminationType: TerminationType.PLAYER_DISCONNECT,
               leftPlayerId: playerId,
               hostId,
               players: remainingPlayers,
