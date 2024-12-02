@@ -1,4 +1,4 @@
-import { HTMLAttributes } from 'react';
+import { HTMLAttributes, memo } from 'react';
 import { cva, type VariantProps } from 'class-variance-authority';
 import { cn } from '@/utils/cn';
 
@@ -22,7 +22,7 @@ export interface ChatBubbleProps extends HTMLAttributes<HTMLDivElement>, Variant
   nickname?: string;
 }
 
-const ChatBubble = ({ className, variant, content, nickname, ...props }: ChatBubbleProps) => {
+const ChatBubble = memo(({ className, variant, content, nickname, ...props }: ChatBubbleProps) => {
   const isOtherUser = Boolean(nickname);
   const ariaLabel = isOtherUser ? `${nickname}님의 메시지: ${content}` : `내 메시지: ${content}`;
 
@@ -42,6 +42,6 @@ const ChatBubble = ({ className, variant, content, nickname, ...props }: ChatBub
       </p>
     </div>
   );
-};
+});
 
 export { ChatBubble, chatBubbleVariants };

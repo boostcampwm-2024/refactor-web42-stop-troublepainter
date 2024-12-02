@@ -22,7 +22,7 @@ import { useSocketStore } from '@/stores/socket/socket.store';
  *
  * @example
  * ```typescript
- * const { messages, isConnected, sendMessage } = useChatSocket();
+ * useChatSocket();
  *
  * // 메시지 전송
  * sendMessage("안녕하세요");
@@ -30,9 +30,9 @@ import { useSocketStore } from '@/stores/socket/socket.store';
  */
 export const useChatSocket = () => {
   const { roomId } = useParams<{ roomId: string }>();
-  const { sockets, connected, actions: socketActions } = useSocketStore();
+  const { sockets, actions: socketActions } = useSocketStore();
   const { currentPlayerId } = useGameSocketStore();
-  const { messages, actions: chatActions } = useChatSocketStore();
+  const { actions: chatActions } = useChatSocketStore();
 
   // Socket 연결 설정
   useEffect(() => {
@@ -64,10 +64,4 @@ export const useChatSocket = () => {
       socket.off('messageReceived', handleMessageReceived);
     };
   }, [sockets.chat, currentPlayerId, chatActions]);
-
-  return {
-    messages,
-    isConnected: connected.chat,
-    currentPlayerId,
-  };
 };

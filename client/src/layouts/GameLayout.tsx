@@ -1,7 +1,7 @@
 import { DotLottieReact } from '@lottiefiles/dotlottie-react';
 import { Outlet } from 'react-router-dom';
 import loading from '@/assets/lottie/loading.lottie';
-import { Chat } from '@/components/chat/Chat';
+import { ChatContatiner } from '@/components/chat/ChatContatiner';
 import { NavigationModal } from '@/components/modal/NavigationModal';
 import { PlayerCardList } from '@/components/player/PlayerCardList';
 import { useGameSocket } from '@/hooks/socket/useGameSocket';
@@ -78,7 +78,7 @@ const GameLayout = () => {
                 '2xl:-ml-5 2xl:py-5 2xl:pl-5',
               )}
             >
-              <Chat />
+              <ChatContatiner />
             </aside>
           </div>
         </main>
