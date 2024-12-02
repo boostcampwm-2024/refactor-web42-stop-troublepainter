@@ -12,7 +12,7 @@ import { UseFilters } from '@nestjs/common';
 import { WsExceptionFilter } from 'src/filters/ws-exception.filter';
 import { Player, Room, RoomSettings } from 'src/common/types/game.types';
 import { BadRequestException } from 'src/exceptions/game.exception';
-import { PlayerRole, TerminationType } from 'src/common/enums/game.status.enum';
+import { PlayerRole, RoomStatus, TerminationType } from 'src/common/enums/game.status.enum';
 import { TimerService } from 'src/common/services/timer.service';
 import { TimerType } from 'src/common/enums/game.timer.enum';
 
@@ -210,9 +210,18 @@ export class GameGateway implements OnGatewayDisconnect {
           const isReconnected = sockets.some((socket) => socket.data.playerId === playerId);
 
           if (!isReconnected) {
-            const { hostId, remainingPlayers } = await this.gameService.leaveRoom(roomId, playerId);
+            const { roomStatus, hostId, remainingPlayers } = await this.gameService.leaveRoom(roomId, playerId);
 
             this.timerService.stopGameTimer(roomId);
+
+            if (roomStatus === RoomStatus.WAITING) {
+              this.server.to(roomId).emit('playerLeft', {
+                leftPlayerId: playerId,
+                hostId,
+                players: remainingPlayers,
+              });
+              return;
+            }
 
             await this.gameService.initializeGame(roomId);
 

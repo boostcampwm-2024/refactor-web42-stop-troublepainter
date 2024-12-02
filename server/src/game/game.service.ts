@@ -167,7 +167,7 @@ export class GameService {
 
     await this.gameRepository.removePlayerFromRoom(roomId, playerId);
 
-    return { hostId, remainingPlayers };
+    return { roomStatus: room.status, hostId, remainingPlayers };
   }
 
   async initializeGame(roomId: string) {
