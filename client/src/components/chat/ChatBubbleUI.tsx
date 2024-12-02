@@ -3,7 +3,7 @@ import { cva, type VariantProps } from 'class-variance-authority';
 import { cn } from '@/utils/cn';
 
 const chatBubbleVariants = cva(
-  'px-2.5 inline-flex max-w-[85%] items-center justify-center rounded-lg border-2 border-violet-950 text-violet-950 text-base min-h-8 lg:text-lg 2xl:py-0.5 2xl:text-xl',
+  'break-all px-2.5 inline-flex max-w-[85%] items-center justify-center rounded-lg border-2 border-violet-950 text-violet-950 text-base min-h-8 lg:text-lg 2xl:py-0.5 2xl:text-xl',
   {
     variants: {
       variant: {

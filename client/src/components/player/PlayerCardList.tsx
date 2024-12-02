@@ -19,6 +19,7 @@ const PlayerCardList = () => {
 
         return (
           <PlayerCard
+            profileImage={player.profileImage}
             key={player.playerId}
             nickname={player.nickname}
             status={player.status}

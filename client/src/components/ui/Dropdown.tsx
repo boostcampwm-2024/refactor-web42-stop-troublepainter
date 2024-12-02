@@ -7,18 +7,21 @@ export interface DropdownProps extends HTMLAttributes<HTMLDivElement> {
   options: string[];
   handleChange: (value: string) => void;
   selectedValue: string;
+  shortcutKey?: KeyboardEvent['key'];
 }
 
-const Dropdown = ({ options, handleChange, selectedValue, className, ...props }: DropdownProps) => {
-  const { isOpen, toggleDropdown, handleOptionClick, dropdownRef } = useDropdown({
+const Dropdown = ({ options, handleChange, selectedValue, shortcutKey, className, ...props }: DropdownProps) => {
+  const { isOpen, toggleDropdown, handleOptionClick, dropdownRef, optionRefs, handleOptionKeyDown } = useDropdown({
     handleChange,
+    shortcutKey,
+    options,
   });
 
   return (
     <div className={cn('relative rounded-lg bg-eastbay-50 text-2xl', className)} ref={dropdownRef} {...props}>
       <button
         onClick={toggleDropdown}
-        className="flex h-full w-full items-center justify-between rounded-lg border-2 border-violet-950 px-2"
+        className="flex h-full w-full items-center justify-between rounded-lg border-2 border-violet-950 px-2 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-violet-500 focus-visible:ring-offset-2"
       >
         <span className="w-full text-center">{selectedValue}</span>
         <img
@@ -39,7 +42,9 @@ const Dropdown = ({ options, handleChange, selectedValue, className, ...props }:
           {options.map((option, index) => (
             <button
               key={index}
+              ref={(item) => (optionRefs.current[index] = item)}
               onClick={() => handleOptionClick(option)}
+              onKeyDown={handleOptionKeyDown}
               className={cn(
                 'w-full p-2 text-center transition-colors duration-200 ease-in-out hover:bg-violet-100 focus:bg-violet-200',
               )}
