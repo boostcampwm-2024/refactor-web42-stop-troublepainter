@@ -13,6 +13,9 @@ const Background = ({ className }: { className: string }) => {
   const drawTimeRef = useRef(performance.now());
   const deleteTimeRef = useRef(performance.now());
 
+  const currentTimestamp = useRef(performance.now());
+  const lastTimestamp = useRef(performance.now());
+
   // 커서 그리기
   useEffect(() => {
     const { canvas, ctx } = getCanvasContext(cursorCanvasRef);
@@ -72,6 +75,10 @@ const Background = ({ className }: { className: string }) => {
   }, []);
 
   const handleMouseMove = (e: MouseEvent<HTMLCanvasElement>) => {
+    currentTimestamp.current = performance.now();
+    if (currentTimestamp.current - lastTimestamp.current < 16) return;
+    lastTimestamp.current = currentTimestamp.current;
+
     const { canvas } = getCanvasContext(cursorCanvasRef);
     const point = getDrawPoint(e, canvas);
     pointsRef.current.push(point);
