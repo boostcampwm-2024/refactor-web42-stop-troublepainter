@@ -1,4 +1,5 @@
-import { useMemo } from 'react';
+import { useCallback, useEffect, useMemo } from 'react';
+import { SHORTCUT_KEY } from '@/constants/shortcutKey';
 import { gameSocketHandlers } from '@/handlers/socket/gameSocket.handler';
 import { useGameSocketStore } from '@/stores/socket/gameSocket.store';
 
@@ -29,10 +30,22 @@ export const useGameStart = () => {
     return START_BUTTON_STATUS.CAN_START;
   }, [isHost, players.length]);
 
-  const handleStartGame = () => {
+  const handleStartGame = useCallback(() => {
     if (!room || buttonConfig.disabled || !room.roomId || !currentPlayerId) return;
     void gameSocketHandlers.gameStart();
-  };
+  }, [room, buttonConfig.disabled, room?.roomId, currentPlayerId]);
+
+  useEffect(() => {
+    const handleKeyDown = (event: KeyboardEvent) => {
+      if (event.key === SHORTCUT_KEY.GAME_START) {
+        handleStartGame();
+      }
+    };
+    document.addEventListener('keydown', handleKeyDown);
+    return () => {
+      document.removeEventListener('keydown', handleKeyDown);
+    };
+  }, [handleStartGame]);
 
   return {
     isHost,
