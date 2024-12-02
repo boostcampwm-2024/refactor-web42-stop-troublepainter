@@ -9,6 +9,7 @@ import {
   BadRequestException,
   InsufficientPlayersException,
   ForbiddenException,
+  GameAlreadyStartedException,
 } from 'src/exceptions/game.exception';
 import { RoomStatus, PlayerStatus, PlayerRole, Difficulty } from 'src/common/enums/game.status.enum';
 import { ClovaClient } from 'src/common/clova-client';
@@ -50,6 +51,9 @@ export class GameService {
     ]);
 
     if (!room) throw new RoomNotFoundException();
+    if (room.status === RoomStatus.GUESSING || room.status === RoomStatus.DRAWING) {
+      throw new GameAlreadyStartedException('Cannot join room while game is in progress');
+    }
     if (!roomSettings) throw new RoomNotFoundException('Room settings not found');
     if (players.length >= roomSettings.maxPlayers) {
       throw new RoomFullException('Room is full');
@@ -179,6 +183,19 @@ export class GameService {
     await this.gameRepository.updateRoomSettings(roomId, updatedSettings);
 
     return updatedSettings;
+  }
+
+  async updatePlayer(roomId: string, playerId: string, data: Partial<Player>) {
+    const room = await this.gameRepository.getRoom(roomId);
+    if (!room) throw new RoomNotFoundException('Room not found');
+
+    const player = await this.gameRepository.getPlayer(roomId, playerId);
+    if (!player) throw new PlayerNotFoundException('Player not found');
+
+    const updatedPlayer = { ...player, ...data };
+    await this.gameRepository.updatePlayer(roomId, playerId, updatedPlayer);
+
+    return updatedPlayer;
   }
 
   async startGame(roomId: string, playerId: string) {
