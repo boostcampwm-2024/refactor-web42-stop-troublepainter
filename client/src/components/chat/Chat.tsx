@@ -12,7 +12,6 @@ import { useGameSocketStore } from '@/stores/socket/gameSocket.store';
 
 export const Chat = () => {
   const [inputMessage, setInputMessage] = useState('');
-  const [isInputActive, setIsInputActive] = useState(false);
   const inputRef = useRef<HTMLInputElement | null>(null);
   const { messages, isConnected, currentPlayerId } = useChatSocket();
   const { players, room, roundAssignedRole } = useGameSocketStore();
@@ -49,12 +48,20 @@ export const Chat = () => {
 
   const handleKeyDown = useCallback(
     (event: KeyboardEvent) => {
-      if (event.key !== SHORTCUT_KEY.CHAT) return;
-      const action = isInputActive && inputMessage.trim() === '' ? 'blur' : 'focus';
-      inputRef.current?.[action]();
-      setIsInputActive(action === 'focus');
+      if (event.key !== SHORTCUT_KEY.CHAT || !inputRef.current) return;
+
+      // 현재 포커스된 요소가 없거나, 포커스된 요소가 body라면 input을 포커싱
+      const isNoFocusedElement = !document.activeElement || document.activeElement === document.body;
+
+      if (isNoFocusedElement) {
+        inputRef.current?.focus();
+      } else if (inputMessage.trim() === '') {
+        inputRef.current.blur();
+      } else {
+        inputRef.current?.focus();
+      }
     },
-    [isInputActive, inputMessage],
+    [inputMessage],
   );
 
   useEffect(() => {
