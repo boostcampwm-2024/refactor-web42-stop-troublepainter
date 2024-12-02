@@ -31,7 +31,8 @@ interface UseDropdown {
  *     focusedIndex,     // 현재 포커스된 옵션의 인덱스
  *     toggleDropdown,   // 드롭다운 토글 함수
  *     handleOptionClick,// 옵션 클릭 핸들러
- *     dropdownRef       // 드롭다운 요소의 ref
+ *     dropdownRef,      // 드롭다운 요소의 ref
+ *     handleOptionKeyDown // 옵션 키보드 이벤트 핸들러
  *   } = useDropdown({
  *     shortcutKey: 'Q',
  *     handleChange: (value) => console.log(value),
@@ -46,13 +47,15 @@ interface UseDropdown {
  *       {isOpen && (
  *         <ul>
  *           {options.map((option, index) => (
- *             <li
+ *             <button
  *               key={option}
+ *               ref={(el) => (optionRefs.current[index] = el)}
  *               data-focused={index === focusedIndex}
  *               onClick={() => handleOptionClick(option)}
+ *               onKeyDown={handleOptionKeyDown}
  *             >
  *               {option}
- *             </li>
+ *             </button>
  *           ))}
  *         </ul>
  *       )}
@@ -63,11 +66,12 @@ interface UseDropdown {
  *
  * @remarks
  * 이 훅은 다음과 같은 기능을 제공합니다:
- * - 단축키를 통한 드롭다운 열기
+ * - 단축키를 통한 드롭다운 열기/닫기
  * - 키보드 방향키(상하)를 통한 옵션 탐색
  * - Enter키를 통한 옵션 선택
  * - Escape키를 통한 드롭다운 닫기
  * - 외부 클릭 시 자동으로 드롭다운 닫기
+ * - 접근성을 위한 키보드 탐색 지원
  *
  * @category Hooks
  */
