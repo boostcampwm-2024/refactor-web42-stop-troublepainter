@@ -34,7 +34,7 @@ const MainPage = () => {
       >
         <Background
           className={cn(
-            'before:bg-patternImg before:contents-[""] absolute -z-10 h-full w-full before:absolute before:left-0 before:top-0 before:h-full before:w-full before:bg-cover before:bg-center',
+            'before:contents-[""] absolute -z-10 h-full w-full before:absolute before:left-0 before:top-0 before:h-full before:w-full before:bg-patternImg before:bg-cover before:bg-center',
           )}
         />
         <div className="duration-1000 animate-in fade-in slide-in-from-top-8">
