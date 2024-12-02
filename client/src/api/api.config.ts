@@ -1,6 +1,7 @@
+import { checkProduction } from '@/utils/checkProduction';
+
 // 서버 URL
 const BASE_URL = import.meta.env.VITE_API_URL || 'http://localhost:3000';
-const PRODUCTION_URL = 'www.troublepainter.site';
 
 // const SOCKET_URL = import.meta.env.VITE_SOCKET_URL || 'http://localhost:3000';
 
@@ -94,8 +95,7 @@ export class ApiError extends Error {
  * };
  */
 export async function fetchApi<T>(endpoint: string, options?: RequestInit): Promise<T> {
-  const isProductionHost = window.location.origin.includes(PRODUCTION_URL);
-  const url = isProductionHost ? `/api${endpoint}` : `${BASE_URL}${endpoint}`;
+  const url = checkProduction() ? `/api${endpoint}` : `${BASE_URL}${endpoint}`;
 
   const response = await fetch(url, {
     ...API_CONFIG.OPTIONS,
