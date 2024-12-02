@@ -127,6 +127,11 @@ export const useDrawing = (
       const lastPoint = currentDrawingPoints.current[currentDrawingPoints.current.length - 1];
       if (lastPoint.x === point.x && lastPoint.y === point.y) return null;
 
+      const pixelsUsed = Math.ceil(
+        Math.sqrt(Math.pow(point.x - lastPoint.x, 2) + Math.pow(point.y - lastPoint.y, 2)) * state.brushSize,
+      );
+      state.setInkRemaining((prev: number) => Math.max(0, prev - pixelsUsed));
+
       currentDrawingPoints.current.push(point);
 
       const drawingData = {
