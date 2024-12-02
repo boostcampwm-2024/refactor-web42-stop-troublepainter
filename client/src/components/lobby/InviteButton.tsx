@@ -1,5 +1,6 @@
-import { useState } from 'react';
+import { useEffect, useState } from 'react';
 import { Button } from '@/components/ui/Button';
+import { SHORTCUT_KEY } from '@/constants/shortcutKey';
 import { useToastStore } from '@/stores/toast.store';
 import { cn } from '@/utils/cn';
 
@@ -29,6 +30,18 @@ export const InviteButton = () => {
       });
     }
   };
+
+  useEffect(() => {
+    const handleKeyDown = (event: KeyboardEvent) => {
+      if (event.key === SHORTCUT_KEY.GAME_INVITE) {
+        void handleCopyInvite();
+      }
+    };
+    document.addEventListener('keydown', handleKeyDown);
+    return () => {
+      document.removeEventListener('keydown', handleKeyDown);
+    };
+  }, []);
 
   return (
     <Button
