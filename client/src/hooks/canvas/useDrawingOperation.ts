@@ -82,6 +82,8 @@ export const useDrawingOperation = (
     ctx.fillStyle = style.color;
     ctx.lineWidth = style.width;
     ctx.beginPath();
+    ctx.lineCap = 'round';
+    ctx.lineJoin = 'round';
 
     if (points.length === 1) {
       const point = points[0];

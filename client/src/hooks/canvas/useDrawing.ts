@@ -85,14 +85,14 @@ export const useDrawing = (
 ) => {
   const state = useDrawingState(options);
   const operation = useDrawingOperation(canvasRef, state);
-  const lastPoint = useRef<Point | null>(null);
+  const currentDrawingPoints = useRef<Point[]>([]);
 
   const startDrawing = useCallback(
     (point: Point): CRDTUpdateMessage | null => {
       if (state.checkInkAvailability() === false || !state.crdtRef.current) return null;
 
       state.currentStrokeIdsRef.current = [];
-      lastPoint.current = point;
+      currentDrawingPoints.current = [point];
 
       const drawingData =
         state.drawingMode === DRAWING_MODE.FILL
@@ -121,19 +121,24 @@ export const useDrawing = (
 
   const continueDrawing = useCallback(
     (point: Point): CRDTUpdateMessage | null => {
-      if (!state.crdtRef.current || !lastPoint.current || state.inkRemaining <= 0) return null;
+      if (!state.crdtRef.current || currentDrawingPoints.current.length === 0 || state.inkRemaining <= 0) return null;
       if (state.drawingMode === DRAWING_MODE.FILL) return null;
-      if (lastPoint.current.x === point.x && lastPoint.current.y === point.y) return null;
+
+      const lastPoint = currentDrawingPoints.current[currentDrawingPoints.current.length - 1];
+      if (lastPoint.x === point.x && lastPoint.y === point.y) return null;
+
+      currentDrawingPoints.current.push(point);
 
       const drawingData = {
-        points: [lastPoint.current, point],
+        points: [...currentDrawingPoints.current],
         style: operation.getCurrentStyle(),
       };
 
       const strokeId = state.crdtRef.current.addStroke(drawingData);
       state.currentStrokeIdsRef.current.push(strokeId);
       operation.drawStroke(drawingData);
-      lastPoint.current = point;
+
+      currentDrawingPoints.current = [point];
 
       return {
         type: CRDTMessageTypes.UPDATE,
@@ -147,7 +152,8 @@ export const useDrawing = (
   );
 
   const stopDrawing = useCallback(() => {
-    if (!state.crdtRef.current || !lastPoint.current || state.currentStrokeIdsRef.current.length === 0) return;
+    if (!state.crdtRef.current || !currentDrawingPoints.current || state.currentStrokeIdsRef.current.length === 0)
+      return;
 
     if (state.historyPointerRef.current < state.strokeHistoryRef.current.length - 1) {
       state.strokeHistoryRef.current = state.strokeHistoryRef.current.slice(0, state.historyPointerRef.current + 1);
@@ -174,7 +180,7 @@ export const useDrawing = (
 
     state.historyPointerRef.current = state.strokeHistoryRef.current.length - 1;
 
-    lastPoint.current = null;
+    currentDrawingPoints.current = [];
     state.currentStrokeIdsRef.current = [];
     state.updateHistoryState();
   }, [state]);
