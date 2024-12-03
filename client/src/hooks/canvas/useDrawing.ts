@@ -99,10 +99,14 @@ export const useDrawing = (
 
   const renderStroke = useCallback(
     (strokeData: DrawingData, position: 'middle' | 'end') => {
-      if (position === 'middle' || strokeData.points.length > 2) {
+      if (position === 'middle') {
         operation.redrawCanvas();
       } else {
-        operation.drawStroke(strokeData);
+        if (strokeData.points.length > 2) {
+          operation.applyFill(strokeData);
+        } else {
+          operation.drawStroke(strokeData);
+        }
       }
     },
     [operation],
