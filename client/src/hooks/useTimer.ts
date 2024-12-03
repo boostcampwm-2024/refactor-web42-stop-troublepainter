@@ -1,10 +1,10 @@
 import { useEffect, useRef } from 'react';
 import { TimerType } from '@troublepainter/core';
-import { useGameSocketStore } from '@/stores/socket/gameSocket.store';
+import { useTimerStore } from '@/stores/timer.store';
 
 export const useTimer = () => {
-  const actions = useGameSocketStore((state) => state.actions);
-  const timers = useGameSocketStore((state) => state.timers);
+  const actions = useTimerStore((state) => state.actions);
+  const timers = useTimerStore((state) => state.timers);
 
   const intervalRefs = useRef<Record<TimerType, NodeJS.Timeout | null>>({
     [TimerType.DRAWING]: null,

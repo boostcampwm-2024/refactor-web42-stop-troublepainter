@@ -1,6 +1,6 @@
 import { useEffect, useState } from 'react';
 import { DotLottieReact } from '@lottiefiles/dotlottie-react';
-import { PlayerRole } from '@troublepainter/core';
+import { PlayerRole, RoomStatus } from '@troublepainter/core';
 import roundLoss from '@/assets/lottie/round-loss.lottie';
 import roundWin from '@/assets/lottie/round-win.lottie';
 import { Modal } from '@/components/ui/Modal';
@@ -12,7 +12,6 @@ const RoundEndModal = () => {
   const room = useGameSocketStore((state) => state.room);
   const roundWinners = useGameSocketStore((state) => state.roundWinners);
   const players = useGameSocketStore((state) => state.players);
-  const timers = useGameSocketStore((state) => state.timers);
   const currentPlayerId = useGameSocketStore((state) => state.currentPlayerId);
 
   const { isModalOpened, openModal, closeModal } = useModal();
@@ -28,8 +27,8 @@ const RoundEndModal = () => {
   }, [roundWinners]);
 
   useEffect(() => {
-    if (timers.ENDING === 0) closeModal();
-  }, [timers.ENDING]);
+    if (room && room.status === RoomStatus.DRAWING) closeModal();
+  }, [room]);
 
   const devil = players.find((player) => player.role === PlayerRole.DEVIL);
   const isDevilWin = roundWinners?.some((winner) => winner.role === PlayerRole.DEVIL);

@@ -7,7 +7,7 @@ import { useTimer } from '@/hooks/useTimer';
 import { useGameSocketStore } from '@/stores/socket/gameSocket.store';
 import { cn } from '@/utils/cn';
 
-const QuizGameContent = () => {
+const QuizStageContainer = () => {
   const room = useGameSocketStore((state) => state.room);
   const roomSettings = useGameSocketStore((state) => state.roomSettings);
   const roundAssignedRole = useGameSocketStore((state) => state.roundAssignedRole);
@@ -47,6 +47,14 @@ const QuizGameContent = () => {
   }, [room?.status, timers, roomSettings?.drawTime]);
   return (
     <>
+      {/* 구경꾼 전용 타이머 */}
+      <div className={cn('relative', shouldHideSizzlingTimer && 'hidden')}>
+        <img src={sizzlingTimer} alt="구경꾼 전용 타이머" width={450} />
+        <span className="absolute left-[42%] top-[45%] text-6xl text-stroke-md lg:text-7xl">
+          {timers.DRAWING ?? roomSettings.drawTime - 5}
+        </span>
+      </div>
+
       <QuizTitle
         currentRound={room.currentRound}
         totalRound={roomSettings.totalRounds}
@@ -54,6 +62,7 @@ const QuizGameContent = () => {
         remainingTime={remainingTime || 0}
         isHidden={shouldHideQuizTitle}
       />
+
       <GameCanvas
         currentRound={room.currentRound}
         roomStatus={room.status}
@@ -61,15 +70,8 @@ const QuizGameContent = () => {
         maxPixels={100000}
         isHidden={shouldHideCanvas}
       />
-
-      <div className={cn('relative', shouldHideSizzlingTimer && 'hidden')}>
-        <img src={sizzlingTimer} alt="타이머" width={450} />
-        <span className="absolute left-[42%] top-[45%] text-6xl text-stroke-md lg:text-7xl">
-          {timers.DRAWING ?? roomSettings.drawTime - 5}
-        </span>
-      </div>
     </>
   );
 };
 
-export default QuizGameContent;
+export default QuizStageContainer;
