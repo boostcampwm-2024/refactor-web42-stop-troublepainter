@@ -208,8 +208,7 @@ export const useGameSocket = () => {
       },
 
       gameEnded: () => {
-        gameActions.resetGame();
-        navigate(`/lobby/${roomId}`, { replace: true });
+        navigate(`/game/${roomId}/result`, { replace: true });
       },
     };
 
