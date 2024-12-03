@@ -9,14 +9,17 @@ import { cn } from '@/utils/cn';
 
 const ResultPage = () => {
   const navigate = useNavigate();
-
-  const players = useGameSocketStore((state) => state.players);
   const roomId = useGameSocketStore((state) => state.room?.roomId);
+  const players = useGameSocketStore((state) => state.players);
   const terminateType = useGameSocketStore((state) => state.gameTerminateType);
   const gameActions = useGameSocketStore((state) => state.actions);
   const toastActions = useToastStore((state) => state.actions);
 
-  const [firstPlace, secondPlace, thirdPlace] = players;
+  const sortedScores = [...new Set(players.map((player) => player.score))].sort((a, b) => b - a);
+
+  const [firstPlacePlayers, secondPlacePlayers, thirdPlacePlayers] = sortedScores.map((score) =>
+    players.filter((player) => player.score === score),
+  );
 
   useEffect(() => {
     const description =
@@ -30,7 +33,7 @@ const ResultPage = () => {
       variant: 'success',
       duration: 20000,
     });
-  }, [terminateType]);
+  }, [terminateType, toastActions]);
 
   const handleTimeout = useCallback(() => {
     gameActions.resetGame();
@@ -41,71 +44,67 @@ const ResultPage = () => {
 
   const positionStyles = {
     first: {
-      scorePosition: 'bottom-[36%] left-[48%]',
-      profilePosition: 'left-[38%] top-[29%]',
-      profileTextClass: 'sm:left-[42%] sm:top-[28.5%]',
+      containerStyle: 'absolute w-[40%] left-[30%] top-[29%]',
+      scoreStyle: 'bottom-[36%] left-[48%]',
     },
     second: {
-      scorePosition: 'bottom-[23%] left-[18%]',
-      profilePosition: 'bottom-[37%] left-[9%]',
-      profileTextClass: 'sm:left-[13%] sm:bottom-[38%]',
+      containerStyle: 'absolute w-[40%] left-[1%] bottom-[37%]',
+      scoreStyle: 'bottom-[23%] left-[18%]',
     },
     third: {
-      scorePosition: 'bottom-[18%] right-[17.5%]',
-      profilePosition: 'bottom-[28%] right-[8%]',
-      profileTextClass: 'sm:right-[12%] sm:bottom-[29%]',
+      containerStyle: 'absolute w-[40%] right-[1%] bottom-[28%]',
+      scoreStyle: 'bottom-[18%] right-[17.5%]',
     },
   };
 
-  const renderPlayer = (player: Player, position: 'first' | 'second' | 'third') => {
-    if (!player || player.score === 0) return null;
+  const renderPlayers = (players: Player[], position: 'first' | 'second' | 'third') => {
+    if (!players || players.length === 0 || players[0].score === 0) return null;
 
-    const { scorePosition, profilePosition, profileTextClass } = positionStyles[position];
-    const { score, nickname, profileImage } = player;
+    const { containerStyle, scoreStyle } = positionStyles[position];
 
     return (
       <>
-        {/* 점수 */}
-        <span className={cn(`absolute text-2xl sm:text-3xl`, scorePosition)}>{String(score).padStart(2, '0')}</span>
-        {/* 프로필 */}
-        <div
-          className={cn(
-            'absolute flex animate-bounce flex-col items-center justify-center',
-            profilePosition,
-            profileTextClass,
-          )}
-        >
-          <img
-            src={profileImage}
-            alt={`${nickname} 프로필 사진`}
-            className={cn(
-              'rounded-[0.3rem] border-2 border-chartreuseyellow-500 bg-eastbay-50',
-              'h-10 w-10',
-              'sm:h-16 sm:w-16',
-            )}
-          />
-          <span className="text-md text-stroke-sm">
-            <span className="text-chartreuseyellow-400">{nickname}</span>
-          </span>
+        <span className={cn(`absolute text-2xl sm:text-3xl`, scoreStyle)}>
+          {String(players[0].score).padStart(2, '0')}
+        </span>
+        <div className={cn('flex justify-center gap-2', containerStyle)}>
+          {players.map((player) => (
+            <div key={player.playerId} className={cn('flex animate-bounce flex-col items-center justify-center')}>
+              <img
+                src={player.profileImage}
+                alt={`${player.nickname} 프로필 사진`}
+                className={cn(
+                  'rounded-[0.3rem] border-2 border-chartreuseyellow-500 bg-eastbay-50',
+                  'h-10 w-10',
+                  'sm:h-16 sm:w-16',
+                )}
+              />
+              <span className="truncate text-xs text-stroke-sm sm:text-base">
+                <span className="text-chartreuseyellow-400">{player.nickname}</span>
+              </span>
+            </div>
+          ))}
         </div>
       </>
     );
   };
 
   return (
-    <section className="relative">
-      <img src={podium} alt="" aria-hidden={true} className="w-[25rem] sm:w-[33.75rem]" />
-      <span className="absolute left-14 top-[25%] text-4xl text-stroke-md sm:left-12 sm:text-7xl sm:text-stroke-lg">
-        GAME
-      </span>
-      <span className="absolute right-14 top-[25%] text-4xl text-stroke-md sm:right-12 sm:text-7xl sm:text-stroke-lg">
-        ENDS
-      </span>
+    <div className="relative">
+      <section className="relative">
+        <img src={podium} alt="" aria-hidden={true} className="w-[25rem] sm:w-[33.75rem]" />
+        <span className="absolute left-14 top-[25%] text-4xl text-stroke-md sm:left-12 sm:text-7xl sm:text-stroke-lg">
+          GAME
+        </span>
+        <span className="absolute right-14 top-[25%] text-4xl text-stroke-md sm:right-12 sm:text-7xl sm:text-stroke-lg">
+          ENDS
+        </span>
 
-      {renderPlayer(firstPlace, 'first')}
-      {renderPlayer(secondPlace, 'second')}
-      {renderPlayer(thirdPlace, 'third')}
-    </section>
+        {renderPlayers(firstPlacePlayers, 'first')}
+        {renderPlayers(secondPlacePlayers, 'second')}
+        {renderPlayers(thirdPlacePlayers, 'third')}
+      </section>
+    </div>
   );
 };
 
