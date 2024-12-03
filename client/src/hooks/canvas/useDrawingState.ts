@@ -74,7 +74,7 @@ import { playerIdStorageUtils } from '@/utils/playerIdStorage';
 export const useDrawingState = (options?: { maxPixels?: number }) => {
   const { roomId } = useParams<{ roomId: string }>();
   const currentPlayerId = playerIdStorageUtils.getPlayerId(roomId as string);
-  const { actions } = useToastStore();
+  const actions = useToastStore((state) => state.actions);
 
   const maxPixels = options?.maxPixels ?? DEFAULT_MAX_PIXELS;
   const [currentColor, setCurrentColor] = useState(COLORS_INFO[0].backgroundColor);

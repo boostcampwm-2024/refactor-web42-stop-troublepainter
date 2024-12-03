@@ -9,7 +9,12 @@ import { useGameSocketStore } from '@/stores/socket/gameSocket.store';
 import { cn } from '@/utils/cn';
 
 const RoundEndModal = () => {
-  const { room, roundWinners, players, timers, currentPlayerId } = useGameSocketStore();
+  const room = useGameSocketStore((state) => state.room);
+  const roundWinners = useGameSocketStore((state) => state.roundWinners);
+  const players = useGameSocketStore((state) => state.players);
+  const timers = useGameSocketStore((state) => state.timers);
+  const currentPlayerId = useGameSocketStore((state) => state.currentPlayerId);
+
   const { isModalOpened, openModal, closeModal } = useModal();
   const [showAnimation, setShowAnimation] = useState(false);
   const [isAnimationFading, setIsAnimationFading] = useState(false);

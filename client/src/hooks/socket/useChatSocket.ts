@@ -30,9 +30,10 @@ import { useSocketStore } from '@/stores/socket/socket.store';
  */
 export const useChatSocket = () => {
   const { roomId } = useParams<{ roomId: string }>();
-  const { sockets, actions: socketActions } = useSocketStore();
-  const { currentPlayerId } = useGameSocketStore();
-  const { actions: chatActions } = useChatSocketStore();
+  const sockets = useSocketStore((state) => state.sockets);
+  const socketActions = useSocketStore((state) => state.actions);
+  const currentPlayerId = useGameSocketStore((state) => state.currentPlayerId);
+  const chatActions = useChatSocketStore((state) => state.actions);
 
   // Socket 연결 설정
   useEffect(() => {

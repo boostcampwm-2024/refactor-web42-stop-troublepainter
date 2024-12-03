@@ -6,7 +6,8 @@ import { useNavigationModalStore } from '@/stores/navigationModal.store';
 
 export const NavigationModal = () => {
   const navigate = useNavigate();
-  const { isOpen, actions } = useNavigationModalStore();
+  const isOpen = useNavigationModalStore((state) => state.isOpen);
+  const actions = useNavigationModalStore((state) => state.actions);
 
   const handleConfirmExit = () => {
     actions.closeModal();

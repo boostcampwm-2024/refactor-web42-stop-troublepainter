@@ -8,7 +8,9 @@ import { useGameSocketStore } from '@/stores/socket/gameSocket.store';
 import { cn } from '@/utils/cn';
 
 const QuizGameContent = () => {
-  const { room, roomSettings, roundAssignedRole } = useGameSocketStore();
+  const room = useGameSocketStore((state) => state.room);
+  const roomSettings = useGameSocketStore((state) => state.roomSettings);
+  const roundAssignedRole = useGameSocketStore((state) => state.roundAssignedRole);
 
   if (!room || !roomSettings) return null;
 

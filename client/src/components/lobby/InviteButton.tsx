@@ -6,7 +6,7 @@ import { cn } from '@/utils/cn';
 
 export const InviteButton = () => {
   const [copied, setCopied] = useState(false);
-  const { actions } = useToastStore();
+  const actions = useToastStore((state) => state.actions);
 
   const handleCopyInvite = async () => {
     if (copied) return;

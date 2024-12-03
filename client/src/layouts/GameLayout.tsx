@@ -7,11 +7,14 @@ import { PlayerCardList } from '@/components/player/PlayerCardList';
 import { useGameSocket } from '@/hooks/socket/useGameSocket';
 import BrowserNavigationGuard from '@/layouts/BrowserNavigationGuard';
 import GameHeader from '@/layouts/GameHeader';
+import { useSocketStore } from '@/stores/socket/socket.store';
 import { cn } from '@/utils/cn';
 
 const GameLayout = () => {
-  const { isConnected } = useGameSocket();
-  // console.log(players, room, roomSettings);
+  // 게임 소켓 연결
+  useGameSocket();
+  // 소켓 연결 확인 상태
+  const isConnected = useSocketStore((state) => state.connected.game);
 
   // 연결 상태에 따른 로딩 표시
   if (!isConnected) {

@@ -3,7 +3,8 @@ import { TimerType } from '@troublepainter/core';
 import { useGameSocketStore } from '@/stores/socket/gameSocket.store';
 
 export const useTimer = () => {
-  const { actions, timers } = useGameSocketStore();
+  const actions = useGameSocketStore((state) => state.actions);
+  const timers = useGameSocketStore((state) => state.timers);
 
   const intervalRefs = useRef<Record<TimerType, NodeJS.Timeout | null>>({
     [TimerType.DRAWING]: null,
