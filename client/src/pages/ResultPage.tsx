@@ -1,38 +1,59 @@
-import { Player } from '@troublepainter/core';
+import { useCallback, useEffect } from 'react';
+import { Player, TerminationType } from '@troublepainter/core';
 import { useNavigate } from 'react-router-dom';
 import podium from '@/assets/podium.gif';
 import { useTimeout } from '@/hooks/useTimeout';
 import { useGameSocketStore } from '@/stores/socket/gameSocket.store';
+import { useToastStore } from '@/stores/toast.store';
 import { cn } from '@/utils/cn';
 
 const ResultPage = () => {
-  const players = useGameSocketStore((state) => state.players);
-  const roomId = useGameSocketStore((state) => state.room?.roomId);
-  const actions = useGameSocketStore((state) => state.actions);
-  const [firstPlace, secondPlace, thirdPlace] = players;
   const navigate = useNavigate();
 
-  useTimeout(() => {
-    actions.resetGame();
-    navigate(`/lobby/${roomId}`);
-  }, 20000);
+  const players = useGameSocketStore((state) => state.players);
+  const roomId = useGameSocketStore((state) => state.room?.roomId);
+  const terminateType = useGameSocketStore((state) => state.gameTerminateType);
+  const gameActions = useGameSocketStore((state) => state.actions);
+  const toastActions = useToastStore((state) => state.actions);
 
-  // 포지션 스타일 상수화
+  const [firstPlace, secondPlace, thirdPlace] = players;
+
+  useEffect(() => {
+    const description =
+      terminateType === TerminationType.PLAYER_DISCONNECT
+        ? '나간 플레이어가 있어요. 20초 후 대기실로 돌아갑니다!'
+        : '20초 후 대기실로 돌아갑니다!';
+
+    toastActions.addToast({
+      title: '게임 종료',
+      description,
+      variant: 'success',
+      duration: 20000,
+    });
+  }, [terminateType]);
+
+  const handleTimeout = useCallback(() => {
+    gameActions.resetGame();
+    navigate(`/lobby/${roomId}`);
+  }, [gameActions, navigate, roomId]);
+
+  useTimeout(handleTimeout, 20000);
+
   const positionStyles = {
     first: {
-      scorePosition: 'bottom-[35%] left-[47%]',
+      scorePosition: 'bottom-[36%] left-[48%]',
       profilePosition: 'left-[38%] top-[29%]',
       scoreTextClass: 'text-2xl sm:text-3xl',
       profileTextClass: 'sm:left-[42%] sm:top-[28.5%]',
     },
     second: {
-      scorePosition: 'bottom-[22.25%] left-[17.75%]',
+      scorePosition: 'bottom-[23%] left-[18%]',
       profilePosition: 'bottom-[37%] left-[9%]',
       scoreTextClass: 'text-2xl sm:text-3xl',
       profileTextClass: 'sm:left-[13%] sm:bottom-[38%]',
     },
     third: {
-      scorePosition: 'bottom-[17%] right-[17%]',
+      scorePosition: 'bottom-[18%] right-[17.5%]',
       profilePosition: 'bottom-[28%] right-[8%]',
       scoreTextClass: 'text-2xl sm:text-3xl',
       profileTextClass: 'sm:right-[12%] sm:bottom-[29%]',

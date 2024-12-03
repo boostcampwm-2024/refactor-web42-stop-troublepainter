@@ -41,3 +41,8 @@ export enum TimerType {
   GUESSING = 'GUESSING',
   ENDING = 'ENDING',
 }
+
+export enum TerminationType {
+  SUCCESS = 'SUCCESS',
+  PLAYER_DISCONNECT = 'PLAYER_DISCONNECT',
+}
