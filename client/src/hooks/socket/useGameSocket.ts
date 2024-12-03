@@ -147,9 +147,11 @@ export const useGameSocket = () => {
       },
 
       playerLeft: (response: PlayerLeftResponse) => {
-        const { leftPlayerId, players } = response;
+        const { leftPlayerId, players, hostId } = response;
         gameActions.removePlayer(leftPlayerId);
         gameActions.updatePlayers(players);
+        gameActions.updateHost(hostId);
+        gameActions.updateIsHost(hostId === useGameSocketStore.getState().currentPlayerId);
       },
 
       settingsUpdated: (response: UpdateSettingsResponse) => {

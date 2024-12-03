@@ -68,6 +68,7 @@ export interface JoinRoomResponse {
 
 export interface PlayerLeftResponse {
   leftPlayerId: string;
+  hostId: string;
   players: Player[];
 }
 
