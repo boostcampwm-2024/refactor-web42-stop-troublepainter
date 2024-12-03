@@ -1,7 +1,7 @@
-import { HTMLAttributes, KeyboardEvent, memo, useCallback, useEffect, useState } from 'react';
+import { HTMLAttributes, memo, useCallback, useEffect, useState } from 'react';
 import { RoomSettings } from '@troublepainter/core';
 import { SettingContent } from '@/components/setting/SettingContent';
-import { SHORTCUT_KEY } from '@/constants/shortcutKey';
+import { SHORTCUT_KEYS } from '@/constants/shortcutKeys';
 import { gameSocketHandlers } from '@/handlers/socket/gameSocket.handler';
 import { useGameSocketStore } from '@/stores/socket/gameSocket.store';
 import { cn } from '@/utils/cn';
@@ -12,13 +12,13 @@ export interface RoomSettingItem {
   key: SettingKey;
   label: string;
   options: number[];
-  shortcutKey: KeyboardEvent['key'];
+  shortcutKey: keyof typeof SHORTCUT_KEYS;
 }
 
 export const ROOM_SETTINGS: RoomSettingItem[] = [
-  { label: '라운드 수', key: 'totalRounds', options: [3, 5], shortcutKey: SHORTCUT_KEY.DROPDOWN_TOTAL_ROUNDS },
-  { label: '최대 플레이어 수', key: 'maxPlayers', options: [4, 5], shortcutKey: SHORTCUT_KEY.DROPDOWN_MAX_PLAYERS },
-  { label: '제한 시간', key: 'drawTime', options: [15, 20, 25, 30], shortcutKey: SHORTCUT_KEY.DROPDOWN_DRAW_TIME },
+  { label: '라운드 수', key: 'totalRounds', options: [3, 5], shortcutKey: 'DROPDOWN_TOTAL_ROUNDS' },
+  { label: '최대 플레이어 수', key: 'maxPlayers', options: [4, 5], shortcutKey: 'DROPDOWN_MAX_PLAYERS' },
+  { label: '제한 시간', key: 'drawTime', options: [15, 20, 25, 30], shortcutKey: 'DROPDOWN_DRAW_TIME' },
   //{ label: '픽셀 수', key: 'maxPixels', options: [300, 500] },
 ];
 

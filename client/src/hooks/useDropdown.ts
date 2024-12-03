@@ -1,11 +1,13 @@
 import { KeyboardEvent as ReactKeyboardEvent, useCallback, useEffect, useRef, useState } from 'react';
+import { SHORTCUT_KEYS } from '@/constants/shortcutKeys';
+import { useShortcuts } from '@/hooks/useShortcuts';
 
 /**
  * 드롭다운을 제어하기 위한 커스텀 훅의 Props 인터페이스입니다.
  */
 interface UseDropdown {
-  /** 드롭다운을 열고 닫을 수 있는 키보드 단축키 입니다. */
-  shortcutKey?: string;
+  /** 드롭다운을 열고 닫을 수 있는 키보드 단축키 입니다. `SHORTCUT_KEYS`의 키를 타입으로 가집니다. */
+  shortcutKey?: keyof typeof SHORTCUT_KEYS;
 
   /**
    * 옵션이 선택되었을 때 호출되는 콜백 함수입니다.
@@ -82,20 +84,30 @@ export const useDropdown = ({ shortcutKey, handleChange, options }: UseDropdown)
   const dropdownRef = useRef<HTMLDivElement>(null);
   const optionRefs = useRef<(HTMLButtonElement | null)[]>([]);
 
-  const handleOptionClick = (value: string) => {
-    setIsOpen(false);
+  const toggleDropdown = useCallback(() => {
+    setIsOpen((prev) => !prev);
     setFocusedIndex(-1);
-    handleChange(value);
-  };
+  }, []);
+
+  const handleOptionClick = useCallback(
+    (value: string) => {
+      setIsOpen(false);
+      setFocusedIndex(-1);
+      handleChange(value);
+    },
+    [handleChange],
+  );
+
+  // 드롭다운 토글 단축키 적용
+  useShortcuts([
+    {
+      key: shortcutKey || null,
+      action: toggleDropdown,
+    },
+  ]);
 
   const handleKeyDown = useCallback(
     (event: KeyboardEvent) => {
-      if (shortcutKey && event.key.toLowerCase() === shortcutKey.toLowerCase()) {
-        setIsOpen((prev) => !prev);
-        setFocusedIndex(-1);
-        return;
-      }
-
       if (!isOpen) return;
 
       if (event.key === 'ArrowDown') {
@@ -107,15 +119,18 @@ export const useDropdown = ({ shortcutKey, handleChange, options }: UseDropdown)
         setFocusedIndex(-1);
       }
     },
-    [shortcutKey, isOpen, options.length],
+    [isOpen, options.length],
   );
 
-  const handleOptionKeyDown = (event: ReactKeyboardEvent<HTMLButtonElement>) => {
-    if (event.key === 'Enter' && focusedIndex >= 0) {
-      event.stopPropagation();
-      handleOptionClick(options[focusedIndex]);
-    }
-  };
+  const handleOptionKeyDown = useCallback(
+    (event: ReactKeyboardEvent<HTMLButtonElement>) => {
+      if (event.key === 'Enter' && focusedIndex >= 0) {
+        event.stopPropagation();
+        handleOptionClick(options[focusedIndex]);
+      }
+    },
+    [focusedIndex, handleOptionClick, options],
+  );
 
   const handleClickOutside = useCallback((event: MouseEvent) => {
     if (dropdownRef.current && !dropdownRef.current.contains(event.target as Node)) {
@@ -142,7 +157,7 @@ export const useDropdown = ({ shortcutKey, handleChange, options }: UseDropdown)
   return {
     isOpen,
     focusedIndex,
-    toggleDropdown: () => setIsOpen((prev) => !prev),
+    toggleDropdown,
     handleOptionClick,
     dropdownRef,
     optionRefs,

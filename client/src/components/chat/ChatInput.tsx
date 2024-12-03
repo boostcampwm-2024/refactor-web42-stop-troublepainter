@@ -1,9 +1,9 @@
-import { FormEvent, memo, useCallback, useEffect, useMemo, useRef, useState } from 'react';
+import { FormEvent, memo, useMemo, useRef, useState } from 'react';
 import { PlayerRole, RoomStatus, type ChatResponse } from '@troublepainter/core';
 import { Input } from '@/components/ui/Input';
-import { SHORTCUT_KEY } from '@/constants/shortcutKey';
 import { chatSocketHandlers } from '@/handlers/socket/chatSocket.handler';
 import { gameSocketHandlers } from '@/handlers/socket/gameSocket.handler';
+import { useShortcuts } from '@/hooks/useShortcuts';
 import { useChatSocketStore } from '@/stores/socket/chatSocket.store';
 import { useGameSocketStore } from '@/stores/socket/gameSocket.store';
 import { useSocketStore } from '@/stores/socket/socket.store';
@@ -50,30 +50,22 @@ export const ChatInput = memo(() => {
     setInputMessage('');
   };
 
-  const handleKeyDown = useCallback(
-    (event: KeyboardEvent) => {
-      if (event.key !== SHORTCUT_KEY.CHAT || !inputRef.current) return;
+  useShortcuts([
+    {
+      key: 'CHAT',
+      action: () => {
+        // 현재 포커스된 요소가 없거나, 포커스된 요소가 body라면 input을 포커싱
+        const isNoFocusedElement = !document.activeElement || document.activeElement === document.body;
 
-      // 현재 포커스된 요소가 없거나, 포커스된 요소가 body라면 input을 포커싱
-      const isNoFocusedElement = !document.activeElement || document.activeElement === document.body;
-
-      if (isNoFocusedElement) {
-        inputRef.current?.focus();
-      } else if (inputMessage.trim() === '') {
-        inputRef.current.blur();
-      } else {
-        inputRef.current?.focus();
-      }
+        if (isNoFocusedElement) {
+          inputRef.current?.focus();
+        } else if (inputMessage.trim() === '') {
+          inputRef.current?.blur();
+        }
+      },
+      disabled: !inputRef.current, // input ref가 없을 때는 비활성화
     },
-    [inputMessage],
-  );
-
-  useEffect(() => {
-    document.addEventListener('keydown', handleKeyDown);
-    return () => {
-      document.removeEventListener('keydown', handleKeyDown);
-    };
-  }, [handleKeyDown]);
+  ]);
 
   return (
     <form onSubmit={handleSubmit} className="mt-1 w-full">
