@@ -143,7 +143,7 @@ export const useDrawing = (
 
   const continueDrawing = useCallback(
     (point: Point): CRDTUpdateMessage | null => {
-      if (!state.crdtRef.current || currentDrawingPoints.current.length === 0) return null;
+      if (!state.crdtRef.current || currentDrawingPoints.current.length === 0 || state.inkRemaining <= 0) return null;
       if (state.drawingMode === DRAWING_MODE.FILL) return null;
 
       const lastPoint = currentDrawingPoints.current[currentDrawingPoints.current.length - 1];
@@ -316,7 +316,7 @@ export const useDrawing = (
         state.updateHistoryState();
       }
     },
-    [state.currentPlayerId, operation, roomStatus, renderStroke], // renderStroke 의존성 추가
+    [state.currentPlayerId, operation, roomStatus, renderStroke],
   );
 
   const getAllDrawingData = useCallback((): CRDTSyncMessage | null => {
