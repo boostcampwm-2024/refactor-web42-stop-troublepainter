@@ -106,7 +106,7 @@ export const useDrawing = (
 
       const strokeId = state.crdtRef.current.addStroke(drawingData);
       state.currentStrokeIdsRef.current.push(strokeId);
-      operation.drawStroke(drawingData);
+      if (state.drawingMode === DRAWING_MODE.PEN) operation.drawStroke(drawingData);
 
       return {
         type: CRDTMessageTypes.UPDATE,
@@ -280,7 +280,8 @@ export const useDrawing = (
           return;
         }
 
-        operation.drawStroke(stroke);
+        if (stroke.points.length > 2) operation.applyFill(stroke);
+        else operation.drawStroke(stroke);
 
         if (state.historyPointerRef.current < state.strokeHistoryRef.current.length - 1) {
           state.strokeHistoryRef.current = state.strokeHistoryRef.current.slice(0, state.historyPointerRef.current + 1);
