@@ -71,7 +71,7 @@ export const useDrawingSocket = ({ onDrawUpdate, onSubmitRequest }: UseDrawingSo
   );
 
   const handleSubmitDrawing = useCallback(() => {
-    console.log('Received submitDrawing event');
+    // console.log('Received submitDrawing event');
     onSubmitRequest();
   }, [onSubmitRequest]);
 
