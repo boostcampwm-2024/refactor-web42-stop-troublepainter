@@ -3,10 +3,12 @@ import { RegisterState } from '@/types/crdt.types';
 export class LWWRegister<T> {
   readonly id: string;
   #state: RegisterState<T>; // [peerId, timestamp, value]
+  #isDeactivated: boolean;
 
   constructor(id: string, initialState: RegisterState<T>) {
     this.id = id;
     this.#state = initialState;
+    this.#isDeactivated = false;
   }
 
   get value(): T {
@@ -17,11 +19,18 @@ export class LWWRegister<T> {
     return this.#state;
   }
 
+  get isDeactivated(): boolean {
+    return this.#isDeactivated;
+  }
+
   set(value: T): void {
     this.#state = [this.id, Date.now(), value];
   }
 
-  // 원격 상태와 병합 (더 새로운 타임스탬프 또는 더 큰 피어 ID 우선)
+  setDeactivated(value: boolean): void {
+    this.#isDeactivated = value;
+  }
+
   merge(remoteState: RegisterState<T>): boolean {
     const [remotePeer, remoteTimestamp] = remoteState;
     const [localPeer, localTimestamp] = this.#state;

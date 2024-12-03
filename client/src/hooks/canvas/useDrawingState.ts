@@ -95,12 +95,10 @@ export const useDrawingState = (options?: { maxPixels?: number }) => {
 
   const updateHistoryState = useCallback(() => {
     const localHistory = strokeHistoryRef.current.filter((entry) => entry.isLocal);
-    const localItemsCount = strokeHistoryRef.current
-      .slice(0, historyPointerRef.current + 1)
-      .filter((entry) => entry.isLocal).length;
+    const currentLocalIndex = localHistory.findIndex((_, index) => index === historyPointerRef.current);
 
-    setCanUndo(localItemsCount > 0);
-    setCanRedo(localItemsCount < localHistory.length);
+    setCanUndo(currentLocalIndex >= 0);
+    setCanRedo(currentLocalIndex < localHistory.length - 1);
   }, []);
 
   const checkInkAvailability = useCallback(() => {

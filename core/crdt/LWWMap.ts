@@ -89,6 +89,32 @@ export class LWWMap {
     return false;
   }
 
+  deactivateStroke(id: string): boolean {
+    const register = this.#data.get(id);
+    if (register) {
+      register.setDeactivated(true);
+      const index = this.#sortedStrokes.findIndex((item) => item.id === id);
+      if (index !== -1) {
+        this.#sortedStrokes.splice(index, 1);
+      }
+      return true;
+    }
+    return false;
+  }
+
+  activateStroke(id: string): boolean {
+    const register = this.#data.get(id);
+    if (register && register.isDeactivated) {
+      register.setDeactivated(false);
+      const stroke = register.value;
+      if (stroke !== null) {
+        const position = this.insertSortedStroke(id, stroke);
+        return position === 'end';
+      }
+    }
+    return false;
+  }
+
   // 전체 상태 병합
   merge(remoteState: MapState): { updatedKeys: string[]; requiresRedraw: boolean } {
     const updatedKeys: string[] = [];
