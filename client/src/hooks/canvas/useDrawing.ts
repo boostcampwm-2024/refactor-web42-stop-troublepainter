@@ -116,6 +116,7 @@ export const useDrawing = (
     (point: Point): CRDTUpdateMessage | null => {
       if (state.checkInkAvailability() === false || !state.crdtRef.current) return null;
 
+      state.currentStrokeIdsRef.current = [];
       currentDrawingPoints.current = state.drawingMode === DRAWING_MODE.PEN ? [point] : [];
 
       const drawingData =
@@ -197,6 +198,7 @@ export const useDrawing = (
       drawingData = createDrawingData(allPoints);
     }
 
+    // 새 작업 추가
     state.strokeHistoryRef.current.push({
       strokeIds: [...state.currentStrokeIdsRef.current],
       isLocal: true,
@@ -213,64 +215,67 @@ export const useDrawing = (
   const undo = useCallback((): CRDTUpdateMessage[] | null => {
     if (!state.crdtRef.current || state.historyPointerRef.current < 0) return null;
 
-    let currentEntry = state.strokeHistoryRef.current[state.historyPointerRef.current];
-    while (currentEntry && !currentEntry.isLocal && state.historyPointerRef.current > 0) {
-      state.historyPointerRef.current--;
-      currentEntry = state.strokeHistoryRef.current[state.historyPointerRef.current];
+    let currentIndex = state.historyPointerRef.current;
+    let currentEntry = state.strokeHistoryRef.current[currentIndex];
+
+    while (currentIndex >= 0) {
+      if (currentEntry?.isLocal) {
+        const updates = currentEntry.strokeIds.map((strokeId): CRDTUpdateMessage => {
+          state.crdtRef.current!.deleteStroke(strokeId);
+          return {
+            type: CRDTMessageTypes.UPDATE,
+            state: {
+              key: strokeId,
+              register: state.crdtRef.current!.state[strokeId],
+            },
+          };
+        });
+
+        state.historyPointerRef.current = currentIndex - 1;
+        state.updateHistoryState();
+        operation.redrawCanvas();
+
+        return updates;
+      }
+      currentIndex--;
+      currentEntry = state.strokeHistoryRef.current[currentIndex];
     }
 
-    if (!currentEntry?.isLocal) return null;
-
-    const updates = currentEntry.strokeIds.map((strokeId): CRDTUpdateMessage => {
-      state.crdtRef.current!.deleteStroke(strokeId);
-      return {
-        type: CRDTMessageTypes.UPDATE,
-        state: {
-          key: strokeId,
-          register: state.crdtRef.current!.state[strokeId],
-        },
-      };
-    });
-
-    state.historyPointerRef.current--;
-    state.updateHistoryState();
-    operation.redrawCanvas();
-
-    return updates;
+    return null;
   }, [state, operation]);
 
   const redo = useCallback((): CRDTUpdateMessage[] | null => {
     if (!state.crdtRef.current || state.historyPointerRef.current >= state.strokeHistoryRef.current.length - 1)
       return null;
 
-    let nextEntry = state.strokeHistoryRef.current[state.historyPointerRef.current + 1];
-    while (
-      nextEntry &&
-      !nextEntry.isLocal &&
-      state.historyPointerRef.current < state.strokeHistoryRef.current.length - 1
-    ) {
-      state.historyPointerRef.current++;
-      nextEntry = state.strokeHistoryRef.current[state.historyPointerRef.current + 1];
+    let nextIndex = state.historyPointerRef.current + 1;
+    let nextEntry = state.strokeHistoryRef.current[nextIndex];
+
+    while (nextIndex < state.strokeHistoryRef.current.length) {
+      if (nextEntry?.isLocal && nextEntry.drawingData) {
+        const { id } = state.crdtRef.current.addStroke(nextEntry.drawingData);
+        nextEntry.strokeIds = [id];
+
+        const update: CRDTUpdateMessage = {
+          type: CRDTMessageTypes.UPDATE,
+          state: {
+            key: id,
+            register: state.crdtRef.current.state[id],
+          },
+        };
+
+        state.historyPointerRef.current = nextIndex;
+        state.updateHistoryState();
+        operation.redrawCanvas();
+        renderStroke(nextEntry.drawingData, 'end');
+
+        return [update];
+      }
+      nextIndex++;
+      nextEntry = state.strokeHistoryRef.current[nextIndex];
     }
 
-    if (!nextEntry?.isLocal || !nextEntry.drawingData) return null;
-
-    const { id } = state.crdtRef.current.addStroke(nextEntry.drawingData);
-    nextEntry.strokeIds = [id];
-
-    const update: CRDTUpdateMessage = {
-      type: CRDTMessageTypes.UPDATE,
-      state: {
-        key: id,
-        register: state.crdtRef.current.state[id],
-      },
-    };
-
-    state.historyPointerRef.current++;
-    state.updateHistoryState();
-    operation.redrawCanvas();
-
-    return [update];
+    return null;
   }, [state, operation]);
 
   const applyDrawing = useCallback(
@@ -305,10 +310,6 @@ export const useDrawing = (
         }
 
         renderStroke(stroke, position);
-
-        if (state.historyPointerRef.current < state.strokeHistoryRef.current.length - 1) {
-          state.strokeHistoryRef.current = state.strokeHistoryRef.current.slice(0, state.historyPointerRef.current + 1);
-        }
 
         state.strokeHistoryRef.current.push({
           strokeIds: [key],
