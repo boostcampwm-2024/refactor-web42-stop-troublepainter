@@ -1,12 +1,14 @@
 import { useEffect, useState } from 'react';
 import { DotLottieReact } from '@lottiefiles/dotlottie-react';
 import { PlayerRole, RoomStatus } from '@troublepainter/core';
-import roundLoss from '@/assets/lottie/round-loss.lottie';
 import roundWin from '@/assets/lottie/round-win.lottie';
+import gameLoss from '@/assets/sounds/game-loss.mp3';
+import gameWin from '@/assets/sounds/game-win.mp3';
 import { Modal } from '@/components/ui/Modal';
 import { useModal } from '@/hooks/useModal';
 import { useGameSocketStore } from '@/stores/socket/gameSocket.store';
 import { cn } from '@/utils/cn';
+import { SOUND_IDS, SoundManager } from '@/utils/soundManager';
 
 const RoundEndModal = () => {
   const room = useGameSocketStore((state) => state.room);
@@ -18,21 +20,34 @@ const RoundEndModal = () => {
   const [showAnimation, setShowAnimation] = useState(false);
   const [isAnimationFading, setIsAnimationFading] = useState(false);
 
+  const devil = players.find((player) => player.role === PlayerRole.DEVIL);
+  const isDevilWin = roundWinners?.some((winner) => winner.role === PlayerRole.DEVIL);
+  const isCurrentPlayerWinner = roundWinners?.some((winner) => winner.playerId === currentPlayerId);
+
+  // 컴포넌트 마운트 시 사운드 미리 로드
+  const soundManager = SoundManager.getInstance();
+  useEffect(() => {
+    soundManager.preloadSound(SOUND_IDS.WIN, gameWin);
+    soundManager.preloadSound(SOUND_IDS.LOSS, gameLoss);
+  }, [soundManager]);
+
   useEffect(() => {
     if (roundWinners) {
       setIsAnimationFading(false);
       setShowAnimation(true);
       openModal();
+
+      if (isCurrentPlayerWinner) {
+        void soundManager.playSound(SOUND_IDS.WIN, 0.3);
+      } else {
+        void soundManager.playSound(SOUND_IDS.LOSS, 0.3);
+      }
     }
   }, [roundWinners]);
 
   useEffect(() => {
     if (room && room.status === RoomStatus.DRAWING) closeModal();
   }, [room]);
-
-  const devil = players.find((player) => player.role === PlayerRole.DEVIL);
-  const isDevilWin = roundWinners?.some((winner) => winner.role === PlayerRole.DEVIL);
-  const isCurrentPlayerWinner = roundWinners?.some((winner) => winner.playerId === currentPlayerId);
 
   useEffect(() => {
     if (showAnimation) {
@@ -56,28 +71,17 @@ const RoundEndModal = () => {
   return (
     <>
       {/* 승리/패배 애니메이션 */}
-      {showAnimation &&
-        (isCurrentPlayerWinner ? (
-          <DotLottieReact
-            src={roundWin}
-            autoplay
-            loop={false}
-            className={cn(
-              'absolute left-1/2 top-1/2 z-50 h-screen w-full -translate-x-1/2 -translate-y-1/2 transition-opacity duration-500',
-              isAnimationFading && 'opacity-0',
-            )}
-          />
-        ) : (
-          <DotLottieReact
-            src={roundLoss}
-            autoplay
-            loop={false}
-            className={cn(
-              'absolute left-1/2 top-1/2 z-50 h-[50vh] w-full -translate-x-1/2 -translate-y-1/2 transition-opacity duration-500',
-              isAnimationFading && 'opacity-0',
-            )}
-          />
-        ))}
+      {showAnimation && isCurrentPlayerWinner && (
+        <DotLottieReact
+          src={roundWin}
+          autoplay
+          loop={false}
+          className={cn(
+            'absolute left-1/2 top-1/2 z-50 h-screen w-full -translate-x-1/2 -translate-y-1/2 transition-opacity duration-500',
+            isAnimationFading && 'opacity-0',
+          )}
+        />
+      )}
 
       <Modal
         title={room?.currentWord || ''}
