@@ -33,6 +33,7 @@ export interface StrokeHistoryEntry {
   strokeIds: string[];
   isLocal: boolean;
   drawingData: DrawingData;
+  timestamp: number;
 }
 
 export interface DrawingOptions {
