@@ -9,8 +9,8 @@ export const LINEWIDTH_VARIABLE = {
   STEP_WIDTH: 2,
 };
 
-export const MAINCANVAS_RESOLUTION_WIDTH = 1280;
-export const MAINCANVAS_RESOLUTION_HEIGHT = 800;
+export const MAINCANVAS_RESOLUTION_WIDTH = 1000;
+export const MAINCANVAS_RESOLUTION_HEIGHT = 625;
 //해상도 비율 변경 시 CanvasUI의 aspect-[16/10] 도 수정해야 정상적으로 렌더링됩니다.
 
 export const COLORS_INFO = [
@@ -21,4 +21,4 @@ export const COLORS_INFO = [
   { color: '회색', backgroundColor: '#808080' },
 ];
 
-export const DEFAULT_MAX_PIXELS = 1000; // 기본값 설정
+export const DEFAULT_MAX_PIXELS = 50000; // 기본값 설정
