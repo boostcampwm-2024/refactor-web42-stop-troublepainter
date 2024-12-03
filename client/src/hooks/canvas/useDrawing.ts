@@ -12,6 +12,73 @@ import { useDrawingOperation } from './useDrawingOperation';
 import { useDrawingState } from './useDrawingState';
 import { DRAWING_MODE } from '@/constants/canvasConstants';
 
+/**
+ * 캔버스 드로잉 기능을 관리하는 Hook입니다.
+ *
+ * @remarks
+ * 캔버스의 실제 드로잉 작업을 처리합니다.
+ * - 펜/채우기 모드 드로잉
+ * - 실행 취소/다시 실행
+ * - 잉크 잔량 관리
+ * - 실시간 드로잉 데이터 동기화 및 기록
+ *
+ * 드로잉은 mousedown부터 mouseup까지를 하나의 단위로 처리하며,
+ * 실시간으로는 각 stroke 단위로 동기화하고 히스토리는 mouseup 단위로 기록됩니다.
+ *
+ * @param canvasRef - 캔버스 엘리먼트의 RefObject
+ * @param options - 드로잉 설정 옵션
+ * @param options.maxPixels - 최대 사용 가능한 픽셀 수
+ *
+ * @example
+ * ```tsx
+ * const GameCanvas = ({ role, maxPixels = 100000 }: GameCanvasProps) => {
+ *   const canvasRef = useRef<HTMLCanvasElement>(null);
+ *
+ *   const {
+ *     currentColor,
+ *     brushSize,
+ *     drawingMode,
+ *     inkRemaining,
+ *     startDrawing,
+ *     continueDrawing,
+ *     stopDrawing,
+ *   } = useDrawing(canvasRef, { maxPixels });
+ *
+ *   const handleDrawStart = useCallback((e: ReactMouseEvent | ReactTouchEvent) => {
+ *     const point = getDrawPoint(e, canvasRef.current);
+ *     startDrawing(point);
+ *   }, [startDrawing]);
+ *
+ *   return (
+ *     <Canvas
+ *       canvasRef={canvasRef}
+ *       isDrawable={true}
+ *       brushSize={brushSize}
+ *       inkRemaining={inkRemaining}
+ *     />
+ *   );
+ * };
+ * ```
+ *
+ * @returns 드로잉 관련 상태와 메소드들을 포함하는 객체
+ * @property currentColor - 현재 선택된 색상
+ * @property setCurrentColor - 현재 색상을 변경하는 함수
+ * @property brushSize - 현재 브러시 크기
+ * @property setBrushSize - 브러시 크기를 변경하는 함수
+ * @property drawingMode - 현재 드로잉 모드 (펜/채우기)
+ * @property setDrawingMode - 드로잉 모드를 변경하는 함수
+ * @property inkRemaining - 남은 잉크량
+ * @property canUndo - 실행 취소 가능 여부
+ * @property canRedo - 다시 실행 가능 여부
+ * @property startDrawing - 드로잉 시작 함수 (mousedown)
+ * @property continueDrawing - 드로잉 진행 함수 (mousemove)
+ * @property stopDrawing - 드로잉 종료 함수 (mouseup)
+ * @property applyDrawing - 외부 드로잉 데이터 적용 함수
+ * @property undo - 마지막 드로잉 작업을 실행 취소하는 함수
+ * @property redo - 마지막으로 실행 취소된 작업을 다시 실행하는 함수
+ *
+ * @category Hooks
+ */
 export const useDrawing = (
   canvasRef: RefObject<HTMLCanvasElement>,
   roomStatus: RoomStatus,
@@ -265,8 +332,8 @@ export const useDrawing = (
   }, [state.crdtRef]);
 
   const resetCanvas = useCallback(() => {
-    state.resetDrawingState();
-    operation.clearCanvas();
+    state.resetDrawingState(); // 상태 초기화
+    operation.clearCanvas(); // 캔버스 초기화
   }, [state.resetDrawingState, operation.clearCanvas]);
 
   return {
