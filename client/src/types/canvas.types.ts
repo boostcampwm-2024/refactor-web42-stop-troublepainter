@@ -34,7 +34,6 @@ export interface StrokeHistoryEntry {
   isLocal: boolean;
   drawingData: DrawingData;
   timestamp: number;
-  isDeactivated?: boolean;
 }
 
 export interface DrawingOptions {

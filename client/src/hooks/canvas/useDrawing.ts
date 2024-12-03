@@ -147,7 +147,7 @@ export const useDrawing = (
         type: CRDTMessageTypes.UPDATE,
         state: {
           key: strokeId,
-          register: state.crdtRef.current!.state[strokeId],
+          register: state.crdtRef.current!.state[strokeId], // 변경된 상태 가져오기
         },
       };
     });
@@ -220,12 +220,25 @@ export const useDrawing = (
 
         const stroke = register[2];
 
-        // null인 경우는 undo된 상태
-        if (stroke === null) {
-          operation.redrawCanvas(); // 전체 다시 그리기
+        if (!stroke) {
+          operation.redrawCanvas();
           return;
         }
 
+        // 새로운 스트로크 또는 redo된 스트로크
+        const existingEntryIndex = state.strokeHistoryRef.current.findIndex((entry) => entry.strokeIds.includes(key));
+
+        if (existingEntryIndex === -1) {
+          // 새로운 스트로크인 경우만 히스토리에 추가
+          state.strokeHistoryRef.current.push({
+            strokeIds: [key],
+            isLocal: false,
+            drawingData: stroke,
+            timestamp: stroke.timestamp || Date.now(),
+          });
+        }
+
+        // 그리기 작업
         if (position === 'middle') {
           operation.redrawCanvas();
         } else {
@@ -236,14 +249,6 @@ export const useDrawing = (
           }
         }
 
-        state.strokeHistoryRef.current.push({
-          strokeIds: [key],
-          isLocal: false,
-          drawingData: stroke,
-          timestamp: stroke.timestamp || Date.now(),
-        });
-
-        // 원격 작업은 히스토리 포인터에 영향을 주지 않음
         state.updateHistoryState();
       }
     },
