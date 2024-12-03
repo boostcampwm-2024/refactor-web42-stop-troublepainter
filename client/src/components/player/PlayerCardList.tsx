@@ -24,6 +24,7 @@ const PlayerCardList = memo(() => {
 
         return (
           <PlayerCard
+            profileImage={player.profileImage}
             key={player.playerId}
             nickname={player.nickname}
             status={player.status}

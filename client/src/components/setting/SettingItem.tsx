@@ -1,20 +1,26 @@
-import { memo } from 'react';
-import Dropdown from '../ui/Dropdown';
+import { memo, useCallback } from 'react';
+import { RoomSettings } from '@troublepainter/core';
+import Dropdown from '@/components/ui/Dropdown';
+
+interface SettingItemProps {
+  label: string;
+  settingKey: keyof RoomSettings;
+  value?: number;
+  options: number[];
+  onSettingChange: (key: keyof RoomSettings, value: string) => void;
+  isHost: boolean;
+  shortcutKey: string;
+}
 
 export const SettingItem = memo(
-  ({
-    label,
-    value,
-    options,
-    onChange,
-    isHost,
-  }: {
-    label: string;
-    value?: number;
-    options: number[];
-    onChange: (value: string) => void;
-    isHost: boolean;
-  }) => {
+  ({ label, settingKey, value, options, onSettingChange, isHost, shortcutKey }: SettingItemProps) => {
+    const handleChange = useCallback(
+      (value: string) => {
+        onSettingChange(settingKey, value);
+      },
+      [settingKey, onSettingChange],
+    );
+
     return (
       <div className="flex w-full max-w-80 items-center justify-between lg:max-w-[80%]">
         <span>{label}</span>
@@ -22,9 +28,10 @@ export const SettingItem = memo(
           <span>{value || ''}</span>
         ) : (
           <Dropdown
+            shortcutKey={shortcutKey}
             options={options.map(String)}
             selectedValue={value?.toString() || ''}
-            handleChange={onChange}
+            handleChange={handleChange}
             className="h-7 w-[30%] min-w-[4.25rem] text-xl sm:min-w-28 lg:h-auto lg:text-2xl"
           />
         )}

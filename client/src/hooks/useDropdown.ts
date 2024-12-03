@@ -1,83 +1,151 @@
-import { useEffect, useRef, useState } from 'react';
+import { KeyboardEvent as ReactKeyboardEvent, useCallback, useEffect, useRef, useState } from 'react';
 
 /**
- * `useDropdown` 훅에 전달할 옵션 객체의 인터페이스입니다.
+ * 드롭다운을 제어하기 위한 커스텀 훅의 Props 인터페이스입니다.
  */
 interface UseDropdown {
+  /** 드롭다운을 열고 닫을 수 있는 키보드 단축키 입니다. */
+  shortcutKey?: string;
+
   /**
-   * 선택된 값을 처리하는 콜백 함수입니다.
-   *
-   * @param value - 선택된 값 입니다.
+   * 옵션이 선택되었을 때 호출되는 콜백 함수입니다.
+   * @param value - 선택된 옵션의 값
    */
   handleChange: (value: string) => void;
+
+  /** 드롭다운에 표시될 옵션들의 배열입니다. */
+  options: string[];
 }
 
 /**
- * 드롭다운의 상태를 관리하는 커스텀 훅입니다.
+ * 드롭다운의 상태와 동작을 관리하는 커스텀 훅입니다.
  *
- * @param handleChange - 옵션이 선택되었을 때 호출되는 함수입니다.
- *                       선택된 값을 인자로 받습니다.
+ * @param props - 드롭다운 설정을 위한 객체
+ * @returns 드롭다운 제어에 필요한 상태와 함수들을 포함하는 객체
  *
- * @returns 다음과 같은 속성을 가진 객체를 반환합니다:
- * - `isOpen`: 드롭다운이 열려있는지 닫혀있는지 나타내는 불리언 값입니다.
- * - `toggleDropdown`: 드롭다운의 열림/닫힘 상태를 토글하는 함수입니다.
- * - `handleOptionClick`: 드롭다운 옵션이 선택되었을 때 호출되는 함수입니다.
- * - `dropdownRef`: 드롭다운 컴포넌트의 DOM 요소를 참조하는 React Ref입니다. 바깥 영역 클릭 감지에 사용됩니다.
- * 
- * @example 
- * const { isOpen, toggleDropdown, handleOptionClick } = useDropdown({
-    handleChange,
-  });
-
-  return (
-    <>
-      <button
-        onClick={toggleDropdown}
-      >
-        {isOpen ? '드롭다운 닫기' : '드롭다운 열기'}
-      </button>
-
-      {isOpen && options.map((option) => (
-        <button
-          key={option.id}
-          onClick={() => handleOptionClick(option.value)}
-        >
-          {option.value}
-        </button>
-      ))}
-    </>
-  );
+ * @example
+ * ```tsx
+ * const MyDropdown = () => {
+ *   const {
+ *     isOpen,           // 드롭다운의 열림/닫힘 상태
+ *     focusedIndex,     // 현재 포커스된 옵션의 인덱스
+ *     toggleDropdown,   // 드롭다운 토글 함수
+ *     handleOptionClick,// 옵션 클릭 핸들러
+ *     dropdownRef,      // 드롭다운 요소의 ref
+ *     handleOptionKeyDown // 옵션 키보드 이벤트 핸들러
+ *   } = useDropdown({
+ *     shortcutKey: 'Q',
+ *     handleChange: (value) => console.log(value),
+ *     options: ['옵션1', '옵션2', '옵션3']
+ *   });
+ *
+ *   return (
+ *     <div ref={dropdownRef}>
+ *       <button onClick={toggleDropdown}>
+ *         {isOpen ? '닫기' : '열기'}
+ *       </button>
+ *       {isOpen && (
+ *         <ul>
+ *           {options.map((option, index) => (
+ *             <button
+ *               key={option}
+ *               ref={(el) => (optionRefs.current[index] = el)}
+ *               data-focused={index === focusedIndex}
+ *               onClick={() => handleOptionClick(option)}
+ *               onKeyDown={handleOptionKeyDown}
+ *             >
+ *               {option}
+ *             </button>
+ *           ))}
+ *         </ul>
+ *       )}
+ *     </div>
+ *   );
+ * }
+ * ```
+ *
+ * @remarks
+ * 이 훅은 다음과 같은 기능을 제공합니다:
+ * - 단축키를 통한 드롭다운 열기/닫기
+ * - 키보드 방향키(상하)를 통한 옵션 탐색
+ * - Enter키를 통한 옵션 선택
+ * - Escape키를 통한 드롭다운 닫기
+ * - 외부 클릭 시 자동으로 드롭다운 닫기
+ * - 접근성을 위한 키보드 탐색 지원
+ *
  * @category Hooks
  */
 
-export const useDropdown = ({ handleChange }: UseDropdown) => {
+export const useDropdown = ({ shortcutKey, handleChange, options }: UseDropdown) => {
   const [isOpen, setIsOpen] = useState(false);
+  const [focusedIndex, setFocusedIndex] = useState(-1);
   const dropdownRef = useRef<HTMLDivElement>(null);
-
-  const toggleDropdown = () => setIsOpen((prev) => !prev);
+  const optionRefs = useRef<(HTMLButtonElement | null)[]>([]);
 
   const handleOptionClick = (value: string) => {
     setIsOpen(false);
+    setFocusedIndex(-1);
     handleChange(value);
   };
 
-  useEffect(() => {
-    const handleClickOutside = (event: MouseEvent) => {
-      if (dropdownRef.current && !dropdownRef.current.contains(event.target as Node)) {
-        setIsOpen(false);
+  const handleKeyDown = useCallback(
+    (event: KeyboardEvent) => {
+      if (shortcutKey && event.key.toLowerCase() === shortcutKey.toLowerCase()) {
+        setIsOpen((prev) => !prev);
+        setFocusedIndex(-1);
+        return;
       }
-    };
 
+      if (!isOpen) return;
+
+      if (event.key === 'ArrowDown') {
+        setFocusedIndex((prev) => (prev + 1) % options.length);
+      } else if (event.key === 'ArrowUp') {
+        setFocusedIndex((prev) => (prev - 1 + options.length) % options.length);
+      } else if (event.key === 'Escape') {
+        setIsOpen(false);
+        setFocusedIndex(-1);
+      }
+    },
+    [shortcutKey, isOpen, options.length],
+  );
+
+  const handleOptionKeyDown = (event: ReactKeyboardEvent<HTMLButtonElement>) => {
+    if (event.key === 'Enter' && focusedIndex >= 0) {
+      event.stopPropagation();
+      handleOptionClick(options[focusedIndex]);
+    }
+  };
+
+  const handleClickOutside = useCallback((event: MouseEvent) => {
+    if (dropdownRef.current && !dropdownRef.current.contains(event.target as Node)) {
+      setIsOpen(false);
+      setFocusedIndex(-1);
+    }
+  }, []);
+
+  useEffect(() => {
+    if (focusedIndex >= 0 && optionRefs.current[focusedIndex]) {
+      optionRefs.current[focusedIndex]?.focus();
+    }
+  }, [focusedIndex]);
+
+  useEffect(() => {
+    document.addEventListener('keydown', handleKeyDown);
     document.addEventListener('mousedown', handleClickOutside);
     return () => {
+      document.removeEventListener('keydown', handleKeyDown);
       document.removeEventListener('mousedown', handleClickOutside);
     };
-  }, []);
+  }, [handleKeyDown, handleClickOutside]);
 
   return {
     isOpen,
-    toggleDropdown,
+    focusedIndex,
+    toggleDropdown: () => setIsOpen((prev) => !prev),
     handleOptionClick,
     dropdownRef,
+    optionRefs,
+    handleOptionKeyDown,
   };
 };

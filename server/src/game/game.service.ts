@@ -324,6 +324,9 @@ export class GameService {
     if (!isCorrect) return { isCorrect };
 
     const updatedPlayers = this.calculateScores(players, playerId);
+
+    updatedPlayers.sort((a, b) => b.score - a.score);
+
     await Promise.all(
       updatedPlayers.map((p) => this.gameRepository.updatePlayer(roomId, p.playerId, { score: p.score })),
     );
@@ -374,6 +377,8 @@ export class GameService {
       }
       return updatedPlayer;
     });
+
+    updatedPlayers.sort((a, b) => b.score - a.score);
 
     await Promise.all(
       updatedPlayers.map((p) => this.gameRepository.updatePlayer(roomId, p.playerId, { score: p.score })),

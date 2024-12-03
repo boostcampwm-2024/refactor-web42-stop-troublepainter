@@ -1,0 +1,8 @@
+export const SHORTCUT_KEY = {
+  DROPDOWN_TOTAL_ROUNDS: 'q',
+  DROPDOWN_MAX_PLAYERS: 'w',
+  DROPDOWN_DRAW_TIME: 'e',
+  CHAT: 'Enter',
+  GAME_START: 's',
+  GAME_INVITE: 'i',
+};
