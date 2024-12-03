@@ -216,6 +216,7 @@ export const useGameSocket = () => {
           gameActions.updateHost(hostId);
           gameActions.updateIsHost(hostId === useGameSocketStore.getState().currentPlayerId);
         }
+        gameActions.updateRoomStatus(RoomStatus.WAITING);
         gameActions.resetRound();
         gameActions.updateGameTerminateType(terminationType);
         navigate(`/game/${roomId}/result`, { replace: true });
