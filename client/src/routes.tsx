@@ -4,7 +4,7 @@ import RootLayout from '@/layouts/RootLayout';
 import GameRoomPage from '@/pages/GameRoomPage';
 import LobbyPage from '@/pages/LobbyPage';
 import MainPage from '@/pages/MainPage';
-// import ResultPage from '@/pages/ResultPage';
+import ResultPage from '@/pages/ResultPage';
 
 export const router = createBrowserRouter(
   [
@@ -26,12 +26,12 @@ export const router = createBrowserRouter(
               path: '/game/:roomId',
               element: <GameRoomPage />,
             },
+            {
+              path: '/game/:roomId/result',
+              element: <ResultPage />,
+            },
           ],
         },
-        // {
-        //   path: '/game/:roomId/result',
-        //   element: <ResultPage />,
-        // },
       ],
     },
   ],
