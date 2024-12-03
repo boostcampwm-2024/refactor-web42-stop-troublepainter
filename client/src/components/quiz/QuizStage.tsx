@@ -3,6 +3,7 @@ import { PlayerRole } from '@troublepainter/core';
 import { GameCanvas } from '../canvas/GameCanvas';
 import { QuizTitle } from '../ui/QuizTitle';
 import sizzlingTimer from '@/assets/big-timer.gif';
+import { DEFAULT_MAX_PIXELS } from '@/constants/canvasConstants';
 import { useTimer } from '@/hooks/useTimer';
 import { useGameSocketStore } from '@/stores/socket/gameSocket.store';
 import { cn } from '@/utils/cn';
@@ -56,7 +57,7 @@ const QuizGameContent = () => {
         currentRound={room.currentRound}
         roomStatus={room.status}
         role={roundAssignedRole || PlayerRole.GUESSER}
-        maxPixels={100000}
+        maxPixels={DEFAULT_MAX_PIXELS}
         isHidden={shouldHideCanvas}
       />
 

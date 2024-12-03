@@ -1,7 +1,7 @@
 import { MouseEvent as ReactMouseEvent, TouchEvent as ReactTouchEvent, useCallback, useEffect, useRef } from 'react';
 import { PlayerRole, RoomStatus } from '@troublepainter/core';
 import { Canvas } from '@/components/canvas/CanvasUI';
-import { COLORS_INFO, MAINCANVAS_RESOLUTION_WIDTH } from '@/constants/canvasConstants';
+import { COLORS_INFO, DEFAULT_MAX_PIXELS, MAINCANVAS_RESOLUTION_WIDTH } from '@/constants/canvasConstants';
 import { drawingSocketHandlers } from '@/handlers/socket/drawingSocket.handler';
 import { gameSocketHandlers } from '@/handlers/socket/gameSocket.handler';
 import { useDrawing } from '@/hooks/canvas/useDrawing';
@@ -48,7 +48,7 @@ interface GameCanvasProps {
  *
  * @category Components
  */
-const GameCanvas = ({ role, maxPixels = 10000, currentRound, roomStatus, isHidden }: GameCanvasProps) => {
+const GameCanvas = ({ role, maxPixels = DEFAULT_MAX_PIXELS, currentRound, roomStatus, isHidden }: GameCanvasProps) => {
   const canvasRef = useRef<HTMLCanvasElement>(null);
   const { convertCoordinate } = useCoordinateScale(MAINCANVAS_RESOLUTION_WIDTH, canvasRef);
 
