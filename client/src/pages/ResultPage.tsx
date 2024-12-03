@@ -58,7 +58,7 @@ const ResultPage = () => {
   };
 
   const renderPlayer = (player: Player, position: 'first' | 'second' | 'third') => {
-    if (!player) return null;
+    if (!player || player.score === 0) return null;
 
     const { scorePosition, profilePosition, profileTextClass } = positionStyles[position];
     const { score, nickname, profileImage } = player;
