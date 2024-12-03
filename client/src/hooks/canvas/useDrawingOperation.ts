@@ -54,6 +54,7 @@ const checkColorisNotEqual = (pos: number, startColor: RGBA, pixelArray: Uint8Cl
  * @property getCurrentStyle - 현재 상태를 기반으로 스트로크 스타일을 반환하는 함수
  * @property drawStroke - 캔버스에 단일 스트로크를 그리는 함수
  * @property redrawCanvas - 저장된 스트로크들을 기반으로 전체 캔버스를 다시 그리는 함수
+ * @property applyFill - 소켓에서 받아온 페인팅 좌표 배열을 그리는 함수
  * @property floodFill - 지정된 좌표에서 영역 채우기를 수행하는 함수
  *
  * @category Hooks
@@ -104,8 +105,30 @@ export const useDrawingOperation = (
 
     state.crdtRef.current.strokes
       .filter((stroke) => stroke.stroke !== null)
-      .forEach(({ stroke }) => drawStroke(stroke));
+      .forEach(({ stroke }) => {
+        if (stroke.points.length > 2) applyFill(stroke);
+        else drawStroke(stroke);
+      });
   }, [drawStroke]);
+
+  const applyFill = (drawingData: DrawingData) => {
+    const { canvas, ctx } = getCanvasContext(canvasRef);
+    const { points, style } = drawingData;
+
+    if (points.length === 0) return;
+
+    const color = hexToRGBA(style.color);
+
+    const imageData = ctx.getImageData(0, 0, canvas.width, canvas.height);
+    const data = imageData.data;
+
+    points.forEach(({ x, y }) => {
+      const pos = (y * canvas.width + x) * 4;
+      fillTargetColor(pos, color, data);
+    });
+
+    ctx.putImageData(imageData, 0, 0);
+  };
 
   const floodFill = useCallback(
     (startX: number, startY: number) => {
@@ -126,7 +149,7 @@ export const useDrawingOperation = (
       let pixelCount = 0;
       const filledPoints: Point[] = [];
 
-      while (pixelsToCheck.length > 0 && pixelCount < inkRemaining) {
+      while (pixelsToCheck.length > 0 && pixelCount <= inkRemaining) {
         const [x, y] = pixelsToCheck.shift()!;
         const pos = (y * canvas.width + x) * 4;
 
@@ -165,6 +188,7 @@ export const useDrawingOperation = (
     getCurrentStyle,
     drawStroke,
     redrawCanvas,
+    applyFill,
     floodFill,
     clearCanvas,
   };
