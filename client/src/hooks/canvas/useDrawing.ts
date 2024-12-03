@@ -116,8 +116,7 @@ export const useDrawing = (
     (point: Point): CRDTUpdateMessage | null => {
       if (state.checkInkAvailability() === false || !state.crdtRef.current) return null;
 
-      state.currentStrokeIdsRef.current = [];
-      currentDrawingPoints.current = [point];
+      currentDrawingPoints.current = state.drawingMode === DRAWING_MODE.PEN ? [point] : [];
 
       const drawingData =
         state.drawingMode === DRAWING_MODE.FILL
@@ -175,22 +174,28 @@ export const useDrawing = (
   );
 
   const stopDrawing = useCallback(() => {
-    if (!state.crdtRef.current || !currentDrawingPoints.current || state.currentStrokeIdsRef.current.length === 0)
-      return;
+    if (!state.crdtRef.current || state.currentStrokeIdsRef.current.length === 0) return;
 
     if (state.historyPointerRef.current < state.strokeHistoryRef.current.length - 1) {
       state.strokeHistoryRef.current = state.strokeHistoryRef.current.slice(0, state.historyPointerRef.current + 1);
     }
 
-    const allPoints: Point[] = [];
-    state.currentStrokeIdsRef.current.forEach((strokeId) => {
-      const stroke = state.crdtRef.current!.strokes.find((s) => s.id === strokeId);
-      if (stroke) {
-        allPoints.push(...stroke.stroke.points);
-      }
-    });
+    let drawingData: DrawingData;
 
-    const drawingData = createDrawingData(allPoints);
+    if (state.drawingMode === DRAWING_MODE.FILL) {
+      const stroke = state.crdtRef.current.strokes.find((s) => s.id === state.currentStrokeIdsRef.current[0])?.stroke;
+      if (!stroke) return;
+      drawingData = stroke;
+    } else {
+      const allPoints: Point[] = [];
+      state.currentStrokeIdsRef.current.forEach((strokeId) => {
+        const stroke = state.crdtRef.current!.strokes.find((s) => s.id === strokeId);
+        if (stroke) {
+          allPoints.push(...stroke.stroke.points);
+        }
+      });
+      drawingData = createDrawingData(allPoints);
+    }
 
     state.strokeHistoryRef.current.push({
       strokeIds: [...state.currentStrokeIdsRef.current],
