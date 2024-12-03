@@ -37,7 +37,7 @@ const GameLayout = () => {
           <div
             className={cn(
               // 기본 스타일 (모바일, < 1024px)
-              'relative flex h-[calc(100vh-5rem)] min-h-[50rem] w-screen flex-col items-start justify-start bg-eastbay-600 xs:h-[calc(100vh-6rem)]',
+              'relative flex h-[calc(100vh-5rem)] min-h-[45rem] w-screen flex-col items-start justify-start bg-eastbay-600 xs:h-[calc(100vh-6rem)]',
               // lg
               'lg:h-[calc(100vh-10rem)] lg:min-h-[29rem] lg:max-w-screen-lg lg:flex-row lg:rounded-lg lg:px-3',
               // xl
