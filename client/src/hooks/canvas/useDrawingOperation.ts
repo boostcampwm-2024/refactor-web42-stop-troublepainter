@@ -174,6 +174,7 @@ export const useDrawingOperation = (
       return {
         points: filledPoints,
         style: getCurrentStyle(),
+        timestamp: Date.now(),
       };
     },
     [currentColor, inkRemaining, getCurrentStyle, setInkRemaining],
