@@ -1,8 +1,9 @@
-import { useCallback, useEffect, useMemo } from 'react';
+import { useCallback, useEffect } from 'react';
 import { TerminationType } from '@troublepainter/core';
 import { useNavigate } from 'react-router-dom';
 import podium from '@/assets/podium.gif';
 import PodiumPlayers from '@/components/result/PodiumPlayers';
+import { usePlayerRankings } from '@/hooks/usePlayerRanking';
 import { useTimeout } from '@/hooks/useTimeout';
 import { useGameSocketStore } from '@/stores/socket/gameSocket.store';
 import { useToastStore } from '@/stores/toast.store';
@@ -10,17 +11,10 @@ import { useToastStore } from '@/stores/toast.store';
 const ResultPage = () => {
   const navigate = useNavigate();
   const roomId = useGameSocketStore((state) => state.room?.roomId);
-  const players = useGameSocketStore((state) => state.players);
   const terminateType = useGameSocketStore((state) => state.gameTerminateType);
   const gameActions = useGameSocketStore((state) => state.actions);
   const toastActions = useToastStore((state) => state.actions);
-
-  const rankedPlayers = useMemo(() => {
-    const sortedScores = [...new Set(players.map((p) => p.score))].sort((a, b) => b - a);
-    return sortedScores.slice(0, 3).map((score) => players.filter((player) => player.score === score));
-  }, [players]);
-
-  const [firstPlacePlayers, secondPlacePlayers, thirdPlacePlayers] = rankedPlayers;
+  const { firstPlacePlayers, secondPlacePlayers, thirdPlacePlayers } = usePlayerRankings();
 
   useEffect(() => {
     const description =
