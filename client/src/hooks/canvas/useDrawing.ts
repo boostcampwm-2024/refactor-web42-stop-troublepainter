@@ -30,6 +30,21 @@ export const useDrawing = (
     [operation],
   );
 
+  const renderStroke = useCallback(
+    (strokeData: DrawingData, position: 'middle' | 'end') => {
+      if (position === 'middle') {
+        operation.redrawCanvas();
+      } else {
+        if (strokeData.points.length > 2) {
+          operation.applyFill(strokeData);
+        } else {
+          operation.drawStroke(strokeData);
+        }
+      }
+    },
+    [operation],
+  );
+
   const startDrawing = useCallback(
     (point: Point): CRDTUpdateMessage | null => {
       if (state.checkInkAvailability() === false || !state.crdtRef.current) return null;
@@ -46,16 +61,7 @@ export const useDrawing = (
 
       const { id, position } = state.crdtRef.current.addStroke(drawingData);
       state.currentStrokeIdsRef.current.push(id);
-
-      if (position === 'middle') {
-        operation.redrawCanvas();
-      } else {
-        if (drawingData.points.length > 2) {
-          operation.applyFill(drawingData);
-        } else {
-          operation.drawStroke(drawingData);
-        }
-      }
+      renderStroke(drawingData, position);
 
       return {
         type: CRDTMessageTypes.UPDATE,
@@ -65,7 +71,7 @@ export const useDrawing = (
         },
       };
     },
-    [state, operation, createDrawingData],
+    [state, operation, createDrawingData, renderStroke],
   );
 
   const continueDrawing = useCallback(
@@ -86,12 +92,7 @@ export const useDrawing = (
 
       const { id, position } = state.crdtRef.current.addStroke(drawingData);
       state.currentStrokeIdsRef.current.push(id);
-
-      if (position === 'middle') {
-        operation.redrawCanvas();
-      } else {
-        operation.drawStroke(drawingData);
-      }
+      renderStroke(drawingData, position);
 
       currentDrawingPoints.current = [point];
 
@@ -103,7 +104,7 @@ export const useDrawing = (
         },
       };
     },
-    [state, createDrawingData],
+    [state, createDrawingData, renderStroke],
   );
 
   const stopDrawing = useCallback(() => {
@@ -172,9 +173,8 @@ export const useDrawing = (
       nextEntry = state.strokeHistoryRef.current[state.historyPointerRef.current + 1];
     }
 
-    if (!nextEntry?.isLocal) return null;
+    if (!nextEntry?.isLocal || !nextEntry.drawingData) return null;
 
-    // 해당 스트로크들을 활성화
     const updates = nextEntry.strokeIds.map((strokeId): CRDTUpdateMessage => {
       state.crdtRef.current!.activateStroke(strokeId);
       return {
@@ -219,8 +219,10 @@ export const useDrawing = (
         if (!updated) return;
 
         const stroke = register[2];
-        if (!stroke) {
-          operation.redrawCanvas();
+
+        // null인 경우는 undo된 상태
+        if (stroke === null) {
+          operation.redrawCanvas(); // 전체 다시 그리기
           return;
         }
 
@@ -238,10 +240,10 @@ export const useDrawing = (
           strokeIds: [key],
           isLocal: false,
           drawingData: stroke,
-          timestamp: stroke.timestamp,
+          timestamp: stroke.timestamp || Date.now(),
         });
 
-        state.historyPointerRef.current++;
+        // 원격 작업은 히스토리 포인터에 영향을 주지 않음
         state.updateHistoryState();
       }
     },
