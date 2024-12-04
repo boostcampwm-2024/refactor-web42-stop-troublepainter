@@ -10,7 +10,7 @@ import right from '@/assets/right.svg';
 import { Modal } from '@/components/ui/Modal';
 import { cn } from '@/utils/cn';
 
-interface Props {
+interface RollingModalProps {
   isModalOpened: boolean;
   handle: {
     closeModal: () => void;
@@ -64,7 +64,7 @@ const HelpPage = ({ pageData, playerRef }: { pageData: PageData; playerRef: RefO
   );
 };
 
-const RollingModal = ({ isModalOpened, handle }: Props) => {
+const RollingModal = ({ isModalOpened, handle }: RollingModalProps) => {
   const [pageIndex, setPageIndex] = useState<number>(0);
   const [pagenation, setPagenation] = useState(new Array(pageData.length).fill(false));
   const [isWideScreen, setIsWideScreen] = useState<boolean>(true);
