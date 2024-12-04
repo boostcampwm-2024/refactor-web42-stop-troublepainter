@@ -11,6 +11,7 @@ export interface StrokeStyle {
 export interface DrawingData {
   points: Point[];
   style: StrokeStyle;
+  timestamp: number;
 }
 
 export type RegisterState<T> = [peerId: string, timestamp: number, value: T];

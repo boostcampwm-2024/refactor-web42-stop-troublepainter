@@ -6,6 +6,7 @@ import {
   CRDTUpdateMessage,
   CRDTSyncMessage,
   RoomStatus,
+  DrawingData,
 } from '@troublepainter/core';
 import { useDrawingOperation } from './useDrawingOperation';
 import { useDrawingState } from './useDrawingState';
@@ -87,36 +88,56 @@ export const useDrawing = (
   const operation = useDrawingOperation(canvasRef, state);
   const currentDrawingPoints = useRef<Point[]>([]);
 
+  const createDrawingData = useCallback(
+    (points: Point[]): DrawingData => ({
+      points,
+      style: operation.getCurrentStyle(),
+      timestamp: Date.now(),
+    }),
+    [operation],
+  );
+
+  const renderStroke = useCallback(
+    (strokeData: DrawingData, position: 'middle' | 'end') => {
+      if (position === 'middle') {
+        operation.redrawCanvas();
+      } else {
+        if (strokeData.points.length > 2) {
+          operation.applyFill(strokeData);
+        } else {
+          operation.drawStroke(strokeData);
+        }
+      }
+    },
+    [operation],
+  );
+
   const startDrawing = useCallback(
     (point: Point): CRDTUpdateMessage | null => {
       if (state.checkInkAvailability() === false || !state.crdtRef.current) return null;
 
-      state.currentStrokeIdsRef.current = [];
-      currentDrawingPoints.current = [point];
+      currentDrawingPoints.current = state.drawingMode === DRAWING_MODE.PEN ? [point] : [];
 
       const drawingData =
         state.drawingMode === DRAWING_MODE.FILL
           ? operation.floodFill(Math.floor(point.x), Math.floor(point.y))
-          : {
-              points: [point],
-              style: operation.getCurrentStyle(),
-            };
+          : createDrawingData([point]);
 
       if (!drawingData) return null;
 
-      const strokeId = state.crdtRef.current.addStroke(drawingData);
-      state.currentStrokeIdsRef.current.push(strokeId);
-      operation.drawStroke(drawingData);
+      const { id, position } = state.crdtRef.current.addStroke(drawingData);
+      state.currentStrokeIdsRef.current.push(id);
+      renderStroke(drawingData, position);
 
       return {
         type: CRDTMessageTypes.UPDATE,
         state: {
-          key: strokeId,
-          register: state.crdtRef.current.state[strokeId],
+          key: id,
+          register: state.crdtRef.current.state[id],
         },
       };
     },
-    [state, operation],
+    [state, operation, createDrawingData, renderStroke],
   );
 
   const continueDrawing = useCallback(
@@ -133,62 +154,61 @@ export const useDrawing = (
       state.setInkRemaining((prev: number) => Math.max(0, prev - pixelsUsed));
 
       currentDrawingPoints.current.push(point);
+      const drawingData = createDrawingData([...currentDrawingPoints.current]);
 
-      const drawingData = {
-        points: [...currentDrawingPoints.current],
-        style: operation.getCurrentStyle(),
-      };
-
-      const strokeId = state.crdtRef.current.addStroke(drawingData);
-      state.currentStrokeIdsRef.current.push(strokeId);
-      operation.drawStroke(drawingData);
+      const { id, position } = state.crdtRef.current.addStroke(drawingData);
+      state.currentStrokeIdsRef.current.push(id);
+      renderStroke(drawingData, position);
 
       currentDrawingPoints.current = [point];
 
       return {
         type: CRDTMessageTypes.UPDATE,
         state: {
-          key: strokeId,
-          register: state.crdtRef.current.state[strokeId],
+          key: id,
+          register: state.crdtRef.current.state[id],
         },
       };
     },
-    [state, operation],
+    [state, createDrawingData, renderStroke],
   );
 
   const stopDrawing = useCallback(() => {
-    if (!state.crdtRef.current || !currentDrawingPoints.current || state.currentStrokeIdsRef.current.length === 0)
-      return;
+    if (!state.crdtRef.current || state.currentStrokeIdsRef.current.length === 0) return;
 
     if (state.historyPointerRef.current < state.strokeHistoryRef.current.length - 1) {
       state.strokeHistoryRef.current = state.strokeHistoryRef.current.slice(0, state.historyPointerRef.current + 1);
     }
 
-    const allPoints: Point[] = [];
-    state.currentStrokeIdsRef.current.forEach((strokeId) => {
-      const stroke = state.crdtRef.current!.strokes.find((s) => s.id === strokeId);
-      if (stroke) {
-        allPoints.push(...stroke.stroke.points);
-      }
-    });
+    let drawingData: DrawingData;
 
-    const drawingData = {
-      points: allPoints,
-      style: operation.getCurrentStyle(),
-    };
+    if (state.drawingMode === DRAWING_MODE.FILL) {
+      const stroke = state.crdtRef.current.strokes.find((s) => s.id === state.currentStrokeIdsRef.current[0])?.stroke;
+      if (!stroke) return;
+      drawingData = stroke;
+    } else {
+      const allPoints: Point[] = [];
+      state.currentStrokeIdsRef.current.forEach((strokeId) => {
+        const stroke = state.crdtRef.current!.strokes.find((s) => s.id === strokeId);
+        if (stroke) {
+          allPoints.push(...stroke.stroke.points);
+        }
+      });
+      drawingData = createDrawingData(allPoints);
+    }
 
     state.strokeHistoryRef.current.push({
       strokeIds: [...state.currentStrokeIdsRef.current],
       isLocal: true,
       drawingData,
+      timestamp: drawingData.timestamp,
     });
 
     state.historyPointerRef.current = state.strokeHistoryRef.current.length - 1;
-
     currentDrawingPoints.current = [];
     state.currentStrokeIdsRef.current = [];
     state.updateHistoryState();
-  }, [state]);
+  }, [state, createDrawingData]);
 
   const undo = useCallback((): CRDTUpdateMessage[] | null => {
     if (!state.crdtRef.current || state.historyPointerRef.current < 0) return null;
@@ -235,17 +255,16 @@ export const useDrawing = (
 
     if (!nextEntry?.isLocal || !nextEntry.drawingData) return null;
 
-    const strokeId = state.crdtRef.current.addStroke(nextEntry.drawingData);
+    const { id } = state.crdtRef.current.addStroke(nextEntry.drawingData);
+    nextEntry.strokeIds = [id];
 
     const update: CRDTUpdateMessage = {
       type: CRDTMessageTypes.UPDATE,
       state: {
-        key: strokeId,
-        register: state.crdtRef.current.state[strokeId],
+        key: id,
+        register: state.crdtRef.current.state[id],
       },
     };
-
-    nextEntry.strokeIds = [strokeId];
 
     state.historyPointerRef.current++;
     state.updateHistoryState();
@@ -259,8 +278,10 @@ export const useDrawing = (
       if (!state.crdtRef.current) return;
 
       if (crdtDrawingData.type === CRDTMessageTypes.SYNC) {
-        state.crdtRef.current.merge(crdtDrawingData.state);
-        operation.redrawCanvas();
+        const { requiresRedraw } = state.crdtRef.current.merge(crdtDrawingData.state);
+        if (requiresRedraw) {
+          operation.redrawCanvas();
+        }
 
         if (roomStatus === 'DRAWING') {
           state.strokeHistoryRef.current = [];
@@ -272,7 +293,10 @@ export const useDrawing = (
         const peerId = key.split('-')[0];
         const isLocalUpdate = peerId === state.currentPlayerId;
 
-        if (!state.crdtRef.current.mergeRegister(key, register) || isLocalUpdate) return;
+        if (isLocalUpdate) return;
+
+        const { updated, position } = state.crdtRef.current.mergeRegister(key, register);
+        if (!updated) return;
 
         const stroke = register[2];
         if (!stroke) {
@@ -280,7 +304,7 @@ export const useDrawing = (
           return;
         }
 
-        operation.drawStroke(stroke);
+        renderStroke(stroke, position);
 
         if (state.historyPointerRef.current < state.strokeHistoryRef.current.length - 1) {
           state.strokeHistoryRef.current = state.strokeHistoryRef.current.slice(0, state.historyPointerRef.current + 1);
@@ -290,12 +314,14 @@ export const useDrawing = (
           strokeIds: [key],
           isLocal: false,
           drawingData: stroke,
+          timestamp: stroke.timestamp,
         });
+
         state.historyPointerRef.current++;
         state.updateHistoryState();
       }
     },
-    [state.currentPlayerId, operation, roomStatus],
+    [state.currentPlayerId, operation, roomStatus, renderStroke],
   );
 
   const getAllDrawingData = useCallback((): CRDTSyncMessage | null => {

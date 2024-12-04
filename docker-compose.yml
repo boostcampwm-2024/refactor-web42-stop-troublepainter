@@ -1,7 +1,7 @@
 services:
-  api:
-    image: ${DOCKERHUB_USERNAME}/troublepainter-api:latest
-    container_name: troublepainter_api
+  server:
+    image: ${DOCKERHUB_USERNAME}/troublepainter-server:latest
+    container_name: troublepainter_server
     environment:
       - NODE_ENV=production
       - REDIS_HOST=${REDIS_HOST}
@@ -21,7 +21,7 @@ services:
       - "80:80"
       - "443:443"
     depends_on:
-      - api
+      - server
     networks:
       - app_network
     restart: unless-stopped

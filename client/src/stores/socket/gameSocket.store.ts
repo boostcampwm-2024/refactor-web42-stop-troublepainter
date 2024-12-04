@@ -1,4 +1,4 @@
-import { Player, PlayerRole, PlayerStatus, Room, RoomSettings, RoomStatus } from '@troublepainter/core';
+import { Player, PlayerRole, PlayerStatus, Room, RoomSettings, RoomStatus, TerminationType } from '@troublepainter/core';
 import { create } from 'zustand';
 import { devtools } from 'zustand/middleware';
 
@@ -8,6 +8,7 @@ interface GameState {
   players: Player[];
   roundWinners: Player[] | null;
   roundAssignedRole: PlayerRole | null;
+  gameTerminateType: TerminationType | null;
   currentPlayerId: string | null;
   isHost: boolean | null;
 }
@@ -20,6 +21,7 @@ interface GameActions {
   updateCurrentRound: (currentRound: number) => void;
   updateCurrentWord: (currentWord: string) => void;
   updateRoomStatus: (status: RoomStatus) => void;
+  updateHost: (hostId: string) => void;
 
   // roomSetting 상태 업데이트
   updateRoomSettings: (settings: RoomSettings) => void;
@@ -38,6 +40,9 @@ interface GameActions {
   // 승자 상태 업데이트
   updateRoundWinners: (players: Player[]) => void;
 
+  // 종료 타입 업데이트
+  updateGameTerminateType: (terminateType: TerminationType) => void;
+
   // 상태 초기화
   resetRound: () => void;
   resetGame: () => void;
@@ -52,6 +57,7 @@ const initialState: GameState = {
   isHost: null,
   roundWinners: null,
   roundAssignedRole: null,
+  gameTerminateType: null,
 };
 
 const resetCommonState = () => ({
@@ -107,6 +113,12 @@ export const useGameSocketStore = create<GameState & { actions: GameActions }>()
           }));
         },
 
+        updateHost: (hostId) => {
+          set((state) => ({
+            room: state.room && { ...state.room, hostId },
+          }));
+        },
+
         updateRoomStatus: (status) => {
           set((state) => ({ room: state.room && { ...state.room, status } }));
         },
@@ -145,6 +157,10 @@ export const useGameSocketStore = create<GameState & { actions: GameActions }>()
 
         updateRoundAssignedRole: (playerRole) => {
           set({ roundAssignedRole: playerRole });
+        },
+
+        updateGameTerminateType: (type) => {
+          set({ gameTerminateType: type });
         },
 
         updateRoundWinners: (players) => {

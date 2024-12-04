@@ -5,6 +5,9 @@ export default {
   content: ['./index.html', './src/**/*.{js,ts,jsx,tsx}'],
   theme: {
     extend: {
+      backgroundImage : {
+        'patternImg' : `url("/src/assets/patterns/background.png")`
+      },
       screens: {
         xs: '480px', // xs 브레이크포인트 추가
       },
@@ -90,6 +93,19 @@ export default {
         '.text-stroke-md': {
           color: '#EBE9FF',
           'text-shadow': `2px 0 0 #200940,-2px 0 0 #200940,0 2px 0 #200940,0 -2px 0 #200940,1px 1px #200940,-1px -1px 0 #200940,1px -1px 0 #200940,-1px 1px 0 #200940`,
+        },
+        '.text-stroke-lg': {
+          color: '#EBE9FF',
+          'text-shadow': `
+            -4px -4px 0 #200940, 4px -4px 0 #200940,
+            -4px 4px 0 #200940, 4px 4px 0 #200940,
+            -4px 0 0 #200940, 4px 0 0 #200940,
+            0 -4px 0 #200940, 0 4px 0 #200940,
+            -3px -3px 0 #200940, 3px -3px 0 #200940,
+            -3px 3px 0 #200940, 3px 3px 0 #200940,
+            -3px 0 0 #200940, 3px 0 0 #200940,
+            0 -3px 0 #200940, 0 3px 0 #200940
+          `,
         },
       });
     },

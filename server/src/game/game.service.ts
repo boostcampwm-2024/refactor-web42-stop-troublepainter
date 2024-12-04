@@ -167,9 +167,21 @@ export class GameService {
 
     await this.gameRepository.removePlayerFromRoom(roomId, playerId);
 
-    // Todo: When someone leaves, move them to the waiting room
+    return { roomStatus: room.status, hostId, remainingPlayers };
+  }
 
-    return { hostId, remainingPlayers };
+  async initializeGame(roomId: string) {
+    await this.gameRepository.updateRoom(roomId, { status: RoomStatus.WAITING, currentRound: 0, currentWord: null });
+    const players = await this.gameRepository.getRoomPlayers(roomId);
+    await Promise.all(
+      players.map(({ playerId }) =>
+        this.gameRepository.updatePlayer(roomId, playerId, {
+          status: PlayerStatus.NOT_PLAYING,
+          role: null,
+          score: 0,
+        }),
+      ),
+    );
   }
 
   async updateSettings(roomId: string, playerId: string, data: Partial<RoomSettings>) {
@@ -223,16 +235,7 @@ export class GameService {
     if (!room) throw new RoomNotFoundException('Room not found');
 
     if (room.currentRound >= roomSettings.totalRounds) {
-      await this.gameRepository.updateRoom(roomId, { status: RoomStatus.WAITING, currentRound: 0, currentWord: null });
-      await Promise.all(
-        players.map(({ playerId }) =>
-          this.gameRepository.updatePlayer(roomId, playerId, {
-            status: PlayerStatus.NOT_PLAYING,
-            role: null,
-            score: 0,
-          }),
-        ),
-      );
+      await this.initializeGame(roomId);
       return { gameEnded: true };
     }
 

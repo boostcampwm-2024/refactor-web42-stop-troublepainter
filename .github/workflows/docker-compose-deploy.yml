@@ -1,0 +1,24 @@
+name: Docker Compose Update
+
+on:
+  push:
+    branches: [develop]
+    paths:
+      - 'docker-compose.yml'
+      - '.github/workflows/docker-compose-deploy.yml'
+
+jobs:
+  deploy:
+    runs-on: ubuntu-latest
+    steps:
+      - name: Deploy to Server
+        uses: appleboy/ssh-action@v1.0.0
+        with:
+          host: ${{ secrets.SSH_HOST }}
+          username: mira
+          key: ${{ secrets.SSH_PRIVATE_KEY }}
+          script: |
+            cd /home/mira/web30-stop-troublepainter
+            export DOCKERHUB_USERNAME=${{ secrets.DOCKERHUB_USERNAME }}
+            docker compose pull
+            docker compose up -d

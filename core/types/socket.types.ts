@@ -1,5 +1,5 @@
 import { CRDTMessage, DrawingData } from '@/types/crdt.types';
-import { Player, PlayerRole, Room, RoomSettings, TimerType } from '@/types/game.types';
+import { Player, PlayerRole, Room, RoomSettings, TerminationType, TimerType } from '@/types/game.types';
 
 // 웹소켓 이벤트의 기본 응답 형식을 정의하는 제네릭 인터페이스
 // export interface SocketResponse<T = unknown> {
@@ -68,6 +68,7 @@ export interface JoinRoomResponse {
 
 export interface PlayerLeftResponse {
   leftPlayerId: string;
+  hostId: string;
   players: Player[];
 }
 
@@ -155,6 +156,13 @@ export interface DrawUpdateResponse {
 
 export interface DrawTimeEndedResponse {
   roomStatus: any;
+}
+
+export interface RoomEndResponse {
+  terminationType: TerminationType;
+  leftPlayerId?: string;
+  hostId?: string;
+  players?: Player[];
 }
 
 // Socket.IO 이벤트 타입 정의

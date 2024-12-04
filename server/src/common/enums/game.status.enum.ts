@@ -20,3 +20,8 @@ export enum Difficulty {
   NORMAL = 'NORMAL',
   HARD = 'HARD',
 }
+
+export enum TerminationType {
+  SUCCESS = 'SUCCESS',
+  PLAYER_DISCONNECT = 'PLAYER_DISCONNECT',
+}

@@ -10,6 +10,8 @@ import {
   RoomStatus,
   TimerType,
   PlayerStatus,
+  RoomEndResponse,
+  TerminationType,
 } from '@troublepainter/core';
 import { useNavigate, useParams } from 'react-router-dom';
 import entrySound from '@/assets/sounds/entry-sound-effect.mp3';
@@ -141,9 +143,11 @@ export const useGameSocket = () => {
       },
 
       playerLeft: (response: PlayerLeftResponse) => {
-        const { leftPlayerId, players } = response;
+        const { leftPlayerId, players, hostId } = response;
         gameActions.removePlayer(leftPlayerId);
         gameActions.updatePlayers(players);
+        gameActions.updateHost(hostId);
+        gameActions.updateIsHost(hostId === useGameSocketStore.getState().currentPlayerId);
       },
 
       settingsUpdated: (response: UpdateSettingsResponse) => {
@@ -203,9 +207,17 @@ export const useGameSocket = () => {
         gameActions.updatePlayers(players);
       },
 
-      gameEnded: () => {
-        gameActions.resetGame();
-        navigate(`/lobby/${roomId}`, { replace: true });
+      gameEnded: (response: RoomEndResponse) => {
+        const { terminationType, leftPlayerId, hostId } = response;
+        if (terminationType === TerminationType.PLAYER_DISCONNECT && leftPlayerId && hostId) {
+          gameActions.removePlayer(leftPlayerId);
+          gameActions.updateHost(hostId);
+          gameActions.updateIsHost(hostId === useGameSocketStore.getState().currentPlayerId);
+        }
+        gameActions.updateRoomStatus(RoomStatus.WAITING);
+        gameActions.resetRound();
+        gameActions.updateGameTerminateType(terminationType);
+        navigate(`/game/${roomId}/result`, { replace: true });
       },
     };
 
