@@ -52,7 +52,7 @@ const QuizStageContainer = () => {
       return roundAssignedRole !== PlayerRole.GUESSER ? `${room.currentWord}` : '';
     }
     if (room.status === RoomStatus.GUESSING) {
-      return roundAssignedRole !== PlayerRole.GUESSER ? `${room.currentWord} (맞추는중...)` : '맞춰보세요-!';
+      return roundAssignedRole !== PlayerRole.GUESSER ? `${room.currentWord} (맞히는중...)` : '맞혀보세요-!';
     }
   }, [room.status, room.currentWord, roundAssignedRole]);
 
