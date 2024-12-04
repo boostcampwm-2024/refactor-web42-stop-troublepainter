@@ -14,7 +14,12 @@ export interface DrawingData {
   timestamp: number;
 }
 
-export type RegisterState<T> = [peerId: string, timestamp: number, value: T];
+export type RegisterState<T> = {
+  peerId: string;
+  timestamp: number;
+  value: T;
+  isDeactivated?: boolean;
+};
 
 export type MapState = {
   [key: string]: RegisterState<DrawingData | null>;
@@ -35,6 +40,7 @@ export type CRDTUpdateMessage = {
   state: {
     key: string;
     register: RegisterState<DrawingData | null>;
+    isDeactivated?: boolean;
   };
 };
 

@@ -7,6 +7,7 @@ import {
   CRDTSyncMessage,
   RoomStatus,
   DrawingData,
+  RegisterState,
 } from '@troublepainter/core';
 import { useDrawingOperation } from './useDrawingOperation';
 import { useDrawingState } from './useDrawingState';
@@ -210,11 +211,19 @@ export const useDrawing = (
 
     const updates = currentEntry.strokeIds.map((strokeId): CRDTUpdateMessage => {
       state.crdtRef.current!.deactivateStroke(strokeId);
+      const baseRegister = state.crdtRef.current!.state[strokeId];
+      const register: RegisterState<DrawingData | null> = {
+        peerId: baseRegister.peerId,
+        timestamp: baseRegister.timestamp,
+        value: baseRegister.value,
+        isDeactivated: true,
+      };
+
       return {
         type: CRDTMessageTypes.UPDATE,
         state: {
           key: strokeId,
-          register: state.crdtRef.current!.state[strokeId], // 변경된 상태 가져오기
+          register,
         },
       };
     });
@@ -244,11 +253,19 @@ export const useDrawing = (
 
     const updates = nextEntry.strokeIds.map((strokeId): CRDTUpdateMessage => {
       state.crdtRef.current!.activateStroke(strokeId);
+      const baseRegister = state.crdtRef.current!.state[strokeId];
+      const register: RegisterState<DrawingData | null> = {
+        peerId: baseRegister.peerId,
+        timestamp: baseRegister.timestamp,
+        value: baseRegister.value,
+        isDeactivated: false,
+      };
+
       return {
         type: CRDTMessageTypes.UPDATE,
         state: {
           key: strokeId,
-          register: state.crdtRef.current!.state[strokeId],
+          register,
         },
       };
     });
@@ -282,41 +299,35 @@ export const useDrawing = (
 
         if (isLocalUpdate) return;
 
+        // CRDT 상태 업데이트
         const { updated, position } = state.crdtRef.current.mergeRegister(key, register);
         if (!updated) return;
 
-        const stroke = register[2];
+        const stroke = register.value;
+        const isDeactivated = register.isDeactivated ?? false;
 
-        if (!stroke) {
-          operation.redrawCanvas();
-          return;
-        }
-
-        // 새로운 스트로크 또는 redo된 스트로크
+        // 새로운 스트로크이고 비활성화되지 않은 경우만 히스토리에 추가
         const existingEntryIndex = state.strokeHistoryRef.current.findIndex((entry) => entry.strokeIds.includes(key));
 
-        if (existingEntryIndex === -1) {
-          // 새로운 스트로크인 경우만 히스토리에 추가
+        if (existingEntryIndex === -1 && stroke && !isDeactivated) {
           state.strokeHistoryRef.current.push({
             strokeIds: [key],
             isLocal: false,
             drawingData: stroke,
             timestamp: stroke.timestamp || Date.now(),
           });
+          state.updateHistoryState();
         }
 
-        // 그리기 작업
-        if (position === 'middle') {
+        if (position === 'middle' || existingEntryIndex !== -1 || isDeactivated) {
           operation.redrawCanvas();
-        } else {
+        } else if (stroke) {
           if (stroke.points.length > 2) {
             operation.applyFill(stroke);
           } else {
             operation.drawStroke(stroke);
           }
         }
-
-        state.updateHistoryState();
       }
     },
     [state.currentPlayerId, operation, roomStatus],
