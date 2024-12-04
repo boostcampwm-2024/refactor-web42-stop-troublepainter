@@ -21,11 +21,12 @@ const ResultPage = () => {
       terminateType === TerminationType.PLAYER_DISCONNECT
         ? '나간 플레이어가 있어요. 20초 후 대기실로 이동합니다!'
         : '20초 후 대기실로 이동합니다!';
+    const variant = terminateType === TerminationType.PLAYER_DISCONNECT ? 'warning' : 'success';
 
     toastActions.addToast({
       title: '게임 종료',
       description,
-      variant: 'success',
+      variant,
       duration: 20000,
     });
   }, [terminateType, toastActions]);

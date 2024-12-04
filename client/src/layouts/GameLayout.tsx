@@ -30,7 +30,7 @@ const GameLayout = () => {
       <BrowserNavigationGuard />
       <NavigationModal />
       <div
-        className={`before:bg-patternImg relative flex min-h-screen flex-col justify-start bg-gradient-to-b from-violet-950 via-violet-800 to-fuchsia-800 before:absolute before:left-0 before:top-0 before:h-full before:w-full before:bg-cover before:bg-center lg:py-5`}
+        className={`relative flex min-h-screen flex-col justify-start bg-gradient-to-b from-violet-950 via-violet-800 to-fuchsia-800 before:absolute before:left-0 before:top-0 before:h-full before:w-full before:bg-patternImg before:bg-cover before:bg-center lg:py-5`}
       >
         {/* 상단 헤더 */}
         <GameHeader />
