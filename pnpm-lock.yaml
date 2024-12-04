@@ -24,6 +24,9 @@ importers:
       '@lottiefiles/dotlottie-react':
         specifier: ^0.10.1
         version: 0.10.1(react-dom@18.3.1(react@18.3.1))(react@18.3.1)
+      '@lottiefiles/react-lottie-player':
+        specifier: ^3.5.4
+        version: 3.5.4(react@18.3.1)
       '@tanstack/react-query':
         specifier: ^5.59.19
         version: 5.60.6(react@18.3.1)
@@ -1007,6 +1010,11 @@ packages:
 
   '@lottiefiles/dotlottie-web@0.38.0':
     resolution: {integrity: sha512-3ZAD1TS0NkgtZvIkrfFMTW5BSxRiXTG9UGCwqI98gdZ5UCyDVGxi898dFlhvNhE5vcl30LpxICp5AnuBWonCig==}
+
+  '@lottiefiles/react-lottie-player@3.5.4':
+    resolution: {integrity: sha512-2FptWtHQ+o7MzdsMKSvNZ1Mz7xtKSYI0WL9HjZ1r+CvsXR3lbLQUDp7Pwx6qhg0Akm4VluQ+8/D1S1fcr1Ao4w==}
+    peerDependencies:
+      react: 16 - 18
 
   '@lukeed/csprng@1.1.0':
     resolution: {integrity: sha512-Z7C/xXCiGWsg0KuKsHTKJxbWhpI3Vs5GwLfOean7MGyVFGqdRgBbAjOCh6u4bbjPc/8MJ2pZmK/0DLdCbivLDA==}
@@ -3617,6 +3625,9 @@ packages:
     resolution: {integrity: sha512-lyuxPGr/Wfhrlem2CL/UcnUc1zcqKAImBDzukY7Y5F/yQiNdko6+fRLevlw1HgMySw7f611UIY408EtxRSoK3Q==}
     hasBin: true
 
+  lottie-web@5.12.2:
+    resolution: {integrity: sha512-uvhvYPC8kGPjXT3MyKMrL3JitEAmDMp30lVkuq/590Mw9ok6pWcFCwXJveo0t5uqYw1UREQHofD+jVpdjBv8wg==}
+
   loupe@3.1.2:
     resolution: {integrity: sha512-23I4pFZHmAemUnz8WZXbYRSKYj801VDaNv9ETuMh7IrMc7VuVVSo+Z9iLE3ni30+U48iDWfi30d3twAXBYmnCg==}
 
@@ -5962,6 +5973,11 @@ snapshots:
       react-dom: 18.3.1(react@18.3.1)
 
   '@lottiefiles/dotlottie-web@0.38.0': {}
+
+  '@lottiefiles/react-lottie-player@3.5.4(react@18.3.1)':
+    dependencies:
+      lottie-web: 5.12.2
+      react: 18.3.1
 
   '@lukeed/csprng@1.1.0': {}
 
@@ -9251,6 +9267,8 @@ snapshots:
   loose-envify@1.4.0:
     dependencies:
       js-tokens: 4.0.0
+
+  lottie-web@5.12.2: {}
 
   loupe@3.1.2: {}
 
