@@ -1,6 +1,7 @@
 import { useEffect, useState } from 'react';
 import { DotLottieReact } from '@lottiefiles/dotlottie-react';
 import { PlayerRole, RoomStatus } from '@troublepainter/core';
+import roundLoss from '@/assets/lottie/round-loss.lottie';
 import roundWin from '@/assets/lottie/round-win.lottie';
 import gameLoss from '@/assets/sounds/game-loss.mp3';
 import gameWin from '@/assets/sounds/game-win.mp3';
@@ -71,17 +72,28 @@ const RoundEndModal = () => {
   return (
     <>
       {/* 승리/패배 애니메이션 */}
-      {showAnimation && isCurrentPlayerWinner && (
-        <DotLottieReact
-          src={roundWin}
-          autoplay
-          loop={false}
-          className={cn(
-            'absolute left-1/2 top-1/2 z-50 h-screen w-full -translate-x-1/2 -translate-y-1/2 transition-opacity duration-500',
-            isAnimationFading && 'opacity-0',
-          )}
-        />
-      )}
+      {showAnimation &&
+        (isCurrentPlayerWinner ? (
+          <DotLottieReact
+            src={roundWin}
+            autoplay
+            loop={false}
+            className={cn(
+              'absolute left-1/2 top-1/2 z-50 h-screen w-full -translate-x-1/2 -translate-y-1/2 transition-opacity duration-500',
+              isAnimationFading && 'opacity-0',
+            )}
+          />
+        ) : (
+          <DotLottieReact
+            src={roundLoss}
+            autoplay
+            loop
+            className={cn(
+              'absolute left-1/2 top-[60%] z-50 h-[50vh] w-full -translate-x-1/2 -translate-y-1/2 opacity-70 transition-opacity duration-500',
+              isAnimationFading && 'opacity-0',
+            )}
+          />
+        ))}
 
       <Modal
         title={room?.currentWord || ''}
