@@ -67,7 +67,7 @@ const HelpPage = ({ pageData, playerRef }: { pageData: PageData; playerRef: RefO
 const RollingModal = ({ isModalOpened, handle }: Props) => {
   const [pageIndex, setPageIndex] = useState<number>(0);
   const [pagenation, setPagenation] = useState(new Array(pageData.length).fill(false));
-  const [displayArrow, setDisplayArrow] = useState<boolean>(true);
+  const [isWideScreen, setIsWideScreen] = useState<boolean>(true);
   const startPos = useRef<number>(0);
   const canDrag = useRef<boolean>(true);
   const playerRef = useRef<Player>(null);
@@ -86,11 +86,8 @@ const RollingModal = ({ isModalOpened, handle }: Props) => {
 
   useEffect(() => {
     const handleResize = () => {
-      if (window.innerWidth <= 764) {
-        if (displayArrow) setDisplayArrow(false);
-      } else {
-        if (!displayArrow) setDisplayArrow(true);
-      }
+      if (window.innerWidth <= 764 && isWideScreen) setIsWideScreen(false);
+      if (window.innerWidth > 764 && !isWideScreen) setIsWideScreen(true);
     };
 
     handleResize();
@@ -143,13 +140,13 @@ const RollingModal = ({ isModalOpened, handle }: Props) => {
       className="w-full max-w-screen-md"
     >
       <section
-        className={cn('flex', displayArrow && 'p-7')}
+        className={cn('flex', isWideScreen && 'p-7')}
         onTouchStart={handleTouchStart}
         onTouchMove={handleTouchMove}
         onTouchEnd={handleTouchEnd}
       >
         <button
-          className={cn(displayArrow || 'hidden', 'relative -left-6')}
+          className={cn(isWideScreen || 'hidden', 'relative -left-6')}
           onClick={() => {
             setPageIndex(pageIndex == 0 ? pageData.length - 1 : pageIndex - 1);
           }}
@@ -157,7 +154,7 @@ const RollingModal = ({ isModalOpened, handle }: Props) => {
           <img src={left} width={30} />
         </button>
         <div className="w-full">
-          <section className={cn('w-full', displayArrow || 'text-sm')}>
+          <section className={cn('w-full', isWideScreen || 'text-sm')}>
             <HelpPage pageData={pageData[pageIndex]} playerRef={playerRef} />
           </section>
           <div className="relative top-5 flex flex-row items-center justify-center p-5">
@@ -168,7 +165,7 @@ const RollingModal = ({ isModalOpened, handle }: Props) => {
                   className={cn(
                     'mx-1.5 box-content rounded-full',
                     isSelect ? 'border-4 border-halfbaked-300 bg-chartreuseyellow-300' : 'bg-eastbay-600',
-                    displayArrow ? 'h-3 w-3' : 'h-2 w-2',
+                    isWideScreen ? 'h-3 w-3' : 'h-2 w-2',
                   )}
                   onClick={() => {
                     setPageIndex(i);
@@ -179,7 +176,7 @@ const RollingModal = ({ isModalOpened, handle }: Props) => {
           </div>
         </div>
         <button
-          className={cn(displayArrow || 'hidden', 'relative -right-6')}
+          className={cn(isWideScreen || 'hidden', 'relative -right-6')}
           onClick={() => {
             setPageIndex(pageIndex == pageData.length - 1 ? 0 : pageIndex + 1);
           }}
