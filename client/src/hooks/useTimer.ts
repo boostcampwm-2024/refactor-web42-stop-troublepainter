@@ -41,7 +41,12 @@ export const useTimer = () => {
         if (interval) clearInterval(interval);
       });
     };
-  }, [timers, actions]); // timers와 actions만 의존성으로 설정
+  }, [
+    timers.DRAWING !== null && timers.DRAWING > 0,
+    timers.GUESSING !== null && timers.GUESSING > 0,
+    timers.ENDING !== null && timers.ENDING > 0,
+    actions,
+  ]); // timers와 actions만 의존성으로 설정
 
   return timers;
 };
