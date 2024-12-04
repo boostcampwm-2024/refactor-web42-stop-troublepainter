@@ -12,13 +12,19 @@ describe('LWWRegister', () => {
       { x: 10, y: 10 },
     ],
     style: { color, width },
+    timestamp: Date.now(),
   });
 
   let register: LWWRegister<DrawingData | null>;
 
   beforeEach(() => {
     const initialStroke = createTestStroke();
-    const initialState: RegisterState<DrawingData> = ['peer1', Date.now(), initialStroke];
+    const initialState: RegisterState<DrawingData | null> = {
+      peerId: 'peer1',
+      timestamp: Date.now(),
+      value: initialStroke,
+      isDeactivated: false,
+    };
     register = new LWWRegister('peer1', initialState);
   });
 
@@ -26,7 +32,12 @@ describe('LWWRegister', () => {
     it('should initialize with given state', () => {
       const stroke = createTestStroke('#ff0000');
       const timestamp = Date.now();
-      const state: RegisterState<DrawingData> = ['peer1', timestamp, stroke];
+      const state: RegisterState<DrawingData> = {
+        peerId: 'peer1',
+        timestamp,
+        value: stroke,
+        isDeactivated: false,
+      };
 
       const newRegister = new LWWRegister<DrawingData>('peer1', state);
 
@@ -34,6 +45,20 @@ describe('LWWRegister', () => {
       expect(newRegister.value).toEqual(stroke);
       expect(newRegister.state).toEqual(state);
       expect(newRegister.id).toBe('peer1');
+      expect(newRegister.isDeactivated).toBe(false);
+    });
+
+    it('should initialize with deactivated state', () => {
+      const stroke = createTestStroke('#ff0000');
+      const state: RegisterState<DrawingData> = {
+        peerId: 'peer1',
+        timestamp: Date.now(),
+        value: stroke,
+        isDeactivated: true,
+      };
+
+      const newRegister = new LWWRegister<DrawingData>('peer1', state);
+      expect(newRegister.isDeactivated).toBe(true);
     });
   });
 
@@ -45,15 +70,35 @@ describe('LWWRegister', () => {
       // 값이 정상적으로 업데이트되었는지 확인
       expect(register.value).toEqual(newStroke);
       // peer ID는 변경되지 않아야 함
-      expect(register.state[0]).toBe('peer1');
+      expect(register.state.peerId).toBe('peer1');
       // 새로운 타임스탬프가 생성되어야 함
-      expect(typeof register.state[1]).toBe('number');
+      expect(typeof register.state.timestamp).toBe('number');
+      expect(register.isDeactivated).toBe(false);
     });
 
     it('should allow setting null values', () => {
       register.set(null);
       // null 값 설정이 가능해야 함
       expect(register.value).toBeNull();
+    });
+
+    it('should preserve deactivated state when setting new value', () => {
+      register.setDeactivated(true);
+      const newStroke = createTestStroke('#ff0000');
+      register.set(newStroke);
+
+      expect(register.value).toEqual(newStroke);
+      expect(register.isDeactivated).toBe(true);
+    });
+  });
+
+  describe('activation state', () => {
+    it('should update activation state', () => {
+      expect(register.isDeactivated).toBe(false);
+      register.setDeactivated(true);
+      expect(register.isDeactivated).toBe(true);
+      register.setDeactivated(false);
+      expect(register.isDeactivated).toBe(false);
     });
   });
 
@@ -73,7 +118,12 @@ describe('LWWRegister', () => {
       const newTime = oldTime + 1000;
       vi.setSystemTime(newTime);
       const remoteStroke = createTestStroke('#00ff00');
-      const remoteState: RegisterState<DrawingData> = ['peer2', newTime, remoteStroke];
+      const remoteState: RegisterState<DrawingData> = {
+        peerId: 'peer2',
+        timestamp: newTime,
+        value: remoteStroke,
+        isDeactivated: false,
+      };
 
       const updated = register.merge(remoteState);
 
@@ -99,7 +149,12 @@ describe('LWWRegister', () => {
       // 더 오래된 타임스탬프로 원격 상태 생성
       const oldTime = newTime - 1000;
       const remoteStroke = createTestStroke('#00ff00');
-      const remoteState: RegisterState<DrawingData> = ['peer2', oldTime, remoteStroke];
+      const remoteState: RegisterState<DrawingData> = {
+        peerId: 'peer2',
+        timestamp: oldTime,
+        value: remoteStroke,
+        isDeactivated: false,
+      };
 
       const updated = register.merge(remoteState);
 
@@ -116,12 +171,22 @@ describe('LWWRegister', () => {
       // 동일한 타임스탬프에서의 충돌 해결 테스트
       const timestamp = Date.now();
       const localStroke = createTestStroke('#ff0000');
-      const localState: RegisterState<DrawingData> = ['peer1', timestamp, localStroke];
+      const localState: RegisterState<DrawingData> = {
+        peerId: 'peer1',
+        timestamp,
+        value: localStroke,
+        isDeactivated: false,
+      };
       const localRegister = new LWWRegister('peer1', localState);
 
       // 동일한 타임스탬프지만 더 높은 peer ID를 가진 원격 상태 생성
       const remoteStroke = createTestStroke('#00ff00');
-      const remoteState: RegisterState<DrawingData> = ['peer2', timestamp, remoteStroke];
+      const remoteState: RegisterState<DrawingData> = {
+        peerId: 'peer2',
+        timestamp,
+        value: remoteStroke,
+        isDeactivated: false,
+      };
 
       const updated = localRegister.merge(remoteState);
 
@@ -133,13 +198,42 @@ describe('LWWRegister', () => {
     it('should handle null values in merge', () => {
       const timestamp = Date.now();
       // null 값을 포함한 원격 상태 생성
-      const remoteState: RegisterState<DrawingData | null> = ['peer2', timestamp + 1000, null];
+      const remoteState: RegisterState<DrawingData | null> = {
+        peerId: 'peer2',
+        timestamp: timestamp + 1000,
+        value: null,
+        isDeactivated: false,
+      };
 
       const updated = register.merge(remoteState);
 
       // null 값도 정상적으로 병합되어야 함
       expect(updated).toBe(true);
       expect(register.value).toBeNull();
+    });
+
+    it('should merge activation state independently of timestamp', () => {
+      vi.useFakeTimers();
+      const currentTime = Date.now();
+      vi.setSystemTime(currentTime);
+
+      const localStroke = createTestStroke('#ff0000');
+      register.set(localStroke);
+
+      const remoteState: RegisterState<DrawingData | null> = {
+        peerId: 'peer2',
+        timestamp: currentTime - 1000,
+        value: register.value,
+        isDeactivated: true,
+      };
+
+      const updated = register.merge(remoteState);
+
+      expect(updated).toBe(true);
+      expect(register.isDeactivated).toBe(true);
+      expect(register.value).toEqual(localStroke);
+
+      vi.useRealTimers();
     });
   });
 });
