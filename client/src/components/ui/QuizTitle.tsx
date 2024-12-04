@@ -8,14 +8,24 @@ export interface QuizTitleProps extends HTMLAttributes<HTMLDivElement> {
   totalRound: number;
   title: string;
   remainingTime: number;
+  isHidden: boolean;
 }
 
-const QuizTitle = ({ className, currentRound, totalRound, remainingTime, title, ...props }: QuizTitleProps) => {
+const QuizTitle = ({
+  className,
+  currentRound,
+  totalRound,
+  remainingTime,
+  title,
+  isHidden,
+  ...props
+}: QuizTitleProps) => {
   return (
     <>
       <div
         className={cn(
           'relative flex w-full max-w-screen-sm items-center justify-center border-violet-950 bg-violet-500 p-1.5 sm:rounded-lg sm:border-2 sm:p-2.5',
+          isHidden && 'hidden',
           className,
         )}
         {...props}

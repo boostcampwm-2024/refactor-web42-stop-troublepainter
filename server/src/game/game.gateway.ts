@@ -10,14 +10,15 @@ import { Server, Socket } from 'socket.io';
 import { GameService } from './game.service';
 import { UseFilters } from '@nestjs/common';
 import { WsExceptionFilter } from 'src/filters/ws-exception.filter';
-import { RoomSettings } from 'src/common/types/game.types';
+import { Player, Room, RoomSettings } from 'src/common/types/game.types';
 import { BadRequestException } from 'src/exceptions/game.exception';
-import { PlayerRole } from 'src/common/enums/game.status.enum';
+import { PlayerRole, RoomStatus, TerminationType } from 'src/common/enums/game.status.enum';
 import { TimerService } from 'src/common/services/timer.service';
+import { TimerType } from 'src/common/enums/game.timer.enum';
 
 @WebSocketGateway({
   cors: '*',
-  namespace: 'game',
+  namespace: '/socket.io/game',
 })
 @UseFilters(WsExceptionFilter)
 export class GameGateway implements OnGatewayDisconnect {
@@ -50,12 +51,12 @@ export class GameGateway implements OnGatewayDisconnect {
   async handleReconnect(@ConnectedSocket() client: Socket, @MessageBody() data: { roomId: string; playerId: string }) {
     const { roomId, playerId } = data;
 
-    const { room, players, roomSettings } = await this.gameService.reconnect(roomId, playerId);
-
     client.data.playerId = playerId;
     client.data.roomId = roomId;
 
     await client.join(roomId);
+
+    const { room, players, roomSettings } = await this.gameService.reconnect(roomId, playerId);
 
     this.server.to(client.id).emit('joinedRoom', {
       room,
@@ -77,15 +78,62 @@ export class GameGateway implements OnGatewayDisconnect {
     client.to(roomId).emit('settingsUpdated', { settings: updatedSettings });
   }
 
+  @SubscribeMessage('updatePlayer')
+  async handle(@ConnectedSocket() client: Socket, @MessageBody() data: { player: Partial<Player> }) {
+    const { playerId, roomId } = client.data;
+    if (!roomId || !playerId) throw new BadRequestException('Room ID and Player ID are required');
+
+    const updatedPlayer = await this.gameService.updatePlayer(roomId, playerId, data.player);
+
+    client.to(roomId).emit('playerUpdated', { player: updatedPlayer });
+  }
+
   @SubscribeMessage('gameStart')
   async handleGameStart(@ConnectedSocket() client: Socket) {
     const { playerId, roomId } = client.data;
     if (!playerId || !roomId) throw new BadRequestException('Room ID and Player ID are required');
 
-    const { room, roomSettings, roles, players } = await this.gameService.startGame(roomId, playerId);
+    await this.gameService.startGame(roomId, playerId);
 
+    await this.startNewRound(roomId);
+  }
+
+  private async startNewRound(roomId: string) {
+    const gameState = await this.gameService.setupRound(roomId);
+    if (gameState.gameEnded) {
+      this.server.to(roomId).emit('gameEnded', {
+        terminationType: TerminationType.SUCCESS,
+      });
+      return;
+    }
+
+    const { room, roomSettings, roles, players } = gameState;
+
+    await this.notifyPlayersRoundStart(roomId, room, roomSettings, roles, players);
+
+    await this.runTimer(roomId, roomSettings.drawTime * 1000, TimerType.DRAWING);
+
+    const roomStatus = await this.gameService.handleDrawingTimeout(roomId);
+    this.server.to(roomId).emit('drawingTimeEnded', {
+      roomStatus,
+    });
+
+    await this.runTimer(roomId, 15000, TimerType.GUESSING);
+    const result = await this.gameService.handleGuessingTimeout(roomId);
+    this.server.to(roomId).emit('roundEnded', result);
+
+    await this.runTimer(roomId, 10000, TimerType.ENDING);
+    await this.startNewRound(roomId);
+  }
+
+  private async notifyPlayersRoundStart(
+    roomId: string,
+    room: Room,
+    roomSettings: RoomSettings,
+    roles: { painters: string[]; devils: string[]; guessers: string[] },
+    players: Player[],
+  ) {
     const sockets = await this.server.in(roomId).fetchSockets();
-
     for (const player of players) {
       const playerSocket = sockets.find((socket) => socket.data.playerId === player.playerId);
       if (!playerSocket) continue;
@@ -95,6 +143,7 @@ export class GameGateway implements OnGatewayDisconnect {
         assignedRole: player.role,
         roles,
         drawTime: roomSettings.drawTime,
+        roomStatus: room.status,
       };
 
       if (player.role === PlayerRole.PAINTER || player.role === PlayerRole.DEVIL) {
@@ -109,31 +158,15 @@ export class GameGateway implements OnGatewayDisconnect {
         });
       }
     }
+  }
 
-    await new Promise<void>((resolve) => {
-      this.timerService.startTimer(this.server, roomId, roomSettings.drawTime * 1000, {
+  private async runTimer(roomId: string, duration: number, timerType: TimerType) {
+    return new Promise<void>((resolve) => {
+      this.timerService.startTimer(this.server, roomId, duration, {
         onTick: (remaining: number) => {
-          this.server.to(roomId).emit('timerSync', { remaining });
+          this.server.to(roomId).emit('timerSync', { remaining, timerType });
         },
-        onTimeUp: () => {
-          resolve();
-        },
-      });
-    });
-
-    this.server.to(roomId).emit('drawingTimeEnded');
-    await this.gameService.handleDrawingTimeout(roomId);
-
-    await new Promise<void>((resolve) => {
-      this.timerService.startTimer(this.server, roomId, 10000, {
-        onTick: (remaining: number) => {
-          this.server.to(roomId).emit('timerSync', { remaining });
-        },
-        onTimeUp: async () => {
-          const result = await this.gameService.handleGuessingTimeout(roomId);
-          this.server.to(roomId).emit('roundEnded', result);
-          resolve();
-        },
+        onTimeUp: () => resolve(),
       });
     });
   }
@@ -150,41 +183,64 @@ export class GameGateway implements OnGatewayDisconnect {
     if (result.isCorrect) {
       this.timerService.stopGameTimer(roomId);
       this.server.to(roomId).emit('roundEnded', result);
+
+      await this.runTimer(roomId, 10000, TimerType.ENDING);
+      await this.startNewRound(roomId);
     }
   }
 
-  async handleDisconnect(client: Socket) {
-    const { playerId, roomId } = client.data;
-    if (!playerId || !roomId) throw new BadRequestException('Room ID and Player ID are required');
+  async handleDisconnect(@ConnectedSocket() client: Socket) {
+    try {
+      const { playerId, roomId } = client.data;
+      if (!playerId || !roomId) {
+        console.error('Disconnect error: Missing room ID or player ID');
+        return;
+      }
 
-    const existingTimeout = this.disconnectTimeouts.get(playerId);
-    if (existingTimeout) {
-      clearTimeout(existingTimeout);
-      this.disconnectTimeouts.delete(playerId);
-    }
-
-    const timeout = setTimeout(async () => {
-      try {
-        const sockets = await this.server.fetchSockets();
-        const isReconnected = sockets.some((socket) => socket.data.playerId === playerId);
-
-        if (!isReconnected) {
-          const { hostId, remainingPlayers } = await this.gameService.leaveRoom(roomId, playerId);
-          if (!remainingPlayers) {
-            this.timerService.stopGameTimer(roomId);
-            return;
-          }
-
-          this.server.to(roomId).emit('playerLeft', {
-            leftPlayerId: playerId,
-            hostId,
-            players: remainingPlayers,
-          });
-        }
-      } finally {
+      const existingTimeout = this.disconnectTimeouts.get(playerId);
+      if (existingTimeout) {
+        clearTimeout(existingTimeout);
         this.disconnectTimeouts.delete(playerId);
       }
-    }, this.DISCONNECT_TIMEOUT);
-    this.disconnectTimeouts.set(playerId, timeout);
+
+      const timeout = setTimeout(async () => {
+        try {
+          const sockets = await this.server.fetchSockets();
+          const isReconnected = sockets.some((socket) => socket.data.playerId === playerId);
+
+          if (!isReconnected) {
+            const { roomStatus, hostId, remainingPlayers } = await this.gameService.leaveRoom(roomId, playerId);
+
+            if (roomStatus === RoomStatus.WAITING) {
+              this.server.to(roomId).emit('playerLeft', {
+                leftPlayerId: playerId,
+                hostId,
+                players: remainingPlayers,
+              });
+              return;
+            }
+
+            this.timerService.stopGameTimer(roomId);
+
+            await this.gameService.initializeGame(roomId);
+
+            this.server.to(roomId).emit('gameEnded', {
+              terminationType: TerminationType.PLAYER_DISCONNECT,
+              leftPlayerId: playerId,
+              hostId,
+              players: remainingPlayers,
+            });
+          }
+        } catch (error) {
+          console.error('Disconnect timeout error:', error);
+        } finally {
+          this.disconnectTimeouts.delete(playerId);
+        }
+      }, this.DISCONNECT_TIMEOUT);
+
+      this.disconnectTimeouts.set(playerId, timeout);
+    } catch (error) {
+      console.error('Disconnect handler error:', error);
+    }
   }
 }

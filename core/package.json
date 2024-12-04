@@ -16,7 +16,9 @@
     "build": "tsup",
     "dev": "tsup --watch",
     "test": "vitest",
-    "test:watch": "vitest watch"
+    "test:watch": "vitest watch",
+    "format": "prettier --write .",
+    "format:check": "prettier --check ."
   },
   "devDependencies": {
     "tsup": "^8.0.0",

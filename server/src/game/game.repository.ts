@@ -39,6 +39,10 @@ export class GameRepository {
     await multi.exec();
   }
 
+  async getRoomStatus(roomId: string) {
+    return this.redisService.hget(`room:${roomId}`, 'status') as Promise<RoomStatus>;
+  }
+
   async getRoomSettings(roomId: string) {
     const settings = await this.redisService.hgetall(`room:${roomId}:settings`);
 
@@ -64,7 +68,7 @@ export class GameRepository {
         return {
           ...player,
           role: player.role === '' ? null : player.role,
-          profileImage: player.userImg === '' ? null : player.userImg,
+          profileImage: player.profileImage === '' ? null : player.profileImage,
           score: parseInt(player.score, 10) || 0,
         } as Player;
       }),
@@ -77,6 +81,18 @@ export class GameRepository {
     multi.lpush(`room:${roomId}:players`, playerId);
     multi.hset(`room:${roomId}:players:${playerId}`, player);
     await multi.exec();
+  }
+
+  async getPlayer(roomId: string, playerId: string) {
+    const player = await this.redisService.hgetall(`room:${roomId}:players:${playerId}`);
+    if (!player || Object.keys(player).length === 0) return null;
+
+    return {
+      ...player,
+      role: player.role === '' ? null : player.role,
+      profileImage: player.userImg === '' ? null : player.userImg,
+      score: parseInt(player.score, 10) || 0,
+    } as Player;
   }
 
   async updatePlayer(roomId: string, playerId: string, player: Partial<Player>) {

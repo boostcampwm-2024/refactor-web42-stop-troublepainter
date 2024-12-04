@@ -7,9 +7,10 @@ on:
       - 'server/**'
       - 'core/**'
       - '.github/workflows/server-ci-cd.yml'
+      - 'Dockerfile.server'
 
 jobs:
-  ci:
+  ci-cd:
     runs-on: ubuntu-latest
 
     steps:
@@ -26,6 +27,11 @@ jobs:
 
       - name: Install dependencies
         run: pnpm install --frozen-lockfile
+
+      - name: Build Core Package
+        working-directory: ./core
+        run: pnpm build
+
       - name: Create .env file
         working-directory: ./server
         run: |
@@ -36,14 +42,6 @@ jobs:
 
       - name: Run tests
         run: pnpm --filter server test | true
-
-  docker-deploy:
-    needs: ci
-    runs-on: ubuntu-latest
-
-    steps:
-      - name: Checkout repository
-        uses: actions/checkout@v4
 
       - name: Docker Setup
         uses: docker/setup-buildx-action@v3
@@ -58,9 +56,9 @@ jobs:
         uses: docker/build-push-action@v5
         with:
           context: .
-          file: ./Dockerfile
+          file: ./Dockerfile.server
           push: true
-          tags: ${{ secrets.DOCKERHUB_USERNAME }}/troublepainter:latest
+          tags: ${{ secrets.DOCKERHUB_USERNAME }}/troublepainter-server:latest
           build-args: |
             REDIS_HOST=${{ secrets.REDIS_HOST }}
             REDIS_PORT=${{ secrets.REDIS_PORT }}
@@ -74,11 +72,7 @@ jobs:
           username: mira
           key: ${{ secrets.SSH_PRIVATE_KEY }}
           script: |
-            echo "${{ secrets.DOCKERHUB_TOKEN }}" | docker login -u ${{ secrets.DOCKERHUB_USERNAME }} --password-stdin
-
-            docker pull ${{ secrets.DOCKERHUB_USERNAME }}/troublepainter:latest
-
-            docker stop troublepainter || true
-            docker rm troublepainter || true
-
-            docker run -d --name troublepainter -p 3000:3000 -e REDIS_HOST=${{ secrets.REDIS_HOST }} -e REDIS_PORT=${{ secrets.REDIS_PORT }} -e CLOVA_API_KEY=${{ secrets.CLOVA_API_KEY }} -e CLOVA_GATEWAY_KEY=${{ secrets.CLOVA_GATEWAY_KEY }} --restart unless-stopped ${{ secrets.DOCKERHUB_USERNAME }}/troublepainter:latest
+            cd /home/mira/web30-stop-troublepainter
+            export DOCKERHUB_USERNAME=${{ secrets.DOCKERHUB_USERNAME }}
+            docker pull ${{ secrets.DOCKERHUB_USERNAME }}/troublepainter-server:latest
+            docker compose up -d server

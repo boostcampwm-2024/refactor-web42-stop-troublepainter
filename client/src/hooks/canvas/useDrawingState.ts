@@ -74,7 +74,7 @@ import { playerIdStorageUtils } from '@/utils/playerIdStorage';
 export const useDrawingState = (options?: { maxPixels?: number }) => {
   const { roomId } = useParams<{ roomId: string }>();
   const currentPlayerId = playerIdStorageUtils.getPlayerId(roomId as string);
-  const { actions } = useToastStore();
+  const actions = useToastStore((state) => state.actions);
 
   const maxPixels = options?.maxPixels ?? DEFAULT_MAX_PIXELS;
   const [currentColor, setCurrentColor] = useState(COLORS_INFO[0].backgroundColor);
@@ -95,12 +95,10 @@ export const useDrawingState = (options?: { maxPixels?: number }) => {
 
   const updateHistoryState = useCallback(() => {
     const localHistory = strokeHistoryRef.current.filter((entry) => entry.isLocal);
-    const localItemsCount = strokeHistoryRef.current
-      .slice(0, historyPointerRef.current + 1)
-      .filter((entry) => entry.isLocal).length;
+    const currentLocalIndex = localHistory.findIndex((_, index) => index === historyPointerRef.current);
 
-    setCanUndo(localItemsCount > 0);
-    setCanRedo(localItemsCount < localHistory.length);
+    setCanUndo(currentLocalIndex >= 0);
+    setCanRedo(currentLocalIndex < localHistory.length - 1);
   }, []);
 
   const checkInkAvailability = useCallback(() => {
@@ -115,6 +113,23 @@ export const useDrawingState = (options?: { maxPixels?: number }) => {
     }
     return true;
   }, [inkRemaining, actions]);
+
+  const resetDrawingState = useCallback(() => {
+    // CRDT 초기화
+    crdtRef.current = new LWWMap(currentPlayerId || 'player');
+
+    // 히스토리 상태 초기화
+    strokeHistoryRef.current = [];
+    currentStrokeIdsRef.current = [];
+    historyPointerRef.current = -1;
+
+    // 잉크량 초기화
+    setInkRemaining(maxPixels);
+
+    // Undo/Redo 상태 초기화
+    setCanUndo(false);
+    setCanRedo(false);
+  }, [currentPlayerId, maxPixels]);
 
   return {
     currentPlayerId,
@@ -134,5 +149,6 @@ export const useDrawingState = (options?: { maxPixels?: number }) => {
     historyPointerRef,
     updateHistoryState,
     checkInkAvailability,
+    resetDrawingState,
   };
 };

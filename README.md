@@ -1,16 +1,10 @@
 <div align=center>
-  <img width="300" alt="logo" src="https://github.com/user-attachments/assets/ce4eeaad-0925-4eaa-a54b-7f99d56f2393">
+  <img width="1500" alt="logo" src="https://github.com/user-attachments/assets/c119a31f-2ff3-4938-990f-b382980a1a20">
 </div>
-
-<h3 align=center style="text-align: center; font-size: 1.5em">방해꾼은 못말려: 그림꾼의 역습</h3>
 
 <br>
 
 <div align=center>
-
-<p>잘 그렸나? 망쳤나? 정체를 숨긴 방해꾼이 쏘아올린 혼돈 속에서,<br>그림꾼들의 진실을 찾아내는 구경꾼들의 훈수가 시작됩니다! 🎨🕵️‍♀️</p>
-
-<br>
 
 <p align=center>
   <a href="https://inquisitive-beret-c36.notion.site/12855cd93d4f800b91bccc3ccf9d1444?pvs=74">팀 노션</a>
@@ -21,7 +15,7 @@
   &nbsp; | &nbsp; 
   <a href="https://github.com/boostcampwm-2024/web30-stop-troublepainter/wiki">위키</a>
   <br>
-  <a href="http://troublepainter-bucket.s3-website.kr.object.ncloudstorage.com/">배포 링크</a>
+  <a href="https://www.troublepainter.site/">배포 링크</a>
   &nbsp; | &nbsp; 
   <a href="https://boostcampwm-2024.github.io/web30-stop-troublepainter/">TypeDoc</a>
   &nbsp; | &nbsp; 
@@ -35,26 +29,179 @@
 </div>
 </div>
 
+## 프로젝트 소개
+
+**방해꾼은 못말려**는 그림꾼 vs 방해꾼, 한 캔버스에서 펼쳐지는 **실시간 드로잉 퀴즈 게임 🎨** 입니다.
+
+```
+🎨 그림꾼: 제시어를 그림으로 표현하며 창의력을 발휘하세요
+
+🕵️ 방해꾼: 그림꾼을 방해하며 혼란을 선사하세요
+
+🤔 구경꾼: 그림을 추리하고 정답을 맞춰 승리하세요
+```
+**지금 바로 친구들과 함께 즐겨보세요!**
+
+<br>
+
+## 핵심 기술
+* `서드파티 라이브러리 없이 Canvas API를 활용`하여 색상 선택, 스트로크 조절, Undo/Redo와 같은 **드로잉 툴의 핵심 기능을 제공**하고 있습니다.
+
+* `소켓 통신`과 `LWW(Last-Write-Wins) 기반 CRDT 알고리즘`을 통해 실시간 동기화를 보장하며 모든 사용자가 **동일한 캔버스 상태**를 안정적으로 공유할 수 있도록 했습니다.
+
+<br>
+
 ## 주요 기능
 
-**🔗 회원가입 없이 URL 하나로 게임 시작하기!**
+### 🔗 회원가입 없이 URL 하나로 게임 시작하기!
 
-> 클릭 한 번으로 게임방이 생성되고, 복사된 URL을 공유하면 누구나 쉽게 참여할 수 있어요.
+> 클릭 한 번으로 게임방이 생성되고, 복사된 URL을 공유하면 누구나 쉽게 참여할 수 있습니다.
 
-**🎨 방해꾼과 그림꾼이 실시간으로 하나의 캔버스에서 대결해요!**
+<table>
+  <tr align="center">
+    <td><strong>방 만들기 및 초대 URL 공유</strong></td>
+  </tr>
+  <tr align="center">
+    <td>
+      <img src="https://github.com/user-attachments/assets/b5e30034-3812-47c3-9848-ffdee2fecf6c" alt="방 만들기 화면" />
+    </td>
+  </tr>
+</table>
 
-> P2P 통신과 CRDT 기반으로 서로의 붓질이 실시간으로 동기화되어 긴장감 넘치는 그리기 대결을 즐길 수 있어요.
+<table>
+  <tr align="center">
+    <td><strong>대기실 입장</strong></td>
+  </tr>
+  <tr align="center">
+    <td>
+      <img
+        src="https://github.com/user-attachments/assets/6de8a304-4391-42eb-81e4-fbffa9273089"
+        alt="초대하기 화면"/>
+    </td>
+  </tr>
+</table>
 
-**🖌️ 기본에 충실한 드로잉 도구! 연필 도구, 다채로운 색상 팔레트, 자유로운 선 두께 조절에 실수도 걱정 없는 Undo/Redo 기능까지!**
+<br>
 
-> Canvas API의 기본 기능으로 완성도 높은 그리기를 지원해요.
+### 🎭 신나는 역할 체인지 게임!
+
+> 라운드마다 무작위로 그림꾼 & 방해꾼, 구경꾼으로 역할이 나뉘어 서로 다른 재미를 느낄 수 있습니다.
+
+<table>
+  <tr align="center">
+    <td><strong>게임 시작 후 역할 랜덤 배정</strong></td>
+  </tr>
+  <tr align="center">
+    <td>
+      <img
+        src="https://github.com/user-attachments/assets/5a925f82-44e6-4368-9282-276f79642a46"
+        alt="역할 배정 화면"/>
+    </td>
+  </tr>
+</table>
+
+<br>
+
+### 🖌️ 기본에 충실한 드로잉 도구!
+
+> Canvas API의 기본 기능으로 완성도 높은 드로잉 기능을 제공합니다.
+
+<table>
+  <tr align="center">
+    <td><strong>펜툴 색상, 두께 변경 및 채우기 도구 사용 가능</strong></td>
+  </tr>
+  <tr align="center">
+    <td>
+      <img
+        src="https://github.com/user-attachments/assets/971e8467-2707-4632-84a7-92244015f943"
+        alt="드로잉 도구 시연"/>
+    </td>
+  </tr>
+</table>
+
+<table>
+  <tr align="center">
+    <td><strong>Undo/Redo 기능</strong></td>
+  </tr>
+  <tr align="center">
+    <td>
+      <img
+        src="https://github.com/user-attachments/assets/ccd2e080-1058-4378-9165-3418ed458057" 
+        alt="Undo/Redo 기능"/>
+    </td>
+  </tr>
+</table>
+
+<br>
+
+### 🎨 방해꾼과 그림꾼이 실시간으로 하나의 캔버스에서 대결해요!
+
+> 소켓 통신과 CRDT 기반으로 서로의 붓질이 실시간으로 동기화되어 긴장감 넘치는 그리기 대결을 즐길 수 있습니다.
+
+<table>
+  <tr align="center">
+    <td><strong>실시간으로 그려지는 붓질</strong></td>
+  </tr>
+  <tr align="center">
+    <td>
+      <img
+        src="https://github.com/user-attachments/assets/e450f56a-f112-4d07-8323-b1571748ec10" 
+        alt="실시간 그리기 화면"/>
+    </td>
+  </tr>
+</table>
+
+<table>
+  <tr align="center">
+    <td><strong>동시에 여러 명이 그리기</strong></td>
+  </tr>
+  <tr align="center">
+    <td>
+      <img
+        src="https://github.com/user-attachments/assets/861ffb2f-ddb6-45fe-9290-08bbc93489ae" 
+        alt="동시 그리기 화면"/>
+    </td>
+  </tr>
+</table>
+
+<br>
+
+### 🎉 게임 종료와 함께 공개되는 최종 결과!
+
+> 정체를 숨기고 있던 방해꾼이 밝혀지는 흥미진진한 순간을 함께 즐겨보세요!
+
+<table>
+  <tr align="center">
+    <td><strong>방해꾼의 정체 공개</strong></td>
+  </tr>
+  <tr align="center">
+    <td>
+      <img
+        src="https://github.com/user-attachments/assets/7cbf3838-5da4-4f01-a3ed-db10dc375c9d" 
+        alt="결과 발표 화면"/>
+    </td>
+  </tr>
+</table>
+
+<table>
+  <tr align="center">
+    <td><strong>최종 순위 발표</strong></td>
+  </tr>
+  <tr align="center">
+    <td>
+      <img
+        src="https://github.com/user-attachments/assets/4f46b3ee-7112-47c5-bd1b-0e23fbe49498" 
+        alt="최종 순위 화면"/>
+    </td>
+  </tr>
+</table>
 
 <br />
 
 ## 기술 스택
 
 <div align=center>
-  <img src="https://github.com/user-attachments/assets/9acba884-ec36-4887-9ed6-cadcd8b2b265" width="500"/>
+  <img src="https://github.com/user-attachments/assets/92d37463-6144-4353-a9ec-81087fbd1a35" width="700"/>
 </div>
 
 <table align=center>
@@ -70,7 +217,7 @@
                 <p align=center>Common</p>
             </td>
             <td>
-                <img src="https://img.shields.io/badge/WebRTC-333333?logo=webrtc">
+                <img src="https://img.shields.io/badge/Socket.io-010101?logo=Socket.io">
                 <img src="https://img.shields.io/badge/Prettier-F7B93E?logo=prettier&logoColor=ffffff">
                 <img src="https://img.shields.io/badge/ESLint-4B32C3?logo=Eslint">
                 <img src="https://img.shields.io/badge/pnpm-F69220?logo=pnpm&logoColor=ffffff">
@@ -99,7 +246,6 @@
                 <img src="https://img.shields.io/badge/Node.js-114411?logo=node.js">
                 <img src="https://img.shields.io/badge/NestJS-E0234E?logo=nestjs&logoColor=ffffff">
                 <img src="https://img.shields.io/badge/Redis-DC382D?logo=redis&logoColor=ffffff">
-                <img src="https://img.shields.io/badge/MySQL-4479A1?logo=mysql&logoColor=ffffff">
             </td>
         </tr>
         <tr>
@@ -109,6 +255,7 @@
             <td>
                 <img src="https://img.shields.io/badge/nginx-014532?logo=Nginx&logoColor=009639&">
                 <img src="https://img.shields.io/badge/Naver Cloud Platform-03C75A?logo=naver&logoColor=ffffff">  
+                <img src="https://img.shields.io/badge/GitHub Actions-2088FF?logo=GitHub Actions&logoColor=ffffff">
             </td>
         </tr>
         <tr>

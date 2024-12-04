@@ -1,4 +1,4 @@
-import { RefObject, useCallback } from 'react';
+import { RefObject, useCallback, useRef } from 'react';
 import { DrawingData, Point, StrokeStyle } from '@troublepainter/core';
 import { useDrawingState } from './useDrawingState';
 import { MAINCANVAS_RESOLUTION_HEIGHT, MAINCANVAS_RESOLUTION_WIDTH } from '@/constants/canvasConstants';
@@ -20,6 +20,12 @@ const checkColorisEqual = (pos: number, startColor: RGBA, pixelArray: Uint8Clamp
     pixelArray[pos + 2] === startColor.b &&
     pixelArray[pos + 3] === startColor.a
   );
+};
+
+const checkOutsidePoint = (canvas: HTMLCanvasElement, point: Point) => {
+  const { width, height } = canvas.getBoundingClientRect();
+  if (point.x >= 0 && point.x <= width && point.y >= 0 && point.y <= height) return false;
+  else return true;
 };
 
 /**
@@ -55,6 +61,7 @@ const checkColorisEqual = (pos: number, startColor: RGBA, pixelArray: Uint8Clamp
  * @property getCurrentStyle - 현재 상태를 기반으로 스트로크 스타일을 반환하는 함수
  * @property drawStroke - 캔버스에 단일 스트로크를 그리는 함수
  * @property redrawCanvas - 저장된 스트로크들을 기반으로 전체 캔버스를 다시 그리는 함수
+ * @property applyFill - 소켓에서 받아온 페인팅 좌표 배열을 그리는 함수
  * @property floodFill - 지정된 좌표에서 영역 채우기를 수행하는 함수
  *
  * @category Hooks
@@ -64,6 +71,7 @@ export const useDrawingOperation = (
   state: ReturnType<typeof useDrawingState>,
 ) => {
   const { currentColor, brushSize, inkRemaining, setInkRemaining } = state;
+  const smoothBuffer = useRef<Point[]>([]);
 
   const getCurrentStyle = useCallback(
     (): StrokeStyle => ({
@@ -73,32 +81,55 @@ export const useDrawingOperation = (
     [currentColor, brushSize],
   );
 
-  const drawSmoothLine = (drawingData: DrawingData, canvasRef: RefObject<HTMLCanvasElement>, isLastStroke: boolean) => {
-    const { ctx } = getCanvasContext(canvasRef);
-    const { points } = drawingData;
+  const drawSmoothLine = useCallback(
+    (drawingData: DrawingData, canvasRef: RefObject<HTMLCanvasElement>) => {
+      const { canvas, ctx } = getCanvasContext(canvasRef);
+      const { points } = drawingData;
 
-    if (points.length < 2) return;
+      if (smoothBuffer.current.length == 0) {
+        smoothBuffer.current = [...points];
+      } else {
+        const newPoint = points[0];
+        const lastPoint = smoothBuffer.current[smoothBuffer.current.length - 1];
+        if (lastPoint.x === newPoint.x && lastPoint.y === newPoint.y) {
+          smoothBuffer.current = [smoothBuffer.current[1], points[0], points[1]];
+        } else {
+          smoothBuffer.current = [...points];
+        }
+      }
 
-    ctx.beginPath();
-    ctx.moveTo(points[0].x, points[0].y);
-    ctx.lineCap = 'round';
-    ctx.lineJoin = 'round';
+      if (smoothBuffer.current.length < 3) {
+        ctx.beginPath();
+        ctx.moveTo(smoothBuffer.current[0].x, smoothBuffer.current[0].y);
+        ctx.quadraticCurveTo(
+          smoothBuffer.current[0].x,
+          smoothBuffer.current[0].y,
+          smoothBuffer.current[1].x,
+          smoothBuffer.current[1].y,
+        );
+        ctx.stroke();
 
-    for (let i = 1; i < points.length - 1; i++) {
+        return;
+      }
+
+      ctx.beginPath();
+      ctx.moveTo(smoothBuffer.current[0].x, smoothBuffer.current[0].y);
+
       const midPoint = {
-        x: (points[i].x + points[i + 1].x) / 2,
-        y: (points[i].y + points[i + 1].y) / 2,
+        x: (smoothBuffer.current[1].x + smoothBuffer.current[2].x) / 2,
+        y: (smoothBuffer.current[1].y + smoothBuffer.current[2].y) / 2,
       };
 
-      ctx.quadraticCurveTo(points[i].x, points[i].y, midPoint.x, midPoint.y);
-    }
+      ctx.quadraticCurveTo(smoothBuffer.current[1].x, smoothBuffer.current[1].y, midPoint.x, midPoint.y);
+      smoothBuffer.current[1] = midPoint;
+      if (checkOutsidePoint(canvas, smoothBuffer.current[2]))
+        ctx.lineTo(smoothBuffer.current[2].x, smoothBuffer.current[2].y);
+      ctx.stroke();
+    },
+    [smoothBuffer.current],
+  );
 
-    if (isLastStroke) ctx.lineTo(points[points.length - 1].x, points[points.length - 1].y);
-
-    ctx.stroke();
-  };
-
-  const drawStroke = useCallback((drawingData: DrawingData, isLastStroke: boolean) => {
+  const drawStroke = useCallback((drawingData: DrawingData) => {
     const { ctx } = getCanvasContext(canvasRef);
     const { points, style } = drawingData;
 
@@ -108,13 +139,15 @@ export const useDrawingOperation = (
     ctx.fillStyle = style.color;
     ctx.lineWidth = style.width;
     ctx.beginPath();
+    ctx.lineCap = 'round';
+    ctx.lineJoin = 'round';
 
     if (points.length === 1) {
       const point = points[0];
       ctx.arc(point.x, point.y, style.width / 2, 0, Math.PI * 2);
       ctx.fill();
     } else {
-      drawSmoothLine(drawingData, canvasRef, isLastStroke);
+      drawSmoothLine(drawingData, canvasRef);
     }
   }, []);
 
@@ -124,16 +157,31 @@ export const useDrawingOperation = (
     const { canvas, ctx } = getCanvasContext(canvasRef);
     ctx.clearRect(0, 0, canvas.width, canvas.height);
 
-    const strokes = state.crdtRef.current.strokes;
-    const notNoneStrokes = strokes.filter((stroke) => stroke.stroke !== null);
-
-    notNoneStrokes.forEach(({ stroke }, idx) => {
-      const points = stroke.points;
-      if (notNoneStrokes.length - 1 === idx || points.length >= notNoneStrokes[idx + 1].stroke.points.length)
-        drawStroke(stroke, true);
-      else drawStroke(stroke, false);
-    });
+    const activeStrokes = state.crdtRef.current.getActiveStrokes();
+    for (const { stroke } of activeStrokes) {
+      if (stroke.points.length > 2) applyFill(stroke);
+      else drawStroke(stroke);
+    }
   }, [drawStroke]);
+
+  const applyFill = (drawingData: DrawingData) => {
+    const { canvas, ctx } = getCanvasContext(canvasRef);
+    const { points, style } = drawingData;
+
+    if (points.length === 0) return;
+
+    const color = hexToRGBA(style.color);
+
+    const imageData = ctx.getImageData(0, 0, canvas.width, canvas.height);
+    const data = imageData.data;
+
+    points.forEach(({ x, y }) => {
+      const pos = (y * canvas.width + x) * 4;
+      fillTargetColor(pos, color, data);
+    });
+
+    ctx.putImageData(imageData, 0, 0);
+  };
 
   const floodFill = useCallback(
     (startX: number, startY: number) => {
@@ -157,7 +205,7 @@ export const useDrawingOperation = (
       let pixelCount = 1;
       const filledPoints: Point[] = [{ x: startX, y: startY }];
 
-      while (pixelsToCheck.length > 0 && pixelCount < inkRemaining) {
+      while (pixelsToCheck.length > 0 && pixelCount <= inkRemaining) {
         const [currentX, currentY] = pixelsToCheck.shift()!;
         for (const move of [
           [1, 0],
@@ -193,15 +241,23 @@ export const useDrawingOperation = (
       return {
         points: filledPoints,
         style: getCurrentStyle(),
+        timestamp: Date.now(),
       };
     },
     [currentColor, inkRemaining, getCurrentStyle, setInkRemaining],
   );
 
+  const clearCanvas = useCallback(() => {
+    const { canvas, ctx } = getCanvasContext(canvasRef);
+    ctx.clearRect(0, 0, canvas.width, canvas.height);
+  }, []);
+
   return {
     getCurrentStyle,
     drawStroke,
     redrawCanvas,
+    applyFill,
     floodFill,
+    clearCanvas,
   };
 };

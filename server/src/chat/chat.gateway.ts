@@ -3,11 +3,11 @@ import { Server, Socket } from 'socket.io';
 import { ChatService } from './chat.service';
 import { UseFilters } from '@nestjs/common';
 import { WsExceptionFilter } from 'src/filters/ws-exception.filter';
-import { BadRequestException } from 'src/exceptions/game.exception';
+import { BadRequestException, PlayerNotFoundException, RoomNotFoundException } from 'src/exceptions/game.exception';
 
 @WebSocketGateway({
   cors: '*',
-  namespace: 'chat',
+  namespace: '/socket.io/chat',
 })
 @UseFilters(WsExceptionFilter)
 export class ChatGateway {
@@ -21,6 +21,11 @@ export class ChatGateway {
     const playerId = client.handshake.auth.playerId;
 
     if (!roomId || !playerId) throw new BadRequestException('Room ID and Player ID are required');
+
+    const roomExists = this.chatService.existsRoom(roomId);
+    if (!roomExists) throw new RoomNotFoundException('Room not found');
+    const playerExists = this.chatService.existsPlayer(roomId, playerId);
+    if (!playerExists) throw new PlayerNotFoundException('Player not found in room');
 
     client.data.roomId = roomId;
     client.data.playerId = playerId;

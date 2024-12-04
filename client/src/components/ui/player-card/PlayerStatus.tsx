@@ -9,8 +9,6 @@ interface PlayerCardStatusProps {
 }
 
 export const PlayerCardStatus = ({ score, isHost, isPlaying, isMe, className }: PlayerCardStatusProps) => {
-  if (!score && !isHost) return null;
-
   return (
     /* 데스크탑 점수/상태 표시 섹션 */
     <div className={cn('hidden items-center gap-2 lg:flex', className)}>

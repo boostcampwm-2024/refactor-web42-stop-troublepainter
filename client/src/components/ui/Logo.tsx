@@ -1,7 +1,6 @@
 import * as React from 'react';
 import { cva, type VariantProps } from 'class-variance-authority';
-import mainLogo from '@/assets/logo/main-logo.png';
-import sideLogo from '@/assets/logo/side-logo.png';
+import { CDN } from '@/constants/cdn';
 import { cn } from '@/utils/cn';
 
 const logoVariants = cva('w-auto', {
@@ -26,12 +25,12 @@ interface LogoInfo {
 
 const LOGO_INFO: Record<LogoVariant, LogoInfo> = {
   main: {
-    src: mainLogo,
+    src: CDN.MAIN_LOGO,
     alt: '메인 로고',
     description: '우리 프로젝트를 대표하는 메인 로고 이미지입니다',
   },
   side: {
-    src: sideLogo,
+    src: CDN.SIDE_LOGO,
     alt: '보조 로고',
     description: '우리 프로젝트를 대표하는 보조 로고 이미지입니다',
   },

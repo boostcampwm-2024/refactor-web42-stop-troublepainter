@@ -1,0 +1,32 @@
+services:
+  server:
+    image: ${DOCKERHUB_USERNAME}/troublepainter-server:latest
+    container_name: troublepainter_server
+    environment:
+      - NODE_ENV=production
+      - REDIS_HOST=${REDIS_HOST}
+      - REDIS_PORT=${REDIS_PORT}
+      - CLOVA_API_KEY=${CLOVA_API_KEY}
+      - CLOVA_GATEWAY_KEY=${CLOVA_GATEWAY_KEY}
+    networks:
+      - app_network
+    restart: unless-stopped
+
+  nginx:
+    image: ${DOCKERHUB_USERNAME}/troublepainter-nginx:latest
+    container_name: troublepainter_nginx
+    volumes:
+      - /etc/letsencrypt:/etc/letsencrypt
+    ports:
+      - "80:80"
+      - "443:443"
+    depends_on:
+      - server
+    networks:
+      - app_network
+    restart: unless-stopped
+
+networks:
+  app_network:
+    name: app_network
+    driver: bridge

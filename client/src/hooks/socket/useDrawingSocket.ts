@@ -1,6 +1,6 @@
 // 이벤트 중심적 구조, 드로잉 관련 단일 책임, 실시간 드로잉 데이터
 // 특정 기능(드로잉)에 집중된 이벤트 핸들링
-import { useEffect } from 'react';
+import { useCallback, useEffect } from 'react';
 import { useParams } from 'react-router-dom';
 import type { DrawUpdateResponse } from '@troublepainter/core';
 import { useGameSocketStore } from '@/stores/socket/gameSocket.store';
@@ -8,7 +8,8 @@ import { SocketNamespace } from '@/stores/socket/socket.config';
 import { useSocketStore } from '@/stores/socket/socket.store';
 
 interface UseDrawingSocketProps {
-  onDrawUpdate?: (response: DrawUpdateResponse) => void;
+  onDrawUpdate: (response: DrawUpdateResponse) => void;
+  onSubmitRequest: () => void;
 }
 
 /**
@@ -54,12 +55,26 @@ interface UseDrawingSocketProps {
  *
  * @category Hooks
  */
-export const useDrawingSocket = ({ onDrawUpdate }: UseDrawingSocketProps = {}) => {
+export const useDrawingSocket = ({ onDrawUpdate, onSubmitRequest }: UseDrawingSocketProps) => {
   const { roomId } = useParams<{ roomId: string }>();
   const { sockets, connected, actions: socketActions } = useSocketStore();
-  const { currentPlayerId } = useGameSocketStore(); // roomId가 있다고 가정
+  const currentPlayerId = useGameSocketStore((state) => state.currentPlayerId);
 
   // 소켓 연결 설정
+  const handleDrawUpdate = useCallback(
+    (response: DrawUpdateResponse) => {
+      if (response.playerId !== currentPlayerId) {
+        onDrawUpdate(response);
+      }
+    },
+    [currentPlayerId, onDrawUpdate],
+  );
+
+  const handleSubmitDrawing = useCallback(() => {
+    // console.log('Received submitDrawing event');
+    onSubmitRequest();
+  }, [onSubmitRequest]);
+
   useEffect(() => {
     if (!roomId || !currentPlayerId) return;
 
@@ -75,27 +90,22 @@ export const useDrawingSocket = ({ onDrawUpdate }: UseDrawingSocketProps = {}) =
 
   // 이벤트 리스너 설정
   useEffect(() => {
-    const socket = sockets.drawing;
-    if (!socket) return;
+    const drawingSocket = sockets.drawing;
+    const gameSocket = sockets.game;
 
-    const handlers = {
-      drawUpdated: (response: DrawUpdateResponse) => {
-        if (response.playerId !== currentPlayerId) {
-          onDrawUpdate?.(response);
-        }
-      },
-    };
+    if (!drawingSocket || !gameSocket) return;
 
-    Object.entries(handlers).forEach(([event, handler]) => {
-      socket.on(event, handler);
-    });
+    // drawing 네임스페이스 이벤트
+    drawingSocket.on('drawUpdated', handleDrawUpdate);
+
+    // game 네임스페이스 이벤트
+    gameSocket.on('submitDrawing', handleSubmitDrawing);
 
     return () => {
-      Object.entries(handlers).forEach(([event, handler]) => {
-        socket.off(event, handler);
-      });
+      drawingSocket.off('drawUpdated', handleDrawUpdate);
+      gameSocket.off('submitDrawing', handleSubmitDrawing);
     };
-  }, [sockets.drawing, currentPlayerId, onDrawUpdate]);
+  }, [sockets.drawing, sockets.game, handleDrawUpdate, handleSubmitDrawing]);
 
   return {
     isConnected: connected.drawing,

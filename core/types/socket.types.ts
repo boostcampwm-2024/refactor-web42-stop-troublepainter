@@ -1,5 +1,5 @@
-import { CRDTMessage, DrawingData } from "@/types/crdt.types";
-import { Player, PlayerRole, Room, RoomSettings } from "@/types/game.types";
+import { CRDTMessage, DrawingData } from '@/types/crdt.types';
+import { Player, PlayerRole, Room, RoomSettings, TerminationType, TimerType } from '@/types/game.types';
 
 // 웹소켓 이벤트의 기본 응답 형식을 정의하는 제네릭 인터페이스
 // export interface SocketResponse<T = unknown> {
@@ -68,6 +68,7 @@ export interface JoinRoomResponse {
 
 export interface PlayerLeftResponse {
   leftPlayerId: string;
+  hostId: string;
   players: Player[];
 }
 
@@ -82,6 +83,7 @@ export interface UpdateSettingsResponse {
 
 export interface TimerSyncResponse {
   remaining: number;
+  timerType: TimerType;
 }
 
 export interface DrawingTimeEnded {
@@ -105,10 +107,11 @@ export interface GameStartResponse {
 
 // 3. 게임 진행
 export interface RoundStartResponse {
+  assignedRole: PlayerRole;
   roundNumber: number;
   roles: {
     painters?: string[];
-    devil?: string;
+    devils?: string[];
     guessers: string[];
   };
   word?: string;
@@ -123,7 +126,7 @@ export interface RoundTimeUpdateResponse {
 export interface RoundEndResponse {
   roundNumber: number;
   word: string;
-  winnerRole: PlayerRole;
+  winners: Player[];
   players: Player[];
 }
 
@@ -138,6 +141,10 @@ export interface ChatResponse {
   createdAt: string; // Redis X
 }
 
+export interface CheckAnswerRequest {
+  answer: string;
+}
+
 export interface DrawRequest {
   drawingData: CRDTMessage;
 }
@@ -145,6 +152,17 @@ export interface DrawRequest {
 export interface DrawUpdateResponse {
   playerId: string;
   drawingData: CRDTMessage;
+}
+
+export interface DrawTimeEndedResponse {
+  roomStatus: any;
+}
+
+export interface RoomEndResponse {
+  terminationType: TerminationType;
+  leftPlayerId?: string;
+  hostId?: string;
+  players?: Player[];
 }
 
 // Socket.IO 이벤트 타입 정의
@@ -165,24 +183,17 @@ export type GameServerEvents = {
 // 게임 클라이언트 이벤트 타입 정의
 export type GameClientEvents = {
   reconnect: (request: ReconnectRequest) => void;
-  joinRoom: (
-    request: JoinRoomRequest,
-    callback: (response: JoinRoomResponse) => void
-  ) => void;
-  updateSettings: (
-    request: UpdateSettingsRequest,
-    callback: (response: UpdateSettingsResponse) => void
-  ) => void;
-  updatePlayerStatus: (
-    request: ReadyRequest,
-    callback: (response: ReadyResponse) => void
-  ) => void;
+  joinRoom: (request: JoinRoomRequest, callback: (response: JoinRoomResponse) => void) => void;
+  updateSettings: (request: UpdateSettingsRequest, callback: (response: UpdateSettingsResponse) => void) => void;
+  updatePlayerStatus: (request: ReadyRequest, callback: (response: ReadyResponse) => void) => void;
 };
 
 // 드로잉 서버 이벤트 타입 정의
 export type DrawingServerEvents = {
   drawTimeUpdated: (response: RoundTimeUpdateResponse) => void;
   drawUpdated: (response: DrawUpdateResponse) => void;
+  submitDrawing: () => void;
+  drawingTimeEnded: (response: DrawTimeEndedResponse) => void;
   error: (error: SocketError) => void;
 };
 // 드로잉 클라이언트 이벤트 타입 정의

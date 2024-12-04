@@ -1,4 +1,4 @@
-import { HTMLAttributes, KeyboardEvent, PropsWithChildren } from 'react';
+import { HTMLAttributes, KeyboardEvent, PropsWithChildren, useEffect, useRef } from 'react';
 import ReactDOM from 'react-dom'; // Import ReactDOM explicitly
 import { cn } from '@/utils/cn';
 
@@ -11,11 +11,19 @@ export interface ModalProps extends PropsWithChildren<HTMLAttributes<HTMLDivElem
 
 const Modal = ({ className, handleKeyDown, closeModal, isModalOpened, title, children, ...props }: ModalProps) => {
   const modalRoot = document.getElementById('modal-root');
+  const modalRef = useRef<HTMLDivElement>(null);
 
   if (!modalRoot) return null;
 
+  useEffect(() => {
+    if (isModalOpened && modalRef.current) {
+      modalRef.current.focus();
+    }
+  }, [isModalOpened]);
+
   return ReactDOM.createPortal(
     <div
+      ref={modalRef}
       className={cn(
         'fixed left-0 top-0 flex h-full w-full items-center justify-center',
         isModalOpened ? 'pointer-events-auto' : 'pointer-events-none',

@@ -1,5 +1,6 @@
-import { useMemo } from 'react';
+import { useCallback, useMemo, useState } from 'react';
 import { gameSocketHandlers } from '@/handlers/socket/gameSocket.handler';
+import { useShortcuts } from '@/hooks/useShortcuts';
 import { useGameSocketStore } from '@/stores/socket/gameSocket.store';
 
 export const START_BUTTON_STATUS = {
@@ -21,7 +22,12 @@ export const START_BUTTON_STATUS = {
 } as const;
 
 export const useGameStart = () => {
-  const { players, currentPlayerId, isHost, room } = useGameSocketStore();
+  const [isStarting, setIsStarting] = useState(false);
+
+  const players = useGameSocketStore((state) => state.players);
+  const isHost = useGameSocketStore((state) => state.isHost);
+  const room = useGameSocketStore((state) => state.room);
+  const currentPlayerId = useGameSocketStore((state) => state.currentPlayerId);
 
   const buttonConfig = useMemo(() => {
     if (!isHost) return START_BUTTON_STATUS.NOT_HOST;
@@ -29,17 +35,24 @@ export const useGameStart = () => {
     return START_BUTTON_STATUS.CAN_START;
   }, [isHost, players.length]);
 
-  const handleStartGame = () => {
+  const handleStartGame = useCallback(() => {
     if (!room || buttonConfig.disabled || !room.roomId || !currentPlayerId) return;
-    void gameSocketHandlers.gameStart({
-      roomId: room.roomId,
-      playerId: currentPlayerId,
-    });
-  };
+    void gameSocketHandlers.gameStart();
+    setIsStarting(true);
+  }, [room, buttonConfig.disabled, room?.roomId, currentPlayerId]);
+
+  // 게임 초대 단축키 적용
+  useShortcuts([
+    {
+      key: 'GAME_START',
+      action: () => void handleStartGame(),
+    },
+  ]);
 
   return {
     isHost,
     buttonConfig,
     handleStartGame,
+    isStarting,
   };
 };

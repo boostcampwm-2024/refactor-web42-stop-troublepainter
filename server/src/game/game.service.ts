@@ -9,6 +9,7 @@ import {
   BadRequestException,
   InsufficientPlayersException,
   ForbiddenException,
+  GameAlreadyStartedException,
 } from 'src/exceptions/game.exception';
 import { RoomStatus, PlayerStatus, PlayerRole, Difficulty } from 'src/common/enums/game.status.enum';
 import { ClovaClient } from 'src/common/clova-client';
@@ -20,6 +21,19 @@ export class GameService {
     totalRounds: 5,
     drawTime: 35,
   };
+  private static readonly DEFAULT_WORDS = [
+    '아이언맨',
+    '토르',
+    '스파이더맨',
+    '호빵맨',
+    '도라에몽',
+    '짱구',
+    '레옹',
+    '토토로',
+    '가오나시',
+    '개발자',
+    '대통령',
+  ];
   private words: string[] = [];
 
   constructor(
@@ -50,18 +64,22 @@ export class GameService {
     ]);
 
     if (!room) throw new RoomNotFoundException();
+    if (room.status === RoomStatus.GUESSING || room.status === RoomStatus.DRAWING) {
+      throw new GameAlreadyStartedException('Cannot join room while game is in progress');
+    }
     if (!roomSettings) throw new RoomNotFoundException('Room settings not found');
     if (players.length >= roomSettings.maxPlayers) {
       throw new RoomFullException('Room is full');
     }
 
     const playerId = v4();
+    const nickname = this.generateNickname();
     const player: Player = {
       playerId,
       role: null,
       status: PlayerStatus.NOT_PLAYING,
-      nickname: `Player ${players.length + 1}`,
-      profileImage: null,
+      nickname,
+      profileImage: `https://api.dicebear.com/9.x/pixel-art/svg?seed=${nickname}`,
       score: 0,
     };
 
@@ -76,6 +94,50 @@ export class GameService {
     const updatedPlayers = [player, ...players].reverse();
 
     return { room, roomSettings, player, players: updatedPlayers };
+  }
+
+  private generateNickname() {
+    const adjectives = [
+      '홀리몰리한',
+      '소심한',
+      '반짝이는',
+      '배고픈',
+      '무례한',
+      '야근한',
+      '삐딱한',
+      '넘사벽인',
+      '킹받는',
+      '뽀짝한',
+      '억울킹',
+      '극한의',
+      '완벽한',
+      '뻔뻔한',
+      '허세쩌는',
+    ];
+
+    const nouns = [
+      '미라',
+      '코뿔소',
+      '네모',
+      '곰돌이',
+      '루저',
+      '파괴자',
+      '컨셉러',
+      '악동',
+      '트롤러',
+      '냥이',
+      '뉴비',
+      '폭탄',
+      '그림봇',
+      '킬러',
+      '전문가',
+      '패배장인',
+    ];
+
+    const adj = adjectives[Math.floor(Math.random() * adjectives.length)];
+    const noun = nouns[Math.floor(Math.random() * nouns.length)];
+
+    return `${adj} ${noun}`;
   }
 
   async reconnect(roomId: string, playerId: string) {
@@ -119,9 +181,21 @@ export class GameService {
 
     await this.gameRepository.removePlayerFromRoom(roomId, playerId);
 
-    // Todo: When someone leaves, move them to the waiting room
+    return { roomStatus: room.status, hostId, remainingPlayers };
+  }
 
-    return { hostId, remainingPlayers };
+  async initializeGame(roomId: string) {
+    await this.gameRepository.updateRoom(roomId, { status: RoomStatus.WAITING, currentRound: 0, currentWord: null });
+    const players = await this.gameRepository.getRoomPlayers(roomId);
+    await Promise.all(
+      players.map(({ playerId }) =>
+        this.gameRepository.updatePlayer(roomId, playerId, {
+          status: PlayerStatus.NOT_PLAYING,
+          role: null,
+          score: 0,
+        }),
+      ),
+    );
   }
 
   async updateSettings(roomId: string, playerId: string, data: Partial<RoomSettings>) {
@@ -137,6 +211,19 @@ export class GameService {
     return updatedSettings;
   }
 
+  async updatePlayer(roomId: string, playerId: string, data: Partial<Player>) {
+    const room = await this.gameRepository.getRoom(roomId);
+    if (!room) throw new RoomNotFoundException('Room not found');
+
+    const player = await this.gameRepository.getPlayer(roomId, playerId);
+    if (!player) throw new PlayerNotFoundException('Player not found');
+
+    const updatedPlayer = { ...player, ...data };
+    await this.gameRepository.updatePlayer(roomId, playerId, updatedPlayer);
+
+    return updatedPlayer;
+  }
+
   async startGame(roomId: string, playerId: string) {
     const room = await this.gameRepository.getRoom(roomId);
     if (!room) throw new RoomNotFoundException('Room not found');
@@ -148,20 +235,49 @@ export class GameService {
     }
 
     const roomSettings = await this.gameRepository.getRoomSettings(roomId);
+    this.words = await this.fetchWords(roomSettings.totalRounds);
+  }
 
-    this.words = await this.clovaClient.getDrawingWords(Difficulty.HARD, roomSettings.totalRounds);
+  private async fetchWords(totalRounds: number): Promise<string[]> {
+    let attempts = 0;
+    while (attempts++ < 10) {
+      const words = await this.clovaClient.getDrawingWords(Difficulty.HARD, totalRounds);
+      if (words.length === totalRounds) return words;
+    }
+    return GameService.DEFAULT_WORDS.slice(0, totalRounds);
+  }
+
+  async setupRound(roomId: string) {
+    const [room, roomSettings, players] = await Promise.all([
+      this.gameRepository.getRoom(roomId),
+      this.gameRepository.getRoomSettings(roomId),
+      this.gameRepository.getRoomPlayers(roomId),
+    ]);
+
+    if (!room) throw new RoomNotFoundException('Room not found');
+
+    if (room.currentRound >= roomSettings.totalRounds) {
+      await this.initializeGame(roomId);
+      return { gameEnded: true };
+    }
 
     const roomUpdates = {
       status: RoomStatus.DRAWING,
-      currentWord: this.words.shift(),
+      currentWord: this.words[room.currentRound],
+      currentRound: room.currentRound + 1,
     };
     await this.gameRepository.updateRoom(roomId, { ...roomUpdates });
 
     const playersWithRoles = await this.distributeRoles(roomId, players);
-
     const roles = this.categorizePlayerRoles(playersWithRoles);
 
-    return { room: { ...room, ...roomUpdates }, roomSettings, roles, players: playersWithRoles };
+    return {
+      gameEnded: false,
+      room: { ...room, ...roomUpdates },
+      roomSettings,
+      roles,
+      players: playersWithRoles,
+    };
   }
 
   private async distributeRoles(roomId: string, players: Player[]) {
@@ -207,6 +323,8 @@ export class GameService {
     if (!room) throw new RoomNotFoundException('Room not found');
 
     await this.gameRepository.updateRoom(roomId, { status: RoomStatus.GUESSING });
+
+    return RoomStatus.GUESSING;
   }
 
   async checkAnswer(roomId: string, playerId: string, answer: string) {
@@ -230,20 +348,21 @@ export class GameService {
     const isCorrect = room.currentWord.trim() === answer.trim();
     if (!isCorrect) return { isCorrect };
 
-    await this.gameRepository.updateRoom(roomId, { currentRound: room.currentRound + 1, status: RoomStatus.DRAWING });
-
     const updatedPlayers = this.calculateScores(players, playerId);
+
+    updatedPlayers.sort((a, b) => b.score - a.score);
+
     await Promise.all(
       updatedPlayers.map((p) => this.gameRepository.updatePlayer(roomId, p.playerId, { score: p.score })),
     );
-
-    const winner = currentPlayer;
+    const painters = updatedPlayers.filter((p) => p.role === PlayerRole.PAINTER);
+    const winner = updatedPlayers.find((p) => p.playerId === playerId);
 
     return {
       isCorrect,
       roundNumber: room.currentRound,
       word: room.currentWord,
-      winner,
+      winners: [winner, ...painters],
       players: updatedPlayers,
     };
   }
@@ -276,8 +395,6 @@ export class GameService {
       throw new BadRequestException('Room is not in guessing state');
     }
 
-    await this.gameRepository.updateRoom(roomId, { currentRound: room.currentRound + 1, status: RoomStatus.DRAWING });
-
     const updatedPlayers = players.map((p) => {
       const updatedPlayer = { ...p };
       if (p.role === PlayerRole.DEVIL) {
@@ -285,6 +402,8 @@ export class GameService {
       }
       return updatedPlayer;
     });
+
+    updatedPlayers.sort((a, b) => b.score - a.score);
 
     await Promise.all(
       updatedPlayers.map((p) => this.gameRepository.updatePlayer(roomId, p.playerId, { score: p.score })),
@@ -296,7 +415,7 @@ export class GameService {
     return {
       roundNumber: room.currentRound,
       word: room.currentWord,
-      winner,
+      winners: [winner],
       players: updatedPlayers,
     };
   }

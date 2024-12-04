@@ -44,3 +44,8 @@ export class ForbiddenException extends GameException {
     super(SocketErrorCode.FORBIDDEN, message);
   }
 }
+export class GameAlreadyStartedException extends GameException {
+  constructor(message: string = 'Game already started') {
+    super(SocketErrorCode.GAME_ALREADY_STARTED, message);
+  }
+}

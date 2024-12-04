@@ -85,9 +85,9 @@ export const SOCKET_CONFIG = {
   },
   /** 네임스페이스별 경로 */
   PATHS: {
-    [SocketNamespace.GAME]: '/game',
-    [SocketNamespace.DRAWING]: '/drawing',
-    [SocketNamespace.CHAT]: '/chat',
+    [SocketNamespace.GAME]: '/socket.io/game',
+    [SocketNamespace.DRAWING]: '/socket.io/drawing',
+    [SocketNamespace.CHAT]: '/socket.io/chat',
   },
 } as const;
 
@@ -114,6 +114,7 @@ type SocketCreator<T extends SocketType> = (auth?: SocketAuth) => T;
  */
 const createSocket = <T extends SocketType>(namespace: SocketNamespace, auth?: SocketAuth): T => {
   const options = auth ? { ...SOCKET_CONFIG.BASE_OPTIONS, auth } : SOCKET_CONFIG.BASE_OPTIONS;
+  // console.log(`${SOCKET_CONFIG.URL}${SOCKET_CONFIG.PATHS[namespace]}`);
   return io(`${SOCKET_CONFIG.URL}${SOCKET_CONFIG.PATHS[namespace]}`, options) as T;
 };
 

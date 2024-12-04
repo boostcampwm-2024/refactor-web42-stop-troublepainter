@@ -6,14 +6,23 @@ import {
   type RoundStartResponse,
   type UpdateSettingsResponse,
   type TimerSyncResponse,
+  RoundEndResponse,
+  RoomStatus,
+  TimerType,
+  PlayerStatus,
+  RoomEndResponse,
+  TerminationType,
 } from '@troublepainter/core';
 import { useNavigate, useParams } from 'react-router-dom';
+import entrySound from '@/assets/sounds/entry-sound-effect.mp3';
 import { gameSocketHandlers } from '@/handlers/socket/gameSocket.handler';
 import { useGameSocketStore } from '@/stores/socket/gameSocket.store';
 import { SocketNamespace } from '@/stores/socket/socket.config';
 import { useSocketStore } from '@/stores/socket/socket.store';
+import { useTimerStore } from '@/stores/timer.store';
 import { checkTimerDifference } from '@/utils/checkTimerDifference';
 import { playerIdStorageUtils } from '@/utils/playerIdStorage';
+import { SOUND_IDS, SoundManager } from '@/utils/soundManager';
 
 /**
  * 게임 진행에 필요한 소켓 연결과 상태를 관리하는 Hook입니다.
@@ -29,12 +38,20 @@ import { playerIdStorageUtils } from '@/utils/playerIdStorage';
  * ```typescript
  * // GameLayout.tsx에서의 사용 예시
  * const GameLayout = () => {
- *   const { isConnected } = useGameSocket();
+ *  // 게임 소켓 연결
+ *  useGameSocket();
+ *  // 소켓 연결 확인 상태
+ *  const isConnected = useSocketStore((state) => state.connected.game);
  *
- *   // 연결 상태에 따른 UI 처리
- *   if (!isConnected) {
- *     return <LoadingSpinner message="연결 중..." />;
- *   }
+ *  // 연결 상태에 따른 로딩 표시
+ *  if (!isConnected) {
+ *    return (
+ *      <div className="flex h-screen w-full items-center justify-center">
+ *        <DotLottieReact src={loading} loop autoplay className="h-96 w-96" />
+ *      </div>
+ *    );
+ *  }
+ *
  *
  *   return (
  *     <div>
@@ -42,20 +59,6 @@ import { playerIdStorageUtils } from '@/utils/playerIdStorage';
  *       <Outlet />
  *     </div>
  *   );
- * };
- *
- * // GameRoom.tsx에서의 이벤트 처리 예시
- * const GameRoom = () => {
- *   const { socket, actions } = useGameSocket();
- *
- *   useEffect(() => {
- *     // 게임 시작 처리
- *     if (canStartGame) {
- *       actions.startGame();
- *     }
- *   }, [canStartGame]);
- *
- *   return <GameUI />;
  * };
  * ```
  *
@@ -69,8 +72,9 @@ import { playerIdStorageUtils } from '@/utils/playerIdStorage';
  */
 export const useGameSocket = () => {
   const { roomId } = useParams<{ roomId: string }>();
-  const { sockets, connected, actions: socketActions } = useSocketStore();
-  const { actions: gameActions, timer: clientTimer } = useGameSocketStore();
+  const { sockets, actions: socketActions } = useSocketStore();
+  const gameActions = useGameSocketStore((state) => state.actions);
+  const timerActions = useTimerStore((state) => state.actions);
   const navigate = useNavigate();
 
   // 연결 + 재연결 시도
@@ -104,80 +108,117 @@ export const useGameSocket = () => {
     };
   }, [roomId]);
 
+  // 컴포넌트 마운트 시 사운드 미리 로드
   useEffect(() => {
-    if (clientTimer === 0 || clientTimer === null) return;
-
-    const intervalId = setInterval(() => {
-      gameActions.decreaseTimer();
-    }, 1000);
-
-    return () => clearInterval(intervalId);
-  }, [clientTimer, gameActions]);
+    const soundManager = SoundManager.getInstance();
+    soundManager.preloadSound(SOUND_IDS.ENTRY, entrySound);
+  }, []);
 
   useEffect(() => {
     const socket = sockets.game;
     if (!socket || !roomId) return;
 
+    const soundManager = SoundManager.getInstance();
+
     const handlers = {
       joinedRoom: (response: JoinRoomResponse) => {
         const { room, roomSettings, players, playerId } = response;
         gameActions.updateRoom(room);
-        gameActions.updateRoomSettings(roomSettings);
+        gameActions.updateRoomSettings({ ...roomSettings, drawTime: roomSettings.drawTime - 5 });
         gameActions.updatePlayers(players);
         if (playerId) {
           playerIdStorageUtils.setPlayerId(roomId, playerId);
           gameActions.updateCurrentPlayerId(playerId);
           gameActions.updateIsHost(room.hostId === playerId);
+          void soundManager.playSound(SOUND_IDS.ENTRY, 0.5);
         }
       },
 
       playerJoined: (response: JoinRoomResponse) => {
         const { room, roomSettings, players } = response;
         gameActions.updateRoom(room);
-        gameActions.updateRoomSettings(roomSettings);
+        gameActions.updateRoomSettings({ ...roomSettings, drawTime: roomSettings.drawTime - 5 });
         gameActions.updatePlayers(players);
+        void soundManager.playSound(SOUND_IDS.ENTRY, 0.5);
       },
 
       playerLeft: (response: PlayerLeftResponse) => {
-        const { leftPlayerId, players } = response;
+        const { leftPlayerId, players, hostId } = response;
         gameActions.removePlayer(leftPlayerId);
         gameActions.updatePlayers(players);
+        gameActions.updateHost(hostId);
+        gameActions.updateIsHost(hostId === useGameSocketStore.getState().currentPlayerId);
       },
 
       settingsUpdated: (response: UpdateSettingsResponse) => {
         const { settings } = response;
-        gameActions.updateRoomSettings(settings);
+        gameActions.updateRoomSettings({ ...settings, drawTime: settings.drawTime - 5 });
       },
 
       drawingGroupRoundStarted: (response: RoundStartResponse) => {
-        const { roundNumber, roles, word } = response;
-        const { painters, devil, guessers } = roles;
+        gameActions.resetRound();
+        const { roundNumber, roles, word, assignedRole, drawTime } = response;
+        const { painters, devils, guessers } = roles;
+        gameActions.updatePlayersStatus(PlayerStatus.PLAYING);
         gameActions.updateCurrentRound(roundNumber);
+        gameActions.updateRoundAssignedRole(assignedRole);
         painters?.forEach((playerId) => gameActions.updatePlayerRole(playerId, PlayerRole.PAINTER));
         guessers?.forEach((playerId) => gameActions.updatePlayerRole(playerId, PlayerRole.GUESSER));
-        if (devil) gameActions.updatePlayerRole(devil, PlayerRole.DEVIL);
+        devils?.forEach((playerId) => gameActions.updatePlayerRole(playerId, PlayerRole.DEVIL));
         if (word) gameActions.updateCurrentWord(word);
-        navigate(`/game/${roomId}`);
+        timerActions.updateTimer(TimerType.DRAWING, drawTime);
+        gameActions.updateRoomStatus(RoomStatus.DRAWING);
+        navigate(`/game/${roomId}`, { replace: true }); // replace: true로 설정, 히스토리에서 대기방 제거
       },
 
       guesserRoundStarted: (response: RoundStartResponse) => {
-        const { roundNumber, roles } = response;
+        gameActions.resetRound();
+        const { roundNumber, roles, assignedRole, drawTime } = response;
         const { guessers } = roles;
+        gameActions.updatePlayersStatus(PlayerStatus.PLAYING);
         gameActions.updateCurrentRound(roundNumber);
+        gameActions.updateRoundAssignedRole(assignedRole);
         guessers?.forEach((playerId) => gameActions.updatePlayerRole(playerId, PlayerRole.GUESSER));
-        navigate(`/game/${roomId}`);
+        timerActions.updateTimer(TimerType.DRAWING, drawTime);
+        gameActions.updateRoomStatus(RoomStatus.DRAWING);
+        navigate(`/game/${roomId}`, { replace: true });
       },
 
       timerSync: (response: TimerSyncResponse) => {
-        const { remaining } = response;
-        const serverTimer = Math.floor(remaining / 1000);
-        if (clientTimer === null || checkTimerDifference(serverTimer, clientTimer, 1))
-          gameActions.updateTimer(serverTimer);
+        const { remaining, timerType } = response;
+        const serverTimer = Math.ceil(remaining / 1000);
+        const clientTimer = useTimerStore.getState().timers[timerType];
+        if (clientTimer === null || checkTimerDifference(serverTimer, clientTimer, 1)) {
+          timerActions.updateTimer(timerType, serverTimer);
+        }
       },
 
-      /*       drawingTimeEnded: () => {
-        console.log('drawingTimeEnded Trigger');
-      }, */
+      drawingTimeEnded: () => {
+        gameActions.updateRoomStatus(RoomStatus.GUESSING);
+        timerActions.updateTimer(TimerType.GUESSING, 15);
+      },
+
+      roundEnded: (response: RoundEndResponse) => {
+        const { roundNumber, word, winners, players } = response;
+        gameActions.updateCurrentRound(roundNumber);
+        gameActions.updateCurrentWord(word);
+        gameActions.updateRoundWinners(winners);
+        timerActions.updateTimer(TimerType.ENDING, 10);
+        gameActions.updatePlayers(players);
+      },
+
+      gameEnded: (response: RoomEndResponse) => {
+        const { terminationType, leftPlayerId, hostId } = response;
+        if (terminationType === TerminationType.PLAYER_DISCONNECT && leftPlayerId && hostId) {
+          gameActions.removePlayer(leftPlayerId);
+          gameActions.updateHost(hostId);
+          gameActions.updateIsHost(hostId === useGameSocketStore.getState().currentPlayerId);
+        }
+        gameActions.updateRoomStatus(RoomStatus.WAITING);
+        gameActions.resetRound();
+        gameActions.updateGameTerminateType(terminationType);
+        navigate(`/game/${roomId}/result`, { replace: true });
+      },
     };
 
     // 이벤트 리스너 등록
@@ -192,10 +233,4 @@ export const useGameSocket = () => {
       });
     };
   }, [sockets.game, roomId]);
-
-  return {
-    socket: sockets.game,
-    isConnected: connected.game,
-    actions: gameActions,
-  };
 };
