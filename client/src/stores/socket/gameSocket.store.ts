@@ -6,7 +6,6 @@ import {
   RoomSettings,
   RoomStatus,
   TerminationType,
-  TimerType,
 } from '@troublepainter/core';
 import { create } from 'zustand';
 import { devtools } from 'zustand/middleware';
@@ -20,7 +19,6 @@ interface GameState {
   gameTerminateType: TerminationType | null;
   currentPlayerId: string | null;
   isHost: boolean | null;
-  timers: Record<TimerType, number | null>;
 }
 
 interface GameActions {
@@ -47,10 +45,6 @@ interface GameActions {
   updateIsHost: (isHost: boolean) => void;
   updateRoundAssignedRole: (role: PlayerRole) => void;
 
-  // timer 상태 업데이트
-  updateTimer: (timerType: TimerType, time: number) => void;
-  decreaseTimer: (timerType: TimerType) => void;
-
   // 승자 상태 업데이트
   updateRoundWinners: (players: Player[]) => void;
 
@@ -69,7 +63,6 @@ const initialState: GameState = {
   players: [],
   currentPlayerId: null,
   isHost: null,
-  timers: { DRAWING: null, ENDING: null, GUESSING: null },
   roundWinners: null,
   roundAssignedRole: null,
   gameTerminateType: null,
@@ -78,7 +71,6 @@ const initialState: GameState = {
 const resetCommonState = () => ({
   roundWinners: null,
   roundAssignedRole: null,
-  timers: { DRAWING: null, ENDING: null, GUESSING: null },
 });
 
 /**
@@ -177,24 +169,6 @@ export const useGameSocketStore = create<GameState & { actions: GameActions }>()
 
         updateGameTerminateType: (type) => {
           set({ gameTerminateType: type });
-        },
-
-        updateTimer: (timerType, time) => {
-          set((state) => ({
-            timers: {
-              ...state.timers,
-              [timerType]: time,
-            },
-          }));
-        },
-
-        decreaseTimer: (timerType) => {
-          set((state) => ({
-            timers: {
-              ...state.timers,
-              [timerType]: Math.max(0, (state.timers?.[timerType] ?? 0) - 1),
-            },
-          }));
         },
 
         updateRoundWinners: (players) => {

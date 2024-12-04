@@ -11,7 +11,7 @@ export const BackgroundMusicButton = () => {
 
   return (
     <div
-      className="fixed left-4 top-4 z-30 flex flex-col items-center gap-2 xs:left-8 xs:top-8"
+      className="fixed left-4 top-4 z-30 flex items-center gap-2 xs:left-8 xs:top-8"
       onMouseEnter={() => setIsHovered(true)}
       onMouseLeave={() => setIsHovered(false)}
     >
@@ -24,14 +24,14 @@ export const BackgroundMusicButton = () => {
         )}
         aria-label={isMuted ? '배경음악 재생' : '배경음악 음소거'}
       >
-        <img src={soundLogo} className="h-8 w-8 transition-all duration-300" />
+        <img src={soundLogo} alt="배경음악 토글 버튼" className="h-8 w-8 transition-all duration-300" />
       </button>
 
       {/* 볼륨 슬라이더 */}
       <div
         className={cn(
           'flex flex-col items-center rounded-lg bg-chartreuseyellow-500 p-2 transition-all duration-300',
-          isHovered ? 'translate-y-0 opacity-100' : 'pointer-events-none -translate-y-4 opacity-0',
+          isHovered ? 'translate-x-0 opacity-100' : 'pointer-events-none -translate-x-4 opacity-0',
         )}
       >
         <input
@@ -41,7 +41,7 @@ export const BackgroundMusicButton = () => {
           step="0.1"
           value={volume}
           onChange={(e) => adjustVolume(Number(e.target.value))}
-          className="h-24 w-1 appearance-none rounded-full bg-chartreuseyellow-200 [-webkit-appearance:slider-vertical] [writing-mode:bt-lr]"
+          className="h-1 w-24 appearance-none rounded-full bg-chartreuseyellow-200"
           aria-label="배경음악 볼륨 조절"
         />
       </div>

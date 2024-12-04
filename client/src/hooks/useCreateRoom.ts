@@ -29,7 +29,7 @@ import { useToastStore } from '@/stores/toast.store';
  * };
  */
 export const useCreateRoom = () => {
-  const { actions } = useToastStore();
+  const actions = useToastStore((state) => state.actions);
   const [isLoading, setIsLoading] = useState(false);
 
   // 방 생성 함수

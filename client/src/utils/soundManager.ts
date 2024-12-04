@@ -87,4 +87,6 @@ export class SoundManager {
  */
 export const SOUND_IDS = {
   ENTRY: 'entry',
+  WIN: 'win',
+  LOSS: 'loss',
 } as const;

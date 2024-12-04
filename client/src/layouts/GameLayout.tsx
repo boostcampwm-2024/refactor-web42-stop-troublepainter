@@ -1,17 +1,20 @@
 import { DotLottieReact } from '@lottiefiles/dotlottie-react';
 import { Outlet } from 'react-router-dom';
 import loading from '@/assets/lottie/loading.lottie';
-import { Chat } from '@/components/chat/Chat';
+import { ChatContatiner } from '@/components/chat/ChatContatiner';
 import { NavigationModal } from '@/components/modal/NavigationModal';
 import { PlayerCardList } from '@/components/player/PlayerCardList';
 import { useGameSocket } from '@/hooks/socket/useGameSocket';
 import BrowserNavigationGuard from '@/layouts/BrowserNavigationGuard';
 import GameHeader from '@/layouts/GameHeader';
+import { useSocketStore } from '@/stores/socket/socket.store';
 import { cn } from '@/utils/cn';
 
 const GameLayout = () => {
-  const { isConnected } = useGameSocket();
-  // console.log(players, room, roomSettings);
+  // 게임 소켓 연결
+  useGameSocket();
+  // 소켓 연결 확인 상태
+  const isConnected = useSocketStore((state) => state.connected.game);
 
   // 연결 상태에 따른 로딩 표시
   if (!isConnected) {
@@ -27,7 +30,7 @@ const GameLayout = () => {
       <BrowserNavigationGuard />
       <NavigationModal />
       <div
-        className={`before:contents-[''] relative flex min-h-screen flex-col justify-start bg-gradient-to-b from-violet-950 via-violet-800 to-fuchsia-800 before:absolute before:left-0 before:top-0 before:h-full before:w-full before:bg-patternImg before:bg-cover before:bg-center lg:py-5`}
+        className={`before:bg-patternImg relative flex min-h-screen flex-col justify-start bg-gradient-to-b from-violet-950 via-violet-800 to-fuchsia-800 before:absolute before:left-0 before:top-0 before:h-full before:w-full before:bg-cover before:bg-center lg:py-5`}
       >
         {/* 상단 헤더 */}
         <GameHeader />
@@ -36,7 +39,7 @@ const GameLayout = () => {
           <div
             className={cn(
               // 기본 스타일 (모바일, < 1024px)
-              'relative flex h-[calc(100vh-5rem)] min-h-[50rem] w-screen flex-col items-start justify-start bg-eastbay-600 xs:h-[calc(100vh-6rem)]',
+              'relative flex h-[calc(100vh-5rem)] min-h-[45rem] w-screen flex-col items-start justify-start bg-eastbay-600 xs:h-[calc(100vh-6rem)]',
               // lg
               'lg:h-[calc(100vh-10rem)] lg:min-h-[29rem] lg:max-w-screen-lg lg:flex-row lg:rounded-lg lg:px-3',
               // xl
@@ -80,7 +83,7 @@ const GameLayout = () => {
                 '2xl:-ml-5 2xl:py-5 2xl:pl-5',
               )}
             >
-              <Chat />
+              <ChatContatiner />
             </aside>
           </div>
         </main>

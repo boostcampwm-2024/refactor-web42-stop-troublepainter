@@ -103,12 +103,14 @@ export const useDrawingOperation = (
     const { canvas, ctx } = getCanvasContext(canvasRef);
     ctx.clearRect(0, 0, canvas.width, canvas.height);
 
-    state.crdtRef.current.strokes
-      .filter((stroke) => stroke.stroke !== null)
-      .forEach(({ stroke }) => {
-        if (stroke.points.length > 2) applyFill(stroke);
-        else drawStroke(stroke);
-      });
+    const activeStrokes = state.crdtRef.current.getActiveStrokes();
+    for (const { stroke } of activeStrokes) {
+      if (stroke.points.length > 2) {
+        applyFill(stroke);
+      } else {
+        drawStroke(stroke);
+      }
+    }
   }, [drawStroke]);
 
   const applyFill = (drawingData: DrawingData) => {

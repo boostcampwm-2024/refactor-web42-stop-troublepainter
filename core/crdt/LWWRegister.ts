@@ -2,7 +2,7 @@ import { RegisterState } from '@/types/crdt.types';
 
 export class LWWRegister<T> {
   readonly id: string;
-  #state: RegisterState<T>; // [peerId, timestamp, value]
+  #state: RegisterState<T>;
 
   constructor(id: string, initialState: RegisterState<T>) {
     this.id = id;
@@ -10,23 +10,46 @@ export class LWWRegister<T> {
   }
 
   get value(): T {
-    return this.#state[2];
+    return this.#state.value;
   }
 
   get state(): RegisterState<T> {
     return this.#state;
   }
 
-  set(value: T): void {
-    this.#state = [this.id, Date.now(), value];
+  get isDeactivated(): boolean {
+    return this.#state.isDeactivated ?? false;
   }
 
-  // 원격 상태와 병합 (더 새로운 타임스탬프 또는 더 큰 피어 ID 우선)
-  merge(remoteState: RegisterState<T>): boolean {
-    const [remotePeer, remoteTimestamp] = remoteState;
-    const [localPeer, localTimestamp] = this.#state;
+  set(value: T): void {
+    this.#state = {
+      peerId: this.id,
+      timestamp: Date.now(),
+      value,
+      isDeactivated: this.#state.isDeactivated,
+    };
+  }
 
-    if (remoteTimestamp > localTimestamp || (remoteTimestamp === localTimestamp && remotePeer > localPeer)) {
+  setDeactivated(value: boolean): void {
+    this.#state = {
+      ...this.#state,
+      isDeactivated: value,
+    };
+  }
+
+  merge(remoteState: RegisterState<T>): boolean {
+    if (remoteState.isDeactivated !== this.#state.isDeactivated) {
+      this.#state = {
+        ...this.#state,
+        isDeactivated: remoteState.isDeactivated,
+      };
+      return true;
+    }
+
+    if (
+      remoteState.timestamp > this.#state.timestamp ||
+      (remoteState.timestamp === this.#state.timestamp && remoteState.peerId > this.#state.peerId)
+    ) {
       this.#state = remoteState;
       return true;
     }

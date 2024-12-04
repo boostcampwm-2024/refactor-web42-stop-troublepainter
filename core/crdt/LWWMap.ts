@@ -15,14 +15,14 @@ export class LWWMap {
       .map(([key, state]) => ({
         key,
         register: new LWWRegister(this.id, state),
-        timestamp: state[1],
+        timestamp: state.timestamp,
       }))
       .sort((a, b) => b.timestamp - a.timestamp);
 
     for (const entry of entries) {
       this.#data.set(entry.key, entry.register);
       const value = entry.register.value;
-      if (value !== null) {
+      if (value !== null && !entry.register.isDeactivated) {
         this.#sortedStrokes.push({ id: entry.key, stroke: value });
       }
     }
@@ -64,10 +64,14 @@ export class LWWMap {
     return 'middle';
   }
 
-  // 새로운 스트로크 추가
   addStroke(stroke: DrawingData): { id: string; position: 'end' | 'middle' } {
     const id = `${this.id}-${stroke.timestamp}-${Math.random().toString(36).substring(2, 9)}`;
-    const register = new LWWRegister<DrawingData | null>(this.id, [this.id, stroke.timestamp, stroke]);
+    const register = new LWWRegister<DrawingData | null>(this.id, {
+      peerId: this.id,
+      timestamp: stroke.timestamp,
+      value: stroke,
+      isDeactivated: false,
+    });
 
     this.#data.set(id, register);
     const position = this.insertSortedStroke(id, stroke);
@@ -85,6 +89,32 @@ export class LWWMap {
         this.#sortedStrokes.splice(index, 1);
       }
       return true;
+    }
+    return false;
+  }
+
+  deactivateStroke(id: string): boolean {
+    const register = this.#data.get(id);
+    if (register) {
+      register.setDeactivated(true);
+      const index = this.#sortedStrokes.findIndex((item) => item.id === id);
+      if (index !== -1) {
+        this.#sortedStrokes.splice(index, 1);
+      }
+      return true;
+    }
+    return false;
+  }
+
+  activateStroke(id: string): boolean {
+    const register = this.#data.get(id);
+    if (register && register.isDeactivated) {
+      register.setDeactivated(false);
+      const stroke = register.value;
+      if (stroke !== null) {
+        const position = this.insertSortedStroke(id, stroke);
+        return position === 'end';
+      }
     }
     return false;
   }
@@ -113,28 +143,57 @@ export class LWWMap {
     remoteRegisterState: RegisterState<DrawingData | null>,
   ): { updated: boolean; position: 'end' | 'middle' } {
     const localRegister = this.#data.get(key);
-    const [, , remoteValue] = remoteRegisterState;
     let position: 'end' | 'middle' = 'end';
 
     if (localRegister) {
+      if (
+        remoteRegisterState.isDeactivated !== undefined &&
+        remoteRegisterState.isDeactivated !== localRegister.isDeactivated
+      ) {
+        const wasDeactivated = localRegister.isDeactivated;
+        localRegister.setDeactivated(remoteRegisterState.isDeactivated);
+
+        const index = this.#sortedStrokes.findIndex((item) => item.id === key);
+        if (remoteRegisterState.isDeactivated) {
+          if (index !== -1) {
+            this.#sortedStrokes.splice(index, 1);
+          }
+        } else if (remoteRegisterState.value !== null) {
+          if (index === -1) {
+            position = this.insertSortedStroke(key, remoteRegisterState.value);
+          }
+        }
+
+        return { updated: true, position };
+      }
+
       const wasUpdated = localRegister.merge(remoteRegisterState);
-      if (wasUpdated) {
+      if (wasUpdated && !localRegister.isDeactivated) {
         const index = this.#sortedStrokes.findIndex((item) => item.id === key);
         if (index !== -1) {
           this.#sortedStrokes.splice(index, 1);
         }
-        if (remoteValue !== null) {
-          position = this.insertSortedStroke(key, remoteValue);
+        if (remoteRegisterState.value !== null) {
+          position = this.insertSortedStroke(key, remoteRegisterState.value);
         }
         return { updated: true, position };
       }
       return { updated: false, position };
     } else {
-      this.#data.set(key, new LWWRegister(this.id, remoteRegisterState));
-      if (remoteValue !== null) {
-        position = this.insertSortedStroke(key, remoteValue);
+      const newRegister = new LWWRegister(this.id, remoteRegisterState);
+      this.#data.set(key, newRegister);
+
+      if (remoteRegisterState.value !== null && !remoteRegisterState.isDeactivated) {
+        position = this.insertSortedStroke(key, remoteRegisterState.value);
       }
       return { updated: true, position };
     }
+  }
+
+  getActiveStrokes(): Array<{ id: string; stroke: DrawingData }> {
+    return this.#sortedStrokes.filter(({ id }) => {
+      const register = this.#data.get(id);
+      return register && !register.isDeactivated;
+    });
   }
 }

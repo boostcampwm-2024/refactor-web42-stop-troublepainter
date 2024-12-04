@@ -19,6 +19,7 @@ import { gameSocketHandlers } from '@/handlers/socket/gameSocket.handler';
 import { useGameSocketStore } from '@/stores/socket/gameSocket.store';
 import { SocketNamespace } from '@/stores/socket/socket.config';
 import { useSocketStore } from '@/stores/socket/socket.store';
+import { useTimerStore } from '@/stores/timer.store';
 import { checkTimerDifference } from '@/utils/checkTimerDifference';
 import { playerIdStorageUtils } from '@/utils/playerIdStorage';
 import { SOUND_IDS, SoundManager } from '@/utils/soundManager';
@@ -37,12 +38,20 @@ import { SOUND_IDS, SoundManager } from '@/utils/soundManager';
  * ```typescript
  * // GameLayout.tsx에서의 사용 예시
  * const GameLayout = () => {
- *   const { isConnected } = useGameSocket();
+ *  // 게임 소켓 연결
+ *  useGameSocket();
+ *  // 소켓 연결 확인 상태
+ *  const isConnected = useSocketStore((state) => state.connected.game);
  *
- *   // 연결 상태에 따른 UI 처리
- *   if (!isConnected) {
- *     return <LoadingSpinner message="연결 중..." />;
- *   }
+ *  // 연결 상태에 따른 로딩 표시
+ *  if (!isConnected) {
+ *    return (
+ *      <div className="flex h-screen w-full items-center justify-center">
+ *        <DotLottieReact src={loading} loop autoplay className="h-96 w-96" />
+ *      </div>
+ *    );
+ *  }
+ *
  *
  *   return (
  *     <div>
@@ -50,20 +59,6 @@ import { SOUND_IDS, SoundManager } from '@/utils/soundManager';
  *       <Outlet />
  *     </div>
  *   );
- * };
- *
- * // GameRoom.tsx에서의 이벤트 처리 예시
- * const GameRoom = () => {
- *   const { socket, actions } = useGameSocket();
- *
- *   useEffect(() => {
- *     // 게임 시작 처리
- *     if (canStartGame) {
- *       actions.startGame();
- *     }
- *   }, [canStartGame]);
- *
- *   return <GameUI />;
  * };
  * ```
  *
@@ -77,8 +72,9 @@ import { SOUND_IDS, SoundManager } from '@/utils/soundManager';
  */
 export const useGameSocket = () => {
   const { roomId } = useParams<{ roomId: string }>();
-  const { sockets, connected, actions: socketActions } = useSocketStore();
-  const { actions: gameActions } = useGameSocketStore();
+  const { sockets, actions: socketActions } = useSocketStore();
+  const gameActions = useGameSocketStore((state) => state.actions);
+  const timerActions = useTimerStore((state) => state.actions);
   const navigate = useNavigate();
 
   // 연결 + 재연결 시도
@@ -170,7 +166,7 @@ export const useGameSocket = () => {
         guessers?.forEach((playerId) => gameActions.updatePlayerRole(playerId, PlayerRole.GUESSER));
         devils?.forEach((playerId) => gameActions.updatePlayerRole(playerId, PlayerRole.DEVIL));
         if (word) gameActions.updateCurrentWord(word);
-        gameActions.updateTimer(TimerType.DRAWING, drawTime);
+        timerActions.updateTimer(TimerType.DRAWING, drawTime);
         gameActions.updateRoomStatus(RoomStatus.DRAWING);
         navigate(`/game/${roomId}`, { replace: true }); // replace: true로 설정, 히스토리에서 대기방 제거
       },
@@ -183,7 +179,7 @@ export const useGameSocket = () => {
         gameActions.updateCurrentRound(roundNumber);
         gameActions.updateRoundAssignedRole(assignedRole);
         guessers?.forEach((playerId) => gameActions.updatePlayerRole(playerId, PlayerRole.GUESSER));
-        gameActions.updateTimer(TimerType.DRAWING, drawTime);
+        timerActions.updateTimer(TimerType.DRAWING, drawTime);
         gameActions.updateRoomStatus(RoomStatus.DRAWING);
         navigate(`/game/${roomId}`, { replace: true });
       },
@@ -191,15 +187,15 @@ export const useGameSocket = () => {
       timerSync: (response: TimerSyncResponse) => {
         const { remaining, timerType } = response;
         const serverTimer = Math.ceil(remaining / 1000);
-        const clientTimer = useGameSocketStore.getState().timers[timerType];
+        const clientTimer = useTimerStore.getState().timers[timerType];
         if (clientTimer === null || checkTimerDifference(serverTimer, clientTimer, 1)) {
-          gameActions.updateTimer(timerType, serverTimer);
+          timerActions.updateTimer(timerType, serverTimer);
         }
       },
 
       drawingTimeEnded: () => {
         gameActions.updateRoomStatus(RoomStatus.GUESSING);
-        gameActions.updateTimer(TimerType.GUESSING, 15);
+        timerActions.updateTimer(TimerType.GUESSING, 15);
       },
 
       roundEnded: (response: RoundEndResponse) => {
@@ -207,7 +203,7 @@ export const useGameSocket = () => {
         gameActions.updateCurrentRound(roundNumber);
         gameActions.updateCurrentWord(word);
         gameActions.updateRoundWinners(winners);
-        gameActions.updateTimer(TimerType.ENDING, 10);
+        timerActions.updateTimer(TimerType.ENDING, 10);
         gameActions.updatePlayers(players);
       },
 
@@ -237,10 +233,4 @@ export const useGameSocket = () => {
       });
     };
   }, [sockets.game, roomId]);
-
-  return {
-    socket: sockets.game,
-    isConnected: connected.game,
-    actions: gameActions,
-  };
 };

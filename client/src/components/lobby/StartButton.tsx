@@ -3,11 +3,11 @@ import { useGameStart } from '@/hooks/useStartButton';
 import { cn } from '@/utils/cn';
 
 export const StartButton = () => {
-  const { isHost, buttonConfig, handleStartGame } = useGameStart();
+  const { isHost, buttonConfig, handleStartGame, isStarting } = useGameStart();
   return (
     <Button
       onClick={handleStartGame}
-      disabled={buttonConfig.disabled}
+      disabled={buttonConfig.disabled || isStarting}
       title={buttonConfig.title}
       className={cn(
         'h-full rounded-none border-0 text-xl',
@@ -15,7 +15,7 @@ export const StartButton = () => {
         !isHost && 'cursor-not-allowed opacity-50 hover:bg-violet-500',
       )}
     >
-      {buttonConfig.content}
+      {isStarting ? '곧 게임이 시작됩니다!' : buttonConfig.content}
     </Button>
   );
 };

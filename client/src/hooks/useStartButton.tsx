@@ -1,6 +1,6 @@
-import { useCallback, useEffect, useMemo } from 'react';
-import { SHORTCUT_KEY } from '@/constants/shortcutKey';
+import { useCallback, useMemo, useState } from 'react';
 import { gameSocketHandlers } from '@/handlers/socket/gameSocket.handler';
+import { useShortcuts } from '@/hooks/useShortcuts';
 import { useGameSocketStore } from '@/stores/socket/gameSocket.store';
 
 export const START_BUTTON_STATUS = {
@@ -22,7 +22,12 @@ export const START_BUTTON_STATUS = {
 } as const;
 
 export const useGameStart = () => {
-  const { players, currentPlayerId, isHost, room } = useGameSocketStore();
+  const [isStarting, setIsStarting] = useState(false);
+
+  const players = useGameSocketStore((state) => state.players);
+  const isHost = useGameSocketStore((state) => state.isHost);
+  const room = useGameSocketStore((state) => state.room);
+  const currentPlayerId = useGameSocketStore((state) => state.currentPlayerId);
 
   const buttonConfig = useMemo(() => {
     if (!isHost) return START_BUTTON_STATUS.NOT_HOST;
@@ -33,23 +38,21 @@ export const useGameStart = () => {
   const handleStartGame = useCallback(() => {
     if (!room || buttonConfig.disabled || !room.roomId || !currentPlayerId) return;
     void gameSocketHandlers.gameStart();
+    setIsStarting(true);
   }, [room, buttonConfig.disabled, room?.roomId, currentPlayerId]);
 
-  useEffect(() => {
-    const handleKeyDown = (event: KeyboardEvent) => {
-      if (event.key === SHORTCUT_KEY.GAME_START) {
-        handleStartGame();
-      }
-    };
-    document.addEventListener('keydown', handleKeyDown);
-    return () => {
-      document.removeEventListener('keydown', handleKeyDown);
-    };
-  }, [handleStartGame]);
+  // 게임 초대 단축키 적용
+  useShortcuts([
+    {
+      key: 'GAME_START',
+      action: () => void handleStartGame(),
+    },
+  ]);
 
   return {
     isHost,
     buttonConfig,
     handleStartGame,
+    isStarting,
   };
 };

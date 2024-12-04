@@ -5,7 +5,8 @@ import { useModal } from '@/hooks/useModal';
 import { useGameSocketStore } from '@/stores/socket/gameSocket.store';
 
 const RoleModal = () => {
-  const { roundAssignedRole, room } = useGameSocketStore();
+  const room = useGameSocketStore((state) => state.room);
+  const roundAssignedRole = useGameSocketStore((state) => state.roundAssignedRole);
   const { isModalOpened, closeModal, handleKeyDown, openModal } = useModal(5000);
 
   useEffect(() => {

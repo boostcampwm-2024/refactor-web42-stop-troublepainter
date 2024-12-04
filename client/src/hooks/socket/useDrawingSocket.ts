@@ -58,7 +58,7 @@ interface UseDrawingSocketProps {
 export const useDrawingSocket = ({ onDrawUpdate, onSubmitRequest }: UseDrawingSocketProps) => {
   const { roomId } = useParams<{ roomId: string }>();
   const { sockets, connected, actions: socketActions } = useSocketStore();
-  const { currentPlayerId } = useGameSocketStore();
+  const currentPlayerId = useGameSocketStore((state) => state.currentPlayerId);
 
   // 소켓 연결 설정
   const handleDrawUpdate = useCallback(
@@ -71,7 +71,7 @@ export const useDrawingSocket = ({ onDrawUpdate, onSubmitRequest }: UseDrawingSo
   );
 
   const handleSubmitDrawing = useCallback(() => {
-    console.log('Received submitDrawing event');
+    // console.log('Received submitDrawing event');
     onSubmitRequest();
   }, [onSubmitRequest]);
 

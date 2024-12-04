@@ -7,6 +7,7 @@ import {
   CRDTSyncMessage,
   RoomStatus,
   DrawingData,
+  RegisterState,
 } from '@troublepainter/core';
 import { useDrawingOperation } from './useDrawingOperation';
 import { useDrawingState } from './useDrawingState';
@@ -116,6 +117,7 @@ export const useDrawing = (
     (point: Point): CRDTUpdateMessage | null => {
       if (state.checkInkAvailability() === false || !state.crdtRef.current) return null;
 
+      state.currentStrokeIdsRef.current = [];
       currentDrawingPoints.current = state.drawingMode === DRAWING_MODE.PEN ? [point] : [];
 
       const drawingData =
@@ -180,35 +182,21 @@ export const useDrawing = (
       state.strokeHistoryRef.current = state.strokeHistoryRef.current.slice(0, state.historyPointerRef.current + 1);
     }
 
-    let drawingData: DrawingData;
-
-    if (state.drawingMode === DRAWING_MODE.FILL) {
-      const stroke = state.crdtRef.current.strokes.find((s) => s.id === state.currentStrokeIdsRef.current[0])?.stroke;
-      if (!stroke) return;
-      drawingData = stroke;
-    } else {
-      const allPoints: Point[] = [];
-      state.currentStrokeIdsRef.current.forEach((strokeId) => {
-        const stroke = state.crdtRef.current!.strokes.find((s) => s.id === strokeId);
-        if (stroke) {
-          allPoints.push(...stroke.stroke.points);
-        }
-      });
-      drawingData = createDrawingData(allPoints);
-    }
+    const firstStroke = state.crdtRef.current.strokes.find((s) => s.id === state.currentStrokeIdsRef.current[0]);
+    if (!firstStroke) return;
 
     state.strokeHistoryRef.current.push({
       strokeIds: [...state.currentStrokeIdsRef.current],
       isLocal: true,
-      drawingData,
-      timestamp: drawingData.timestamp,
+      drawingData: firstStroke.stroke,
+      timestamp: firstStroke.stroke.timestamp,
     });
 
     state.historyPointerRef.current = state.strokeHistoryRef.current.length - 1;
     currentDrawingPoints.current = [];
     state.currentStrokeIdsRef.current = [];
     state.updateHistoryState();
-  }, [state, createDrawingData]);
+  }, [state]);
 
   const undo = useCallback((): CRDTUpdateMessage[] | null => {
     if (!state.crdtRef.current || state.historyPointerRef.current < 0) return null;
@@ -222,12 +210,20 @@ export const useDrawing = (
     if (!currentEntry?.isLocal) return null;
 
     const updates = currentEntry.strokeIds.map((strokeId): CRDTUpdateMessage => {
-      state.crdtRef.current!.deleteStroke(strokeId);
+      state.crdtRef.current!.deactivateStroke(strokeId);
+      const baseRegister = state.crdtRef.current!.state[strokeId];
+      const register: RegisterState<DrawingData | null> = {
+        peerId: baseRegister.peerId,
+        timestamp: baseRegister.timestamp,
+        value: baseRegister.value,
+        isDeactivated: true,
+      };
+
       return {
         type: CRDTMessageTypes.UPDATE,
         state: {
           key: strokeId,
-          register: state.crdtRef.current!.state[strokeId],
+          register,
         },
       };
     });
@@ -255,22 +251,30 @@ export const useDrawing = (
 
     if (!nextEntry?.isLocal || !nextEntry.drawingData) return null;
 
-    const { id } = state.crdtRef.current.addStroke(nextEntry.drawingData);
-    nextEntry.strokeIds = [id];
+    const updates = nextEntry.strokeIds.map((strokeId): CRDTUpdateMessage => {
+      state.crdtRef.current!.activateStroke(strokeId);
+      const baseRegister = state.crdtRef.current!.state[strokeId];
+      const register: RegisterState<DrawingData | null> = {
+        peerId: baseRegister.peerId,
+        timestamp: baseRegister.timestamp,
+        value: baseRegister.value,
+        isDeactivated: false,
+      };
 
-    const update: CRDTUpdateMessage = {
-      type: CRDTMessageTypes.UPDATE,
-      state: {
-        key: id,
-        register: state.crdtRef.current.state[id],
-      },
-    };
+      return {
+        type: CRDTMessageTypes.UPDATE,
+        state: {
+          key: strokeId,
+          register,
+        },
+      };
+    });
 
     state.historyPointerRef.current++;
     state.updateHistoryState();
     operation.redrawCanvas();
 
-    return [update];
+    return updates;
   }, [state, operation]);
 
   const applyDrawing = useCallback(
@@ -295,33 +299,38 @@ export const useDrawing = (
 
         if (isLocalUpdate) return;
 
+        // CRDT 상태 업데이트
         const { updated, position } = state.crdtRef.current.mergeRegister(key, register);
         if (!updated) return;
 
-        const stroke = register[2];
-        if (!stroke) {
+        const stroke = register.value;
+        const isDeactivated = register.isDeactivated ?? false;
+
+        // 새로운 스트로크이고 비활성화되지 않은 경우만 히스토리에 추가
+        const existingEntryIndex = state.strokeHistoryRef.current.findIndex((entry) => entry.strokeIds.includes(key));
+
+        if (existingEntryIndex === -1 && stroke && !isDeactivated) {
+          state.strokeHistoryRef.current.push({
+            strokeIds: [key],
+            isLocal: false,
+            drawingData: stroke,
+            timestamp: stroke.timestamp || Date.now(),
+          });
+          state.updateHistoryState();
+        }
+
+        if (position === 'middle' || existingEntryIndex !== -1 || isDeactivated) {
           operation.redrawCanvas();
-          return;
+        } else if (stroke) {
+          if (stroke.points.length > 2) {
+            operation.applyFill(stroke);
+          } else {
+            operation.drawStroke(stroke);
+          }
         }
-
-        renderStroke(stroke, position);
-
-        if (state.historyPointerRef.current < state.strokeHistoryRef.current.length - 1) {
-          state.strokeHistoryRef.current = state.strokeHistoryRef.current.slice(0, state.historyPointerRef.current + 1);
-        }
-
-        state.strokeHistoryRef.current.push({
-          strokeIds: [key],
-          isLocal: false,
-          drawingData: stroke,
-          timestamp: stroke.timestamp,
-        });
-
-        state.historyPointerRef.current++;
-        state.updateHistoryState();
       }
     },
-    [state.currentPlayerId, operation, roomStatus, renderStroke],
+    [state.currentPlayerId, operation, roomStatus],
   );
 
   const getAllDrawingData = useCallback((): CRDTSyncMessage | null => {

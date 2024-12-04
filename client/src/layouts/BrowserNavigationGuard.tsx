@@ -5,7 +5,7 @@ import { useNavigationModalStore } from '@/stores/navigationModal.store';
 const BrowserNavigationGuard = () => {
   const navigate = useNavigate();
   const location = useLocation();
-  const { actions: modalActions } = useNavigationModalStore();
+  const modalActions = useNavigationModalStore((state) => state.actions);
 
   useEffect(() => {
     // 새로고침, beforeunload 이벤트 핸들러

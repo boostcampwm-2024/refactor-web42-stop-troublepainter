@@ -9,7 +9,8 @@ interface AnimatedToast extends ToastConfig {
 }
 
 export const ToastContainer = () => {
-  const { toasts, actions } = useToastStore();
+  const toasts = useToastStore((state) => state.toasts);
+  const actions = useToastStore((state) => state.actions);
   const [animatedToasts, setAnimatedToasts] = useState<AnimatedToast[]>([]);
 
   // 토스트 추가 처리
