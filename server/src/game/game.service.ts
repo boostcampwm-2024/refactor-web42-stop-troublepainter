@@ -21,6 +21,19 @@ export class GameService {
     totalRounds: 5,
     drawTime: 35,
   };
+  private static readonly DEFAULT_WORDS = [
+    '아이언맨',
+    '토르',
+    '스파이더맨',
+    '호빵맨',
+    '도라에몽',
+    '짱구',
+    '레옹',
+    '토토로',
+    '가오나시',
+    '개발자',
+    '대통령',
+  ];
   private words: string[] = [];
 
   constructor(
@@ -221,8 +234,16 @@ export class GameService {
     }
 
     const roomSettings = await this.gameRepository.getRoomSettings(roomId);
+    this.words = await this.fetchWords(roomSettings.totalRounds);
+  }
 
-    this.words = await this.clovaClient.getDrawingWords(Difficulty.HARD, roomSettings.totalRounds);
+  private async fetchWords(totalRounds: number): Promise<string[]> {
+    let attempts = 0;
+    while (attempts++ < 10) {
+      const words = await this.clovaClient.getDrawingWords(Difficulty.HARD, totalRounds);
+      if (words.length === totalRounds) return words;
+    }
+    return GameService.DEFAULT_WORDS.slice(0, totalRounds);
   }
 
   async setupRound(roomId: string) {
@@ -241,7 +262,7 @@ export class GameService {
 
     const roomUpdates = {
       status: RoomStatus.DRAWING,
-      currentWord: this.words.shift(),
+      currentWord: this.words[room.currentRound],
       currentRound: room.currentRound + 1,
     };
     await this.gameRepository.updateRoom(roomId, { ...roomUpdates });

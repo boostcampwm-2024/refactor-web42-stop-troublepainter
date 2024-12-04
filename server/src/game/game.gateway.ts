@@ -27,7 +27,6 @@ export class GameGateway implements OnGatewayDisconnect {
 
   private disconnectTimeouts: Map<string, NodeJS.Timeout> = new Map();
   private readonly DISCONNECT_TIMEOUT = 10000;
-  private finalDrawing: any;
 
   constructor(
     private readonly gameService: GameService,
