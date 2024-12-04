@@ -1,4 +1,4 @@
-import { useCallback, useMemo } from 'react';
+import { useCallback, useMemo, useState } from 'react';
 import { gameSocketHandlers } from '@/handlers/socket/gameSocket.handler';
 import { useShortcuts } from '@/hooks/useShortcuts';
 import { useGameSocketStore } from '@/stores/socket/gameSocket.store';
@@ -22,6 +22,8 @@ export const START_BUTTON_STATUS = {
 } as const;
 
 export const useGameStart = () => {
+  const [isStarting, setIsStarting] = useState(false);
+
   const players = useGameSocketStore((state) => state.players);
   const isHost = useGameSocketStore((state) => state.isHost);
   const room = useGameSocketStore((state) => state.room);
@@ -36,6 +38,7 @@ export const useGameStart = () => {
   const handleStartGame = useCallback(() => {
     if (!room || buttonConfig.disabled || !room.roomId || !currentPlayerId) return;
     void gameSocketHandlers.gameStart();
+    setIsStarting(true);
   }, [room, buttonConfig.disabled, room?.roomId, currentPlayerId]);
 
   // 게임 초대 단축키 적용
@@ -50,5 +53,6 @@ export const useGameStart = () => {
     isHost,
     buttonConfig,
     handleStartGame,
+    isStarting,
   };
 };
