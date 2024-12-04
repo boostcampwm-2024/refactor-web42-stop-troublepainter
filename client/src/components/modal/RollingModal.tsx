@@ -157,7 +157,7 @@ const RollingModal = ({ isModalOpened, handle }: Props) => {
           <img src={left} width={30} />
         </button>
         <div className="w-full">
-          <section className="w-full">
+          <section className={cn('w-full', displayArrow || 'text-sm')}>
             <HelpPage pageData={pageData[pageIndex]} playerRef={playerRef} />
           </section>
           <div className="relative top-5 flex flex-row items-center justify-center p-5">
