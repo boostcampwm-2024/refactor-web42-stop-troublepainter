@@ -1,6 +1,6 @@
 import { MouseEvent } from 'react';
 import helpIcon from '@/assets/help-icon.svg';
-import RollingModal from '@/components/modal/RollingModal';
+import HelpRollingModal from '@/components/modal/HelpRollingModal';
 import { Button } from '@/components/ui/Button';
 import { useModal } from '@/hooks/useModal';
 
@@ -23,7 +23,7 @@ const HelpContainer = ({}) => {
       >
         <img src={helpIcon} alt="도움말 보기 버튼" />
       </Button>
-      <RollingModal isModalOpened={isModalOpened} handleCloseModal={closeModal} handleKeyDown={handleKeyDown} />
+      <HelpRollingModal isModalOpened={isModalOpened} handleCloseModal={closeModal} handleKeyDown={handleKeyDown} />
     </nav>
   );
 };

@@ -10,7 +10,7 @@ import right from '@/assets/right.svg';
 import { Modal } from '@/components/ui/Modal';
 import { cn } from '@/utils/cn';
 
-interface RollingModalProps {
+interface HelpRollingModalProps {
   isModalOpened: boolean;
   handleCloseModal: () => void;
   handleKeyDown: (e: KeyboardEvent<Element>) => void;
@@ -64,7 +64,7 @@ const HelpPage = ({ pageData, playerRef }: { pageData: PageData; playerRef: RefO
   );
 };
 
-const RollingModal = ({ isModalOpened, handleCloseModal, handleKeyDown }: RollingModalProps) => {
+const HelpRollingModal = ({ isModalOpened, handleCloseModal, handleKeyDown }: HelpRollingModalProps) => {
   const [pageIndex, setPageIndex] = useState<number>(0);
   const [pagenation, setPagenation] = useState(new Array(pageData.length).fill(false));
   const startPos = useRef<number>(0);
@@ -172,4 +172,4 @@ const RollingModal = ({ isModalOpened, handleCloseModal, handleKeyDown }: Rollin
   );
 };
 
-export default RollingModal;
+export default HelpRollingModal;
