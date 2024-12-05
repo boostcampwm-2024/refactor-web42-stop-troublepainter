@@ -1,4 +1,4 @@
-import { RefObject, useCallback, useRef } from 'react';
+import { RefObject, useCallback } from 'react';
 import { DrawingData, Point, StrokeStyle } from '@troublepainter/core';
 import { useDrawingState } from './useDrawingState';
 import { MAINCANVAS_RESOLUTION_HEIGHT, MAINCANVAS_RESOLUTION_WIDTH } from '@/constants/canvasConstants';
@@ -73,7 +73,6 @@ export const useDrawingOperation = (
   state: ReturnType<typeof useDrawingState>,
 ) => {
   const { currentColor, brushSize, inkRemaining, setInkRemaining } = state;
-  const smoothBuffer = useRef<Point[]>([]);
 
   const getCurrentStyle = useCallback(
     (): StrokeStyle => ({
@@ -81,54 +80,6 @@ export const useDrawingOperation = (
       width: brushSize,
     }),
     [currentColor, brushSize],
-  );
-
-  const drawSmoothLine = useCallback(
-    (drawingData: DrawingData, canvasRef: RefObject<HTMLCanvasElement>) => {
-      const { /*canvas,*/ ctx } = getCanvasContext(canvasRef);
-      const { points } = drawingData;
-
-      if (smoothBuffer.current.length == 0) {
-        smoothBuffer.current = [...points];
-      } else {
-        const newPoint = points[0];
-        const lastPoint = smoothBuffer.current[smoothBuffer.current.length - 1];
-        if (lastPoint.x === newPoint.x && lastPoint.y === newPoint.y) {
-          smoothBuffer.current = [smoothBuffer.current[1], points[0], points[1]];
-        } else {
-          smoothBuffer.current = [...points];
-        }
-      }
-
-      if (smoothBuffer.current.length < 3) {
-        ctx.beginPath();
-        ctx.moveTo(smoothBuffer.current[0].x, smoothBuffer.current[0].y);
-        ctx.quadraticCurveTo(
-          smoothBuffer.current[0].x,
-          smoothBuffer.current[0].y,
-          smoothBuffer.current[1].x,
-          smoothBuffer.current[1].y,
-        );
-        ctx.stroke();
-
-        return;
-      }
-
-      ctx.beginPath();
-      ctx.moveTo(smoothBuffer.current[0].x, smoothBuffer.current[0].y);
-
-      const midPoint = {
-        x: (smoothBuffer.current[1].x + smoothBuffer.current[2].x) / 2,
-        y: (smoothBuffer.current[1].y + smoothBuffer.current[2].y) / 2,
-      };
-
-      ctx.quadraticCurveTo(smoothBuffer.current[1].x, smoothBuffer.current[1].y, midPoint.x, midPoint.y);
-      smoothBuffer.current[1] = midPoint;
-      //if (checkOutsidePoint(canvas, smoothBuffer.current[2]))
-      //  ctx.lineTo(smoothBuffer.current[2].x, smoothBuffer.current[2].y);
-      ctx.stroke();
-    },
-    [smoothBuffer.current],
   );
 
   const drawStroke = useCallback((drawingData: DrawingData) => {
@@ -149,7 +100,9 @@ export const useDrawingOperation = (
       ctx.arc(point.x, point.y, style.width / 2, 0, Math.PI * 2);
       ctx.fill();
     } else {
-      drawSmoothLine(drawingData, canvasRef);
+      ctx.moveTo(points[0].x, points[0].y);
+      points.slice(1).forEach((point) => ctx.lineTo(point.x, point.y));
+      ctx.stroke();
     }
   }, []);
 
