@@ -22,11 +22,13 @@ const checkColorisEqual = (pos: number, startColor: RGBA, pixelArray: Uint8Clamp
   );
 };
 
+/*
 const checkOutsidePoint = (canvas: HTMLCanvasElement, point: Point) => {
   const { width, height } = canvas.getBoundingClientRect();
   if (point.x >= 0 && point.x <= width && point.y >= 0 && point.y <= height) return false;
   else return true;
 };
+*/
 
 /**
  * 캔버스의 실제 드로잉 작업을 수행하는 Hook입니다.
@@ -83,7 +85,7 @@ export const useDrawingOperation = (
 
   const drawSmoothLine = useCallback(
     (drawingData: DrawingData, canvasRef: RefObject<HTMLCanvasElement>) => {
-      const { canvas, ctx } = getCanvasContext(canvasRef);
+      const { /*canvas,*/ ctx } = getCanvasContext(canvasRef);
       const { points } = drawingData;
 
       if (smoothBuffer.current.length == 0) {
@@ -122,8 +124,8 @@ export const useDrawingOperation = (
 
       ctx.quadraticCurveTo(smoothBuffer.current[1].x, smoothBuffer.current[1].y, midPoint.x, midPoint.y);
       smoothBuffer.current[1] = midPoint;
-      if (checkOutsidePoint(canvas, smoothBuffer.current[2]))
-        ctx.lineTo(smoothBuffer.current[2].x, smoothBuffer.current[2].y);
+      //if (checkOutsidePoint(canvas, smoothBuffer.current[2]))
+      //  ctx.lineTo(smoothBuffer.current[2].x, smoothBuffer.current[2].y);
       ctx.stroke();
     },
     [smoothBuffer.current],
