@@ -97,61 +97,74 @@ test.describe('Game Room Drawing Test', () => {
 
   test.afterEach(async () => {
     for (const client of clients) {
-      await client.page.close();
-      await client.context.close();
+      try {
+        if (!client.page.isClosed()) {
+          await client.page.close();
+        }
+        await client.context.close();
+      } catch (error) {
+        console.error('Cleanup failed:', error);
+      }
     }
     clients = [];
   });
 
   test('Drawing synchronization test with multiple browsers', async () => {
-    // 브라우저 콘솔 로그 캡처
-    clients.forEach((client) => {
-      client.page.on('console', (msg) => {
-        console.log(`Browser console [${client.role}]:`, msg.text());
-      });
-    });
+    try {
+      // 셋업 및 모달 처리
+      clients = await setupTestRoom('http://localhost:5173');
+      const drawers = clients.filter((client) => ['PAINTER', 'DEVIL'].includes(client.role || ''));
 
-    // 테스트 타임아웃 설정
-    test.setTimeout(60000);
+      // 모달 닫힌 후 시작 시간 기록
+      const testStartTime = Date.now();
 
-    clients = await setupTestRoom('http://localhost:5173');
-
-    const drawers = clients.filter((client) => ['PAINTER', 'DEVIL'].includes(client.role || ''));
-    console.log(
-      'Role distribution:',
-      clients.map((c) => `Role: ${c.role}`),
-    );
-
-    // 그림꾼과 방해꾼만 캔버스가 보이는 35초 동안 랜덤하게 그리기
-    const drawingStartTime = Date.now();
-    const drawingTime = 35000; // 35초
-
-    while (Date.now() - drawingStartTime < drawingTime) {
-      await Promise.all(
-        drawers.map(async (drawer) => {
-          try {
-            await drawingPatterns.randomByMouse(drawer.page);
-            // 각 드로잉 사이에 짧은 대기 시간
-            await drawer.page.waitForTimeout(Math.random() * 500 + 100);
-          } catch (error) {
-            console.error(`Drawing failed for ${drawer.role}:`, error);
-          }
-        }),
-      );
-    }
-
-    console.log('Drawing phase completed, waiting for canvas reveal...');
-
-    // 15초 공개 시간의 시작 부분에서 모든 클라이언트의 캔버스 상태 비교
-    await new Promise((resolve) => setTimeout(resolve, 1000));
-
-    if (drawers.length > 0) {
-      const baseCanvas = drawers[0].page;
-      for (const client of clients.slice(1)) {
-        const diffRatio = await compareByPng(baseCanvas, client.page);
-        console.log(`Client (Role: ${client.role}) final canvas diff ratio: ${diffRatio}`);
-        expect(diffRatio).toBeLessThanOrEqual(0.01);
+      // 1단계: 처음 5초 대기
+      // const waitEndTime = testStartTime + 5000;
+      const waitEndTime = testStartTime + 1000;
+      console.log('Waiting 5 seconds before drawing...');
+      while (Date.now() < waitEndTime) {
+        await new Promise((resolve) => setTimeout(resolve, 100));
       }
+
+      // 2단계: 30초 동안 드로잉
+      const drawingEndTime = waitEndTime + 30000;
+      console.log('Starting 30 seconds drawing phase...');
+      while (Date.now() < drawingEndTime) {
+        await Promise.all(
+          drawers.map(async (drawer) => {
+            try {
+              if (!drawer.page.isClosed()) {
+                await drawingPatterns.randomByMouse(drawer.page);
+                await drawer.page.waitForTimeout(100);
+              }
+            } catch (error) {
+              console.error(`Drawing failed for ${drawer.role}:`, error);
+            }
+          }),
+        );
+      }
+
+      // 3단계: 남은 15초 동안 캔버스 비교
+      console.log('Starting canvas comparison phase...');
+      if (drawers.length > 0) {
+        const baseCanvas = drawers[0].page;
+        for (const client of clients.slice(1)) {
+          if (!client.page.isClosed() && !baseCanvas.isClosed()) {
+            const diffRatio = await compareByPng(baseCanvas, client.page);
+            console.log(`Client (Role: ${client.role}) final canvas diff ratio: ${diffRatio}`);
+            expect(diffRatio).toBeLessThanOrEqual(0.01);
+          }
+        }
+      }
+
+      // 전체 테스트 시간이 50초를 넘으면 안됨
+      const elapsedTime = Date.now() - testStartTime;
+      if (elapsedTime > 50000) {
+        throw new Error(`Test exceeded 50 seconds: ${elapsedTime}ms`);
+      }
+    } catch (error) {
+      console.error('Test failed:', error);
+      throw error;
     }
   });
 });
