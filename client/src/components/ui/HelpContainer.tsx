@@ -17,7 +17,7 @@ const HelpContainer = ({}) => {
       <Button variant="transperent" size="icon" onClick={handleOpenHelpModal}>
         <img src={helpIcon} alt="도움말 보기 버튼" />
       </Button>
-      <RollingModal isModalOpened={isModalOpened} handle={{ closeModal, openModal, handleKeyDown }} />
+      <RollingModal isModalOpened={isModalOpened} handleCloseModal={closeModal} handleKeyDown={handleKeyDown} />
     </nav>
   );
 };

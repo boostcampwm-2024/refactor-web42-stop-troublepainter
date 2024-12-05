@@ -12,11 +12,8 @@ import { cn } from '@/utils/cn';
 
 interface RollingModalProps {
   isModalOpened: boolean;
-  handle: {
-    closeModal: () => void;
-    openModal: () => void;
-    handleKeyDown: (e: KeyboardEvent<Element>) => void;
-  };
+  handleCloseModal: () => void;
+  handleKeyDown: (e: KeyboardEvent<Element>) => void;
 }
 
 interface PageData {
@@ -64,7 +61,7 @@ const HelpPage = ({ pageData, playerRef }: { pageData: PageData; playerRef: RefO
   );
 };
 
-const RollingModal = ({ isModalOpened, handle }: RollingModalProps) => {
+const RollingModal = ({ isModalOpened, handleCloseModal, handleKeyDown }: RollingModalProps) => {
   const [pageIndex, setPageIndex] = useState<number>(0);
   const [pagenation, setPagenation] = useState(new Array(pageData.length).fill(false));
   const [isWideScreen, setIsWideScreen] = useState<boolean>(true);
@@ -135,8 +132,8 @@ const RollingModal = ({ isModalOpened, handle }: RollingModalProps) => {
   return (
     <Modal
       isModalOpened={isModalOpened}
-      closeModal={handle.closeModal}
-      handleKeyDown={handle.handleKeyDown}
+      closeModal={handleCloseModal}
+      handleKeyDown={handleKeyDown}
       className="w-full max-w-screen-md"
     >
       <section
