@@ -34,7 +34,8 @@ const pageData: PageData[] = [
     img: third,
     contents: [
       '구경꾼은 타이머 종료 후 제시어를 맞추세요.',
-      '정답이면 맞춘 구경꾼과 그림꾼이, 오답이면 방해꾼이 점수를 얻어요.',
+      '정답이면 맞춘 구경꾼과 그림꾼이 점수를 얻고,',
+      '오답이면 방해꾼이 점수를 얻어요.',
     ],
   },
   {
@@ -52,9 +53,11 @@ const HelpPage = ({ pageData, playerRef }: { pageData: PageData; playerRef: RefO
     <article className="relative">
       <Player src={pageData.img} autoplay={true} loop={true} ref={playerRef} style={{ height: 300 }} />
 
-      <div className="flex flex-col items-center justify-center bg-violet-50 p-6">
+      <div className="flex flex-col items-center justify-center rounded-md bg-violet-50 py-6">
         {pageData.contents.map((line, i) => (
-          <p key={i}>{line}</p>
+          <p key={i} className="text-base md:text-lg lg:text-xl xl:text-2xl">
+            {line}
+          </p>
         ))}
       </div>
     </article>
@@ -136,7 +139,7 @@ const RollingModal = ({ isModalOpened, handleCloseModal, handleKeyDown }: Rollin
           <img src={left} width={30} className="transition hover:brightness-75" />
         </button>
         <div className="w-full">
-          <section className={cn('w-full text-sm')}>
+          <section className={cn('w-full')}>
             <HelpPage pageData={pageData[pageIndex]} playerRef={playerRef} />
           </section>
           <div className="relative top-5 flex flex-row items-center justify-center p-5">
