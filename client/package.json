@@ -19,6 +19,7 @@
   },
   "dependencies": {
     "@lottiefiles/dotlottie-react": "^0.10.1",
+    "@lottiefiles/react-lottie-player": "^3.5.4",
     "@troublepainter/core": "workspace:*",
     "class-variance-authority": "^0.7.0",
     "clsx": "^2.1.1",

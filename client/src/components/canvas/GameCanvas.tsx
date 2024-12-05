@@ -2,6 +2,7 @@ import { MouseEvent as ReactMouseEvent, TouchEvent as ReactTouchEvent, useCallba
 import { PlayerRole, RoomStatus } from '@troublepainter/core';
 import { Canvas } from '@/components/canvas/CanvasUI';
 import { COLORS_INFO, DEFAULT_MAX_PIXELS, MAINCANVAS_RESOLUTION_WIDTH } from '@/constants/canvasConstants';
+import { handleInCanvas, handleOutCanvas } from '@/handlers/canvas/cursorInOutHandler';
 import { drawingSocketHandlers } from '@/handlers/socket/drawingSocket.handler';
 import { gameSocketHandlers } from '@/handlers/socket/gameSocket.handler';
 import { useDrawing } from '@/hooks/canvas/useDrawing';
@@ -50,6 +51,7 @@ interface GameCanvasProps {
  */
 const GameCanvas = ({ role, maxPixels = DEFAULT_MAX_PIXELS, currentRound, roomStatus, isHidden }: GameCanvasProps) => {
   const canvasRef = useRef<HTMLCanvasElement>(null);
+  const cursorCanvasRef = useRef<HTMLCanvasElement>(null);
   const { convertCoordinate } = useCoordinateScale(MAINCANVAS_RESOLUTION_WIDTH, canvasRef);
 
   const {
@@ -122,12 +124,31 @@ const GameCanvas = ({ role, maxPixels = DEFAULT_MAX_PIXELS, currentRound, roomSt
       const point = getDrawPoint(e, canvas);
       const convertPoint = convertCoordinate(point);
 
+      handleInCanvas(cursorCanvasRef, convertPoint, brushSize);
+
       const crdtDrawingData = continueDrawing(convertPoint);
       if (crdtDrawingData) {
         void drawingSocketHandlers.sendDrawing(crdtDrawingData);
       }
     },
     [continueDrawing, convertCoordinate, isConnected],
+  );
+
+  const handleDrawLeave = useCallback(
+    (e: ReactMouseEvent<HTMLCanvasElement> | ReactTouchEvent<HTMLCanvasElement>) => {
+      const { canvas } = getCanvasContext(canvasRef);
+      const point = getDrawPoint(e, canvas);
+      const convertPoint = convertCoordinate(point);
+
+      const crdtDrawingData = continueDrawing(convertPoint);
+      if (crdtDrawingData) {
+        void drawingSocketHandlers.sendDrawing(crdtDrawingData);
+      }
+
+      handleOutCanvas(cursorCanvasRef);
+      stopDrawing();
+    },
+    [continueDrawing, handleOutCanvas, stopDrawing],
   );
 
   const handleDrawEnd = useCallback(() => {
@@ -156,7 +177,7 @@ const GameCanvas = ({ role, maxPixels = DEFAULT_MAX_PIXELS, currentRound, roomSt
     onMouseDown: handleDrawStart,
     onMouseMove: handleDrawMove,
     onMouseUp: handleDrawEnd,
-    onMouseLeave: handleDrawEnd,
+    onMouseLeave: handleDrawLeave,
     onTouchStart: handleDrawStart,
     onTouchMove: handleDrawMove,
     onTouchEnd: handleDrawEnd,
@@ -166,6 +187,7 @@ const GameCanvas = ({ role, maxPixels = DEFAULT_MAX_PIXELS, currentRound, roomSt
   return (
     <Canvas
       canvasRef={canvasRef}
+      cursorCanvasRef={cursorCanvasRef}
       isDrawable={(role === 'PAINTER' || role === 'DEVIL') && roomStatus === 'DRAWING'}
       isHidden={isHidden}
       colors={colorsWithSelect}

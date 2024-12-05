@@ -3,7 +3,7 @@ import ReactDOM from 'react-dom'; // Import ReactDOM explicitly
 import { cn } from '@/utils/cn';
 
 export interface ModalProps extends PropsWithChildren<HTMLAttributes<HTMLDivElement>> {
-  title: string;
+  title?: string;
   closeModal?: () => void;
   isModalOpened: boolean;
   handleKeyDown?: (e: KeyboardEvent<Element>) => void;
@@ -25,7 +25,7 @@ const Modal = ({ className, handleKeyDown, closeModal, isModalOpened, title, chi
     <div
       ref={modalRef}
       className={cn(
-        'fixed left-0 top-0 flex h-full w-full items-center justify-center',
+        'fixed left-0 top-0 z-50 flex h-full w-full items-center justify-center',
         isModalOpened ? 'pointer-events-auto' : 'pointer-events-none',
       )}
       onClick={closeModal}
@@ -51,9 +51,12 @@ const Modal = ({ className, handleKeyDown, closeModal, isModalOpened, title, chi
         tabIndex={0}
         {...props}
       >
-        <div className="flex min-h-16 items-center justify-center border-b-2 border-violet-950 bg-violet-500 px-3 py-3 text-center">
-          <h2 className="translate-y-1 text-3xl text-stroke-md sm:text-4xl">{title}</h2>
-        </div>
+        {title && (
+          <div className="flex min-h-16 items-center justify-center border-b-2 border-violet-950 bg-violet-500 px-3 py-3 text-center">
+            <h2 className="translate-y-1 text-3xl text-stroke-md sm:text-4xl">{title}</h2>
+          </div>
+        )}
+
         <div className="p-5">{children}</div>
       </div>
     </div>,

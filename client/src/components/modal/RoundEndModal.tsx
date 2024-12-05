@@ -81,7 +81,7 @@ const RoundEndModal = () => {
             autoplay
             loop={false}
             className={cn(
-              'absolute left-1/2 top-1/2 z-50 h-screen w-full -translate-x-1/2 -translate-y-1/2 transition-opacity duration-500',
+              'absolute left-1/2 top-1/2 z-[999] h-screen w-full -translate-x-1/2 -translate-y-1/2 transition-opacity duration-500',
               isAnimationFading && 'opacity-0',
             )}
           />
@@ -91,7 +91,7 @@ const RoundEndModal = () => {
             autoplay
             loop
             className={cn(
-              'absolute left-1/2 top-[60%] z-50 h-[50vh] w-full -translate-x-1/2 -translate-y-1/2 opacity-70 transition-opacity duration-500',
+              'absolute left-1/2 top-[60%] z-[999] h-[50vh] w-full -translate-x-1/2 -translate-y-1/2 opacity-70 transition-opacity duration-500',
               isAnimationFading && 'opacity-0',
             )}
           />

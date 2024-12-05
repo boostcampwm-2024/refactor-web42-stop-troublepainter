@@ -1,5 +1,5 @@
 <div align=center>
-  <img width="1500" alt="logo" src="https://github.com/user-attachments/assets/c119a31f-2ff3-4938-990f-b382980a1a20">
+  <img width="1000" alt="헤더 (1)" src="https://github.com/user-attachments/assets/03d61582-d3ad-477a-8301-bce895306d8a">
 </div>
 
 <br>
@@ -44,10 +44,52 @@
 
 <br>
 
-## 핵심 기술
-* `서드파티 라이브러리 없이 Canvas API를 활용`하여 색상 선택, 스트로크 조절, Undo/Redo와 같은 **드로잉 툴의 핵심 기능을 제공**하고 있습니다.
+## 기술적 도전
 
-* `소켓 통신`과 `LWW(Last-Write-Wins) 기반 CRDT 알고리즘`을 통해 실시간 동기화를 보장하며 모든 사용자가 **동일한 캔버스 상태**를 안정적으로 공유할 수 있도록 했습니다.
+### 🖌️ 실시간 캔버스 동기화
+
+> "여러 명의 팀원과 하나의 캔버스를 공유한다고?"
+
+소켓 통신과 LWW(Last-Write-Wins) 기반 CRDT 알고리즘으로 실시간 동기화 문제를 어떻게 해결했는지, CRDT 테스트까지 풀어낸 과정을 확인해 보세요. 이제 캔버스 상태는 언제나 (거의) 완벽하게 일치합니다.
+
+[🔗 자세히 보기](https://github.com/boostcampwm-2024/web30-stop-troublepainter/wiki/5.-%EC%BA%94%EB%B2%84%EC%8A%A4-%EB%8F%99%EA%B8%B0%ED%99%94%EB%A5%BC-%EC%9C%84%ED%95%9C-%EC%88%98%EC%A0%9C-CRDT-%EA%B5%AC%ED%98%84%EA%B8%B0) 
+
+<br />
+
+### 🎨 서드파티 라이브러리 없이 캔버스 구현
+
+> "Canvas API는 엄청 유용합니다!"
+
+복잡한 드로잉 툴을 서드파티 없이 구현하려면 어떻게 해야 할까요? 직접 색상 선택, 스트로크 조절, Undo/Redo 같은 기능을 개발하고, 보간법 같은 최적화 기법까지 사용해 Canvas API를 최대한 사용해봤습니다.
+
+[🔗 자세히 보기](https://github.com/boostcampwm-2024/web30-stop-troublepainter/wiki/4.-%EB%9D%BC%EC%9D%B4%EB%B8%8C%EB%9F%AC%EB%A6%AC-%EC%97%86%EC%9D%B4-Canvas-%EA%B5%AC%ED%98%84%ED%95%98%EA%B8%B0)
+
+<br />
+
+### 🔥 그룹에 FE가 5명인 곳에서 좌충우돌 서버 구현기
+
+> "실시간 통신? 백엔드 없어도 우리가 만든다!"
+
+프론트엔드 개발자가 WebSocket 서버를 직접 설계해 Docker와 GitHub Actions까지 활용한 CI/CD 파이프라인을 구축했습니다. 협업 속에서 얻은 시행착오와 배움의 기록을 공유합니다.
+
+[🔗 실시간 통신](https://github.com/boostcampwm-2024/web30-stop-troublepainter/wiki/2.-%EC%8B%A4%EC%8B%9C%EA%B0%84-%ED%86%B5%EC%8B%A0)
+
+[🔗 인프라 및 CI/CD 실습](https://github.com/boostcampwm-2024/web30-stop-troublepainter/wiki/3.-%EC%9D%B8%ED%94%84%EB%9D%BC-%EB%B0%8F-CI-CD)
+
+<br />
+
+### 효율적인 FE 설계 
+
+> 🛠️ "FE 아키텍처 설계, 이렇게 하면 될까?"
+
+재사용성, 유연성, 일관된 디자인을 위해 
+
+1. UI와 로직을 깔끔히 분리한 Headless Pattern, Tailwind CSS 도구의 극한 활용
+2. 웹소켓을 사용하기 위한 수제 아키텍처
+
+이렇게 해결해본 경험을 공유할게요.
+
+[🔗 자세히 보기](https://github.com/boostcampwm-2024/web30-stop-troublepainter/wiki/6.-%ED%9A%A8%EC%9C%A8%EC%A0%81%EC%9D%B8-FE-%EC%84%A4%EA%B3%84)
 
 <br>
 
@@ -59,24 +101,11 @@
 
 <table>
   <tr align="center">
-    <td><strong>방 만들기 및 초대 URL 공유</strong></td>
+    <td><strong>방 만들기 및 초대 URL 공유, 대기실 입장</strong></td>
   </tr>
   <tr align="center">
     <td>
-      <img src="https://github.com/user-attachments/assets/b5e30034-3812-47c3-9848-ffdee2fecf6c" alt="방 만들기 화면" />
-    </td>
-  </tr>
-</table>
-
-<table>
-  <tr align="center">
-    <td><strong>대기실 입장</strong></td>
-  </tr>
-  <tr align="center">
-    <td>
-      <img
-        src="https://github.com/user-attachments/assets/6de8a304-4391-42eb-81e4-fbffa9273089"
-        alt="초대하기 화면"/>
+      <img src="https://github.com/user-attachments/assets/895f6246-5ca9-4eca-b0fb-b138075c08c3" alt="방 만들기 화면" />
     </td>
   </tr>
 </table>
@@ -94,7 +123,7 @@
   <tr align="center">
     <td>
       <img
-        src="https://github.com/user-attachments/assets/5a925f82-44e6-4368-9282-276f79642a46"
+        src="https://github.com/user-attachments/assets/ac136e1d-626c-4000-a524-5b014efe3c88"
         alt="역할 배정 화면"/>
     </td>
   </tr>
@@ -113,7 +142,7 @@
   <tr align="center">
     <td>
       <img
-        src="https://github.com/user-attachments/assets/971e8467-2707-4632-84a7-92244015f943"
+        src="https://github.com/user-attachments/assets/e56e2fae-888c-462e-825b-487b6277e6f5"
         alt="드로잉 도구 시연"/>
     </td>
   </tr>
@@ -126,7 +155,7 @@
   <tr align="center">
     <td>
       <img
-        src="https://github.com/user-attachments/assets/ccd2e080-1058-4378-9165-3418ed458057" 
+        src="https://github.com/user-attachments/assets/7acff86a-72c2-4019-8721-20a62f84fb31" 
         alt="Undo/Redo 기능"/>
     </td>
   </tr>
@@ -145,7 +174,7 @@
   <tr align="center">
     <td>
       <img
-        src="https://github.com/user-attachments/assets/e450f56a-f112-4d07-8323-b1571748ec10" 
+        src="https://github.com/user-attachments/assets/08620375-d951-4094-8c03-fb16381fbe03" 
         alt="실시간 그리기 화면"/>
     </td>
   </tr>
@@ -177,7 +206,7 @@
   <tr align="center">
     <td>
       <img
-        src="https://github.com/user-attachments/assets/7cbf3838-5da4-4f01-a3ed-db10dc375c9d" 
+        src="https://github.com/user-attachments/assets/b1a22b02-c5a1-4f32-a089-a84b1ea7eaeb" 
         alt="결과 발표 화면"/>
     </td>
   </tr>
@@ -233,7 +262,6 @@
                 <img src="https://img.shields.io/badge/Vite-646CFF?logo=Vite&logoColor=ffffff">
                 <img src="https://img.shields.io/badge/React-61DAFB?logo=React&logoColor=ffffff">
                 <img src="https://img.shields.io/badge/Tailwind_CSS-06B6D4?logo=tailwindcss&logoColor=ffffff">
-                <img src="https://img.shields.io/badge/React_Query-FF4154?logo=reactquery&logoColor=ffffff">
                 <img src="https://img.shields.io/badge/Zustand-443E38?logo=react&logoColor=ffffff">
             </td>
         </tr>
@@ -275,7 +303,7 @@
 
 ## 웨베베베벱 팀 소개
 
-5명의 못말리는 FE 개발자들이 모인 팀이에요. 현재 프로젝트에서 저희는 5명 전부 풀스택을 담당합니다!
+5명의 못말리는 FE 개발자들이 모인 팀이에요! 
 
 <table align="center">
   <tr>
@@ -293,10 +321,10 @@
     <td><img src="https://github.com/user-attachments/assets/b435b634-f676-407a-8fba-18c9bc1ace40" width="120" height="120"></td>
   </tr>
   <tr align="center">
-    <td>👑 팀장</td>
-    <td>부팀장</td>
-    <td>BE 팀장</td>
-    <td>시간 지킴이</td>
-    <td>FE 팀장</td>
+    <td>FE<br />👑 팀장</td>
+    <td>FE<br />부팀장</td>
+    <td>FE, BE<br />BE 팀장</td>
+    <td>FE<br />캔버스 팀장</td>
+    <td>FE<br />FE 팀장</td>
   </tr>
 </table>

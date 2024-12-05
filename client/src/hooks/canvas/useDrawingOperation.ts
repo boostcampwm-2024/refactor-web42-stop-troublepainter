@@ -1,6 +1,7 @@
 import { RefObject, useCallback } from 'react';
 import { DrawingData, Point, StrokeStyle } from '@troublepainter/core';
 import { useDrawingState } from './useDrawingState';
+import { MAINCANVAS_RESOLUTION_HEIGHT, MAINCANVAS_RESOLUTION_WIDTH } from '@/constants/canvasConstants';
 import { RGBA } from '@/types/canvas.types';
 import { getCanvasContext } from '@/utils/getCanvasContext';
 import { hexToRGBA } from '@/utils/hexToRGBA';
@@ -12,14 +13,22 @@ const fillTargetColor = (pos: number, fillColor: RGBA, pixelArray: Uint8ClampedA
   pixelArray[pos + 3] = fillColor.a;
 };
 
-const checkColorisNotEqual = (pos: number, startColor: RGBA, pixelArray: Uint8ClampedArray) => {
+const checkColorisEqual = (pos: number, startColor: RGBA, pixelArray: Uint8ClampedArray) => {
   return (
-    pixelArray[pos] !== startColor.r ||
-    pixelArray[pos + 1] !== startColor.g ||
-    pixelArray[pos + 2] !== startColor.b ||
-    pixelArray[pos + 3] !== startColor.a
+    pixelArray[pos] === startColor.r &&
+    pixelArray[pos + 1] === startColor.g &&
+    pixelArray[pos + 2] === startColor.b &&
+    pixelArray[pos + 3] === startColor.a
   );
 };
+
+/*
+const checkOutsidePoint = (canvas: HTMLCanvasElement, point: Point) => {
+  const { width, height } = canvas.getBoundingClientRect();
+  if (point.x >= 0 && point.x <= width && point.y >= 0 && point.y <= height) return false;
+  else return true;
+};
+*/
 
 /**
  * 캔버스의 실제 드로잉 작업을 수행하는 Hook입니다.
@@ -105,11 +114,8 @@ export const useDrawingOperation = (
 
     const activeStrokes = state.crdtRef.current.getActiveStrokes();
     for (const { stroke } of activeStrokes) {
-      if (stroke.points.length > 2) {
-        applyFill(stroke);
-      } else {
-        drawStroke(stroke);
-      }
+      if (stroke.points.length > 2) applyFill(stroke);
+      else drawStroke(stroke);
     }
   }, [drawStroke]);
 
@@ -148,26 +154,40 @@ export const useDrawingOperation = (
       };
 
       const pixelsToCheck = [[startX, startY]];
-      let pixelCount = 0;
-      const filledPoints: Point[] = [];
+      const checkArray = new Array(MAINCANVAS_RESOLUTION_HEIGHT)
+        .fill(null)
+        .map(() => new Array(MAINCANVAS_RESOLUTION_WIDTH).fill(false));
+      let pixelCount = 1;
+      const filledPoints: Point[] = [{ x: startX, y: startY }];
 
       while (pixelsToCheck.length > 0 && pixelCount <= inkRemaining) {
-        const [x, y] = pixelsToCheck.shift()!;
-        const pos = (y * canvas.width + x) * 4;
+        const [currentX, currentY] = pixelsToCheck.shift()!;
+        for (const move of [
+          [1, 0],
+          [0, -1],
+          [-1, 0],
+          [0, 1],
+        ]) {
+          const [nextX, nextY] = [currentX + move[0], currentY + move[1]];
+          if (
+            nextX < 0 ||
+            nextX >= MAINCANVAS_RESOLUTION_WIDTH ||
+            nextY < 0 ||
+            nextY >= MAINCANVAS_RESOLUTION_HEIGHT ||
+            checkArray[nextY][nextX]
+          )
+            continue;
 
-        if (
-          x < 0 ||
-          x >= canvas.width ||
-          y < 0 ||
-          y >= canvas.height ||
-          checkColorisNotEqual(pos, startColor, pixelArray)
-        )
-          continue;
+          const nextArrayIndex = (nextY * MAINCANVAS_RESOLUTION_WIDTH + nextX) * 4;
 
-        fillTargetColor(pos, fillColor, pixelArray);
-        filledPoints.push({ x, y });
-        pixelsToCheck.push([x + 1, y], [x - 1, y], [x, y + 1], [x, y - 1]);
-        pixelCount++;
+          if (!checkColorisEqual(nextArrayIndex, startColor, pixelArray)) continue;
+
+          checkArray[nextY][nextX] = true;
+          fillTargetColor(nextArrayIndex, fillColor, pixelArray);
+          pixelsToCheck.push([nextX, nextY]);
+          filledPoints.push({ x: nextX, y: nextY });
+          pixelCount++;
+        }
       }
 
       ctx.putImageData(imageData, 0, 0);

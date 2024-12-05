@@ -241,7 +241,7 @@ export class GameService {
   private async fetchWords(totalRounds: number): Promise<string[]> {
     let attempts = 0;
     while (attempts++ < 10) {
-      const words = await this.clovaClient.getDrawingWords(Difficulty.HARD, totalRounds);
+      const words = await this.clovaClient.getDrawingWords(Difficulty.NORMAL, totalRounds);
       if (words.length === totalRounds) return words;
     }
     return GameService.DEFAULT_WORDS.slice(0, totalRounds);
