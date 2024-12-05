@@ -21,6 +21,19 @@ export class GameService {
     totalRounds: 5,
     drawTime: 35,
   };
+  private static readonly DEFAULT_WORDS = [
+    '아이언맨',
+    '토르',
+    '스파이더맨',
+    '호빵맨',
+    '도라에몽',
+    '짱구',
+    '레옹',
+    '토토로',
+    '가오나시',
+    '개발자',
+    '대통령',
+  ];
   private words: string[] = [];
 
   constructor(
@@ -85,39 +98,40 @@ export class GameService {
 
   private generateNickname() {
     const adjectives = [
-      '귀여운',
-      '용감한',
-      '즐거운',
-      '행복한',
-      '웃는',
-      '똑똑한',
-      '현명한',
-      '멋진',
-      '활발한',
-      '착한',
-      '신나는',
-      '재미있는',
-      '발랄한',
-      '영리한',
-      '친절한',
+      '홀리몰리한',
+      '소심한',
+      '반짝이는',
+      '배고픈',
+      '무례한',
+      '야근한',
+      '삐딱한',
+      '넘사벽인',
+      '킹받는',
+      '뽀짝한',
+      '억울킹',
+      '극한의',
+      '완벽한',
+      '뻔뻔한',
+      '허세쩌는',
     ];
 
     const nouns = [
-      '판다',
-      '호랑이',
-      '토끼',
-      '강아지',
-      '고양이',
-      '펭귄',
-      '사자',
-      '기린',
-      '코끼리',
+      '미라',
+      '코뿔소',
+      '네모',
       '곰돌이',
-      '여우',
-      '늑대',
-      '참새',
-      '독수리',
-      '돌고래',
+      '루저',
+      '파괴자',
+      '컨셉러',
+      '악동',
+      '트롤러',
+      '냥이',
+      '뉴비',
+      '폭탄',
+      '그림봇',
+      '킬러',
+      '전문가',
+      '패배장인',
     ];
 
     const adj = adjectives[Math.floor(Math.random() * adjectives.length)];
@@ -221,8 +235,16 @@ export class GameService {
     }
 
     const roomSettings = await this.gameRepository.getRoomSettings(roomId);
+    this.words = await this.fetchWords(roomSettings.totalRounds);
+  }
 
-    this.words = await this.clovaClient.getDrawingWords(Difficulty.HARD, roomSettings.totalRounds);
+  private async fetchWords(totalRounds: number): Promise<string[]> {
+    let attempts = 0;
+    while (attempts++ < 10) {
+      const words = await this.clovaClient.getDrawingWords(Difficulty.HARD, totalRounds);
+      if (words.length === totalRounds) return words;
+    }
+    return GameService.DEFAULT_WORDS.slice(0, totalRounds);
   }
 
   async setupRound(roomId: string) {
@@ -241,7 +263,7 @@ export class GameService {
 
     const roomUpdates = {
       status: RoomStatus.DRAWING,
-      currentWord: this.words.shift(),
+      currentWord: this.words[room.currentRound],
       currentRound: room.currentRound + 1,
     };
     await this.gameRepository.updateRoom(roomId, { ...roomUpdates });

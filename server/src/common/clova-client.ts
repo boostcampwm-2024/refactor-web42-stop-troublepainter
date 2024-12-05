@@ -20,15 +20,20 @@ export class ClovaClient {
     });
   }
   async getDrawingWords(difficulty: Difficulty, count: number) {
+    const categories = ['영화', '음식', '일상용품', '스포츠', '동물', '교통수단', '캐릭터', '악기', '직업', 'IT'];
+
+    const selectedCategories = categories.sort(() => Math.random() - 0.5).slice(0, Math.floor(Math.random() * 2) + 2);
+
     const request = {
       messages: [
         {
           role: 'system',
-          content: '',
+          content: '당신은 창의적인 드로잉 게임의 출제자입니다. 매번 새롭고 다양한 단어들을 제시해주세요.',
         },
         {
           role: 'user',
-          content: `당신은 드로잉 게임의 출제자입니다. ${difficulty}난이도의 명사 ${count}개를 제시해주세요. 
+          content: `${difficulty} 난이도의 명사 ${count}개를 제시해주세요.
+            - 주로 ${selectedCategories.join(', ')} 관련 단어들 위주로 선택
             - 30초 안에 그릴 수 있는 단어만 선택
             - 단어만 나열 (1. 2. 3. 형식)
             - 설명이나 부연설명 없이 단어만 작성
@@ -42,7 +47,7 @@ export class ClovaClient {
       repeatPenalty: 5.0,
       stopBefore: [],
       includeAiFilters: true,
-      seed: Math.floor(Math.random() * 1000000),
+      seed: 0,
     };
 
     try {

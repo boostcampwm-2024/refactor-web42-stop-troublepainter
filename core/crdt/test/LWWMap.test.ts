@@ -12,6 +12,7 @@ describe('LWWMap', () => {
       { x: 10, y: 10 },
     ],
     style: { color, width },
+    timestamp: Date.now(),
   });
 
   let map: LWWMap;
@@ -30,7 +31,12 @@ describe('LWWMap', () => {
       const stroke = createTestStroke();
       const timestamp = Date.now();
       const initialState: MapState = {
-        stroke1: ['peer1', timestamp, stroke],
+        stroke1: {
+          peerId: 'peer1',
+          timestamp,
+          value: stroke,
+          isDeactivated: false,
+        },
       };
 
       const newMap = new LWWMap('peer1', initialState);
@@ -39,6 +45,22 @@ describe('LWWMap', () => {
       expect(newMap.strokes[0].stroke).toEqual(stroke);
       expect(newMap.state).toEqual(initialState);
     });
+
+    it('should initialize with deactivated strokes', () => {
+      const stroke = createTestStroke();
+      const initialState: MapState = {
+        stroke1: {
+          peerId: 'peer1',
+          timestamp: Date.now(),
+          value: stroke,
+          isDeactivated: true,
+        },
+      };
+
+      const newMap = new LWWMap('peer1', initialState);
+      expect(newMap.strokes).toHaveLength(0);
+      expect(newMap.state.stroke1.isDeactivated).toBe(true);
+    });
   });
 
   describe('stroke operations', () => {
@@ -46,8 +68,8 @@ describe('LWWMap', () => {
       const stroke1 = createTestStroke('#ff0000');
       const stroke2 = createTestStroke('#00ff00');
 
-      const id1 = map.addStroke(stroke1);
-      const id2 = map.addStroke(stroke2);
+      const { id: id1 } = map.addStroke(stroke1);
+      const { id: id2 } = map.addStroke(stroke2);
 
       // ID가 서로 달라야 함
       expect(id1).not.toBe(id2);
@@ -60,7 +82,7 @@ describe('LWWMap', () => {
 
     it('should delete existing stroke', () => {
       const stroke = createTestStroke();
-      const id = map.addStroke(stroke);
+      const { id } = map.addStroke(stroke);
 
       // 처음에는 1개의 stroke
       expect(map.strokes).toHaveLength(1);
@@ -77,26 +99,41 @@ describe('LWWMap', () => {
       const deleted = map.deleteStroke('non-existent-id');
       expect(deleted).toBe(false);
     });
+
+    it('should handle stroke deactivation and activation', () => {
+      const stroke = createTestStroke();
+      const { id } = map.addStroke(stroke);
+
+      expect(map.strokes).toHaveLength(1);
+
+      const deactivated = map.deactivateStroke(id);
+      expect(deactivated).toBe(true);
+      expect(map.strokes).toHaveLength(0);
+
+      const activated = map.activateStroke(id);
+      expect(activated).toBe(true);
+      expect(map.strokes).toHaveLength(1);
+    });
   });
 
   describe('state management', () => {
     it('should maintain correct state after operations', () => {
       const stroke = createTestStroke();
-      const id = map.addStroke(stroke);
+      const { id } = map.addStroke(stroke);
 
       // 상태 확인
       const state = map.state;
       // stroke 존재 확인
       expect(state[id]).toBeTruthy();
-      // stroke 데이터 확인
-      expect(state[id][2]).toEqual(stroke);
+      expect(state[id].value).toEqual(stroke);
       // peer ID 확인
-      expect(state[id][0]).toBe('peer1');
+      expect(state[id].peerId).toBe('peer1');
+      expect(state[id].isDeactivated).toBe(false);
 
       // 삭제 후 상태 확인
       map.deleteStroke(id);
       // 삭제된 stroke는 null이어야 함
-      expect(map.state[id][2]).toBeNull();
+      expect(map.state[id].value).toBeNull();
     });
   });
 
@@ -118,14 +155,16 @@ describe('LWWMap', () => {
       map2.addStroke(stroke2);
 
       // 동기화 시뮬레이션
-      map1.merge(map2.state);
-      map2.merge(map1.state);
+      const { updatedKeys: keys1 } = map1.merge(map2.state);
+      const { updatedKeys: keys2 } = map2.merge(map1.state);
 
       // 두 맵 모두 두 개의 stroke를 가져야 함
       expect(map1.strokes).toHaveLength(2);
       expect(map2.strokes).toHaveLength(2);
       // 상태가 동일해야 함
       expect(map1.state).toEqual(map2.state);
+      expect(keys1).toHaveLength(1);
+      expect(keys2).toHaveLength(1);
     });
 
     it('should handle concurrent modifications to same stroke', () => {
@@ -136,7 +175,7 @@ describe('LWWMap', () => {
       const time1 = Date.now();
       vi.setSystemTime(time1);
       const stroke1 = createTestStroke('#ff0000');
-      const id = map1.addStroke(stroke1);
+      const { id } = map1.addStroke(stroke1);
 
       // peer2와 동기화
       map2.merge(map1.state);
@@ -150,7 +189,13 @@ describe('LWWMap', () => {
       const modifyTime = deleteTime + 1000;
       vi.setSystemTime(modifyTime);
       const modifiedStroke = createTestStroke('#0000ff');
-      const modifiedState: RegisterState<DrawingData | null> = ['peer2', modifyTime, modifiedStroke];
+      const modifiedState: RegisterState<DrawingData | null> = {
+        peerId: 'peer2',
+        timestamp: modifyTime,
+        value: modifiedStroke,
+        isDeactivated: false,
+      };
+
       map2.mergeRegister(id, modifiedState);
 
       // 양방향 동기화
@@ -175,7 +220,7 @@ describe('LWWMap', () => {
       const time1 = Date.now();
       vi.setSystemTime(time1);
       const stroke1 = createTestStroke('#ff0000');
-      const id1 = map1.addStroke(stroke1);
+      const { id: id1 } = map1.addStroke(stroke1);
 
       const deleteTime = time1 + 1000;
       vi.setSystemTime(deleteTime);
@@ -185,7 +230,7 @@ describe('LWWMap', () => {
       const time2 = deleteTime + 1000;
       vi.setSystemTime(time2);
       const stroke2 = createTestStroke('#00ff00');
-      const id2 = map2.addStroke(stroke2);
+      const { id: id2 } = map2.addStroke(stroke2);
 
       // 양방향 동기화
       map1.merge(map2.state);
@@ -199,6 +244,40 @@ describe('LWWMap', () => {
 
       // 실제 타이머로 복원
       vi.useRealTimers();
+    });
+
+    it('should handle deactivation state during merge', () => {
+      const stroke = createTestStroke();
+      const { id } = map1.addStroke(stroke);
+
+      map2.merge(map1.state);
+
+      map1.deactivateStroke(id);
+      map2.merge(map1.state);
+
+      expect(map2.strokes).toHaveLength(0);
+
+      map1.activateStroke(id);
+      const { updatedKeys } = map2.merge(map1.state);
+
+      expect(updatedKeys).toContain(id);
+      expect(map2.strokes).toHaveLength(1);
+    });
+  });
+
+  describe('active strokes', () => {
+    it('should return only active strokes', () => {
+      const stroke1 = createTestStroke('#ff0000');
+      const stroke2 = createTestStroke('#00ff00');
+
+      const { id: id1 } = map.addStroke(stroke1);
+      const { id: id2 } = map.addStroke(stroke2);
+
+      map.deactivateStroke(id1);
+
+      const activeStrokes = map.getActiveStrokes();
+      expect(activeStrokes).toHaveLength(1);
+      expect(activeStrokes[0].id).toBe(id2);
     });
   });
 });

@@ -16,7 +16,7 @@ export interface RoomSettingItem {
 }
 
 export const ROOM_SETTINGS: RoomSettingItem[] = [
-  { label: '라운드 수', key: 'totalRounds', options: [3, 5], shortcutKey: 'DROPDOWN_TOTAL_ROUNDS' },
+  { label: '라운드 수', key: 'totalRounds', options: [3, 5, 7, 9, 11], shortcutKey: 'DROPDOWN_TOTAL_ROUNDS' },
   { label: '최대 플레이어 수', key: 'maxPlayers', options: [4, 5], shortcutKey: 'DROPDOWN_MAX_PLAYERS' },
   { label: '제한 시간', key: 'drawTime', options: [15, 20, 25, 30], shortcutKey: 'DROPDOWN_DRAW_TIME' },
   //{ label: '픽셀 수', key: 'maxPixels', options: [300, 500] },
@@ -41,21 +41,20 @@ const Setting = memo(({ className, ...props }: HTMLAttributes<HTMLDivElement>) =
     setSelectedValues(roomSettings);
   }, [roomSettings]);
 
-  useEffect(() => {
-    if (!isHost || !selectedValues || !selectedValues.drawTime) return;
-    // 방장일 때만 실행되는 설정 업데이트
-    void gameSocketHandlers.updateSettings({
-      settings: { ...selectedValues, drawTime: selectedValues.drawTime + 5 },
-    });
-    actions.updateRoomSettings(selectedValues);
-  }, [selectedValues, isHost]);
-
-  const handleSettingChange = useCallback((key: keyof RoomSettings, value: string) => {
-    setSelectedValues((prev) => ({
-      ...prev,
-      [key]: Number(value),
-    }));
-  }, []);
+  const handleSettingChange = useCallback(
+    (key: keyof RoomSettings, value: string) => {
+      const newSettings = {
+        ...selectedValues,
+        [key]: Number(value),
+      };
+      setSelectedValues(newSettings);
+      void gameSocketHandlers.updateSettings({
+        settings: { ...newSettings, drawTime: newSettings.drawTime + 5 },
+      });
+      actions.updateRoomSettings(newSettings);
+    },
+    [selectedValues, actions],
+  );
 
   return (
     <section

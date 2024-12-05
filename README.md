@@ -42,10 +42,15 @@
 ```
 **지금 바로 친구들과 함께 즐겨보세요!**
 
-## 핵심 기술
-* `서드파티 라이브러리 없이 Canvas API를 활용`하여 색상 선택, 스트로크 조절, Undo/Redo와 같은 **드로잉 툴의 핵심 기능을 제공**하고 있습니다.
+<br>
 
+## 기술적 도전
+### 서드파티 라이브러리 없이 캔버스 구현
+* `서드파티 라이브러리 없이 Canvas API를 활용`하여 색상 선택, 스트로크 조절, Undo/Redo와 같은 **드로잉 툴의 핵심 기능을 제공**하고 있습니다.
+### 실시간 캔버스 동기화
 * `소켓 통신`과 `LWW(Last-Write-Wins) 기반 CRDT 알고리즘`을 통해 실시간 동기화를 보장하며 모든 사용자가 **동일한 캔버스 상태**를 안정적으로 공유할 수 있도록 했습니다.
+
+<br>
 
 ## 주요 기능
 
@@ -55,22 +60,29 @@
 
 <table>
   <tr align="center">
+    <td><strong>방 만들기 및 초대 URL 공유</strong></td>
+  </tr>
+  <tr align="center">
     <td>
-      <img
-        src="https://github.com/user-attachments/assets/b5e30034-3812-47c3-9848-ffdee2fecf6c"
-        alt="방 만들기 화면" />
+      <img src="https://github.com/user-attachments/assets/b5e30034-3812-47c3-9848-ffdee2fecf6c" alt="방 만들기 화면" />
     </td>
+  </tr>
+</table>
+
+<table>
+  <tr align="center">
+    <td><strong>대기실 입장</strong></td>
+  </tr>
+  <tr align="center">
     <td>
       <img
         src="https://github.com/user-attachments/assets/6de8a304-4391-42eb-81e4-fbffa9273089"
         alt="초대하기 화면"/>
     </td>
   </tr>
-  <tr align="center">
-    <td>방 만들기 및 초대 공유!</td>
-    <td>대기실 입장!</td>
-  </tr>
 </table>
+
+<br>
 
 ### 🎭 신나는 역할 체인지 게임!
 
@@ -78,14 +90,18 @@
 
 <table>
   <tr align="center">
-    <td>
-      <img src="https://github.com/user-attachments/assets/5a925f82-44e6-4368-9282-276f79642a46" alt="역할 배정 화면"/>
-    </td>
+    <td><strong>게임 시작 후 역할 랜덤 배정</strong></td>
   </tr>
   <tr align="center">
-    <td>게임 시작 후 비밀스러운 역할 배정!</td>
+    <td>
+      <img
+        src="https://github.com/user-attachments/assets/5a925f82-44e6-4368-9282-276f79642a46"
+        alt="역할 배정 화면"/>
+    </td>
   </tr>
 </table>
+
+<br>
 
 ### 🖌️ 기본에 충실한 드로잉 도구!
 
@@ -93,22 +109,31 @@
 
 <table>
   <tr align="center">
+    <td><strong>펜툴 색상, 두께 변경 및 채우기 도구 사용 가능</strong></td>
+  </tr>
+  <tr align="center">
     <td>
       <img
         src="https://github.com/user-attachments/assets/971e8467-2707-4632-84a7-92244015f943"
-        alt="드로잉 도구 시연"
-      />
+        alt="드로잉 도구 시연"/>
     </td>
-    <td>
-      <img src="https://github.com/user-attachments/assets/ccd2e080-1058-4378-9165-3418ed458057" alt="Undo/Redo 기능" />
-    </td>
-  </tr>
-
-  <tr align="center">
-    <td>다채로운 색상, 두께를 변경할 수 있는 직관적인 도구 사용 가능!</td>
-    <td>Undo/Redo 기능!</td>
   </tr>
 </table>
+
+<table>
+  <tr align="center">
+    <td><strong>Undo/Redo 기능</strong></td>
+  </tr>
+  <tr align="center">
+    <td>
+      <img
+        src="https://github.com/user-attachments/assets/ccd2e080-1058-4378-9165-3418ed458057" 
+        alt="Undo/Redo 기능"/>
+    </td>
+  </tr>
+</table>
+
+<br>
 
 ### 🎨 방해꾼과 그림꾼이 실시간으로 하나의 캔버스에서 대결해요!
 
@@ -116,18 +141,31 @@
 
 <table>
   <tr align="center">
-    <td>
-      <img src="https://github.com/user-attachments/assets/e450f56a-f112-4d07-8323-b1571748ec10" alt="실시간 그리기 화면" />
-    </td>
-    <td>
-      <img src="https://github.com/user-attachments/assets/861ffb2f-ddb6-45fe-9290-08bbc93489ae" alt="동시 그리기 화면" />
-    </td>
+    <td><strong>실시간으로 그려지는 붓질</strong></td>
   </tr>
   <tr align="center">
-    <td>실시간으로 그려지는 붓질</td>
-    <td>동시에 여러 명이 그리기</td>
+    <td>
+      <img
+        src="https://github.com/user-attachments/assets/e450f56a-f112-4d07-8323-b1571748ec10" 
+        alt="실시간 그리기 화면"/>
+    </td>
   </tr>
 </table>
+
+<table>
+  <tr align="center">
+    <td><strong>동시에 여러 명이 그리기</strong></td>
+  </tr>
+  <tr align="center">
+    <td>
+      <img
+        src="https://github.com/user-attachments/assets/861ffb2f-ddb6-45fe-9290-08bbc93489ae" 
+        alt="동시 그리기 화면"/>
+    </td>
+  </tr>
+</table>
+
+<br>
 
 ### 🎉 게임 종료와 함께 공개되는 최종 결과!
 
@@ -135,16 +173,27 @@
 
 <table>
   <tr align="center">
-    <td>
-      <img src="https://github.com/user-attachments/assets/7cbf3838-5da4-4f01-a3ed-db10dc375c9d" alt="결과 발표 화면"/>
-    </td>
-    <td>
-      <img src="https://github.com/user-attachments/assets/4f46b3ee-7112-47c5-bd1b-0e23fbe49498" alt="최종 순위 화면"/>
-    </td>
+    <td><strong>방해꾼의 정체 공개</strong></td>
   </tr>
   <tr align="center">
-    <td>방해꾼의 정체 공개</td>
-    <td>최종 순위 발표</td>
+    <td>
+      <img
+        src="https://github.com/user-attachments/assets/7cbf3838-5da4-4f01-a3ed-db10dc375c9d" 
+        alt="결과 발표 화면"/>
+    </td>
+  </tr>
+</table>
+
+<table>
+  <tr align="center">
+    <td><strong>최종 순위 발표</strong></td>
+  </tr>
+  <tr align="center">
+    <td>
+      <img
+        src="https://github.com/user-attachments/assets/4f46b3ee-7112-47c5-bd1b-0e23fbe49498" 
+        alt="최종 순위 화면"/>
+    </td>
   </tr>
 </table>
 
