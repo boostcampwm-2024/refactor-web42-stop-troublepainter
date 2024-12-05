@@ -144,13 +144,13 @@ export const drawingPatterns: Record<string, DrawingFunction> = {
   // },
 
   randomByMouse: async (page: Page) => {
-    const box = await page.locator('canvas').boundingBox();
+    const canvas = await page.locator('canvas');
+    const box = await canvas.boundingBox();
     if (!box) throw new Error('Canvas not found');
 
-    // 안전한 드로잉 영역 계산 (캔버스 가장자리 10% 제외)
     const margin = {
-      x: box.width * 0.1,
-      y: box.height * 0.1,
+      x: box.width * 0.05,
+      y: box.height * 0.05,
     };
 
     const safeArea = {
@@ -166,17 +166,33 @@ export const drawingPatterns: Record<string, DrawingFunction> = {
       y: safeArea.y + Math.random() * safeArea.height,
     }));
 
-    // 시작 전 마우스를 첫 번째 점으로 이동
-    await page.mouse.move(points[0].x, points[0].y);
-    await page.mouse.down();
+    // mousedown 이벤트 발생
+    await page.dispatchEvent('canvas', 'mousedown', {
+      bubbles: true,
+      cancelable: true,
+      clientX: points[0].x,
+      clientY: points[0].y,
+    });
 
-    // 각 점 연결하며 그리기
+    // 각 점을 연결하며 mousemove 이벤트 발생
     for (let i = 1; i < points.length; i++) {
-      await page.mouse.move(points[i].x, points[i].y, {
-        steps: 50,
+      await page.dispatchEvent('canvas', 'mousemove', {
+        bubbles: true,
+        cancelable: true,
+        clientX: points[i].x,
+        clientY: points[i].y,
       });
+
+      // 약간의 딜레이로 이벤트 처리 시간 확보
+      await page.waitForTimeout(50);
     }
 
-    await page.mouse.up();
+    // mouseup 이벤트 발생
+    await page.dispatchEvent('canvas', 'mouseup', {
+      bubbles: true,
+      cancelable: true,
+      clientX: points[points.length - 1].x,
+      clientY: points[points.length - 1].y,
+    });
   },
 };
