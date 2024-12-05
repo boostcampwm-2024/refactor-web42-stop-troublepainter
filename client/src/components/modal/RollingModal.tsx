@@ -64,7 +64,6 @@ const HelpPage = ({ pageData, playerRef }: { pageData: PageData; playerRef: RefO
 const RollingModal = ({ isModalOpened, handleCloseModal, handleKeyDown }: RollingModalProps) => {
   const [pageIndex, setPageIndex] = useState<number>(0);
   const [pagenation, setPagenation] = useState(new Array(pageData.length).fill(false));
-  const [isWideScreen, setIsWideScreen] = useState<boolean>(true);
   const startPos = useRef<number>(0);
   const canDrag = useRef<boolean>(true);
   const playerRef = useRef<Player>(null);
@@ -80,20 +79,6 @@ const RollingModal = ({ isModalOpened, handleCloseModal, handleKeyDown }: Rollin
       clearTimeout(timeout);
     };
   }, []);
-
-  useEffect(() => {
-    const handleResize = () => {
-      if (window.innerWidth <= 764 && isWideScreen) setIsWideScreen(false);
-      if (window.innerWidth > 764 && !isWideScreen) setIsWideScreen(true);
-    };
-
-    handleResize();
-    window.addEventListener('resize', handleResize);
-
-    return () => {
-      window.removeEventListener('resize', handleResize);
-    };
-  });
 
   useEffect(() => {
     if (!playerRef.current) return;
@@ -137,13 +122,13 @@ const RollingModal = ({ isModalOpened, handleCloseModal, handleKeyDown }: Rollin
       className="w-full max-w-screen-md"
     >
       <section
-        className={cn('flex', isWideScreen && 'p-7')}
+        className="flex md:p-7"
         onTouchStart={handleTouchStart}
         onTouchMove={handleTouchMove}
         onTouchEnd={handleTouchEnd}
       >
         <button
-          className={cn(isWideScreen || 'hidden', 'relative -left-6')}
+          className="relative -left-6 hidden md:block"
           onClick={() => {
             setPageIndex(pageIndex == 0 ? pageData.length - 1 : pageIndex - 1);
           }}
@@ -151,7 +136,7 @@ const RollingModal = ({ isModalOpened, handleCloseModal, handleKeyDown }: Rollin
           <img src={left} width={30} className="transition hover:brightness-75" />
         </button>
         <div className="w-full">
-          <section className={cn('w-full', isWideScreen || 'text-sm')}>
+          <section className={cn('w-full text-sm')}>
             <HelpPage pageData={pageData[pageIndex]} playerRef={playerRef} />
           </section>
           <div className="relative top-5 flex flex-row items-center justify-center p-5">
@@ -160,20 +145,19 @@ const RollingModal = ({ isModalOpened, handleCloseModal, handleKeyDown }: Rollin
                 <button
                   key={i}
                   className={cn(
-                    'mx-1.5 box-content rounded-full',
+                    'mx-1.5 box-content h-2.5 w-2.5 rounded-full md:h-3 md:w-3',
                     isSelect ? 'border-4 border-halfbaked-300 bg-chartreuseyellow-300' : 'bg-eastbay-600',
-                    isWideScreen ? 'h-3 w-3' : 'h-2 w-2',
                   )}
                   onClick={() => {
                     setPageIndex(i);
                   }}
-                ></button>
+                />
               );
             })}
           </div>
         </div>
         <button
-          className={cn(isWideScreen || 'hidden', 'relative -right-6')}
+          className="relative -right-6 hidden md:block"
           onClick={() => {
             setPageIndex(pageIndex == pageData.length - 1 ? 0 : pageIndex + 1);
           }}
