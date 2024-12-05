@@ -148,7 +148,7 @@ const RollingModal = ({ isModalOpened, handleCloseModal, handleKeyDown }: Rollin
             setPageIndex(pageIndex == 0 ? pageData.length - 1 : pageIndex - 1);
           }}
         >
-          <img src={left} width={30} />
+          <img src={left} width={30} className="transition hover:brightness-75" />
         </button>
         <div className="w-full">
           <section className={cn('w-full', isWideScreen || 'text-sm')}>
@@ -178,7 +178,7 @@ const RollingModal = ({ isModalOpened, handleCloseModal, handleKeyDown }: Rollin
             setPageIndex(pageIndex == pageData.length - 1 ? 0 : pageIndex + 1);
           }}
         >
-          <img src={right} width={30} />
+          <img src={right} width={30} className="transition hover:brightness-75" />
         </button>
       </section>
     </Modal>
