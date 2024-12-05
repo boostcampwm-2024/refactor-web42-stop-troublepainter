@@ -1,74 +1,47 @@
-import { test as base, Browser, expect, Page, chromium, firefox, webkit } from '@playwright/test';
+import { test as base, expect, Page, chromium, BrowserContext, firefox, webkit } from '@playwright/test';
 import { compareByPng } from './test-utils';
 import { drawingPatterns } from './drawing-utils';
 
 interface TestClient {
   page: Page;
-  browser: Browser;
+  context: BrowserContext;
   role?: string;
   isHost: boolean;
 }
 
 const test = base.extend({});
 
-async function drawRandomPattern(page: Page): Promise<void> {
-  const colors = ['검정', '분홍', '노랑', '하늘', '회색'];
-  const randomColor = colors[Math.floor(Math.random() * colors.length)];
-  await page.getByLabel(`${randomColor} 색상 선택`).click();
-
-  if (Math.random() > 0.5) {
-    await page.getByLabel('채우기 모드').click();
-  }
-
-  const canvas = await page.getByLabel('그림판');
-  const box = await canvas.boundingBox();
-
-  if (box) {
-    await page.mouse.move(box.x + box.width / 2, box.y + box.height / 2);
-    await page.mouse.down();
-
-    // 여러 개의 랜덤한 점을 연결하여 그리기
-    for (let i = 0; i < 5; i++) {
-      const x = box.x + Math.random() * box.width;
-      const y = box.y + Math.random() * box.height;
-      await page.mouse.move(x, y, { steps: 50 });
-    }
-
-    await page.mouse.up();
-  }
-}
-
 async function setupTestRoom(baseUrl: string): Promise<TestClient[]> {
   const clients: TestClient[] = [];
 
-  const browsers = await Promise.all([
-    chromium.launch(),
-    firefox.launch(),
-    webkit.launch(),
-    chromium.launch(),
-    firefox.launch(),
+  const contexts = await Promise.all([
+    chromium.launchPersistentContext('./test-user-data-1', {}),
+    chromium.launchPersistentContext('./test-user-data-2', {}),
+    chromium.launchPersistentContext('./test-user-data-3', {}),
+    chromium.launchPersistentContext('./test-user-data-4', {}),
+    chromium.launchPersistentContext('./test-user-data-5', {}),
   ]);
 
   // 호스트 설정
-  const hostPage = await browsers[0].newPage();
+  const hostPage = await contexts[0].newPage();
   await hostPage.goto(baseUrl);
   await hostPage.getByRole('button', { name: '방 만들기' }).click();
   await hostPage.getByRole('button', { name: '복사 완료! 🔗 초대' }).click();
-  const roomUrl = await hostPage.url();
+  const roomUrl = hostPage.url();
 
   clients.push({
     page: hostPage,
-    browser: browsers[0],
+    context: contexts[0],
     isHost: true,
   });
 
   // 나머지 클라이언트 접속
-  for (let i = 1; i < browsers.length; i++) {
-    const page = await browsers[i].newPage();
+  for (let i = 1; i < contexts.length; i++) {
+    const page = await contexts[i].newPage();
     await page.goto(roomUrl);
     clients.push({
       page,
-      browser: browsers[i],
+      context: contexts[i],
       isHost: false,
     });
   }
@@ -108,9 +81,9 @@ async function setupTestRoom(baseUrl: string): Promise<TestClient[]> {
           await guesserRole.click();
         }
 
-        console.log(`Client (${client.browser.browserType().name()}) assigned role: ${client.role}`);
+        console.log(`Client assigned role: ${client.role}`);
       } catch (error) {
-        console.error(`Modal detection failed for client using ${client.browser.browserType().name()}:`, error);
+        console.error(`Modal detection failed for client:`, error);
         throw error;
       }
     }),
@@ -125,12 +98,19 @@ test.describe('Game Room Drawing Test', () => {
   test.afterEach(async () => {
     for (const client of clients) {
       await client.page.close();
-      await client.browser.close();
+      await client.context.close();
     }
     clients = [];
   });
 
   test('Drawing synchronization test with multiple browsers', async () => {
+    // 브라우저 콘솔 로그 캡처
+    clients.forEach((client) => {
+      client.page.on('console', (msg) => {
+        console.log(`Browser console [${client.role}]:`, msg.text());
+      });
+    });
+
     // 테스트 타임아웃 설정
     test.setTimeout(60000);
 
@@ -139,7 +119,7 @@ test.describe('Game Room Drawing Test', () => {
     const drawers = clients.filter((client) => ['PAINTER', 'DEVIL'].includes(client.role || ''));
     console.log(
       'Role distribution:',
-      clients.map((c) => `Browser: ${c.browser.browserType().name()}, Role: ${c.role}`),
+      clients.map((c) => `Role: ${c.role}`),
     );
 
     // 그림꾼과 방해꾼만 캔버스가 보이는 35초 동안 랜덤하게 그리기
@@ -169,9 +149,7 @@ test.describe('Game Room Drawing Test', () => {
       const baseCanvas = drawers[0].page;
       for (const client of clients.slice(1)) {
         const diffRatio = await compareByPng(baseCanvas, client.page);
-        console.log(
-          `Client (${client.browser.browserType().name()}, ${client.role}) final canvas diff ratio: ${diffRatio}`,
-        );
+        console.log(`Client (Role: ${client.role}) final canvas diff ratio: ${diffRatio}`);
         expect(diffRatio).toBeLessThanOrEqual(0.01);
       }
     }
