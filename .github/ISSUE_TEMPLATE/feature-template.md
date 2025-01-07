@@ -1,20 +1,25 @@
 ---
-name: Feature Template
-about: Project's features
-title: ''
-labels: ''
+name: Feature request
+about: Suggest an idea for this project
+title: '[Feature] - '
+labels: '✨feature'
 assignees: ''
 ---
 
-## 📂 구현 기능
+# Description
 
-1-2문장으로 요약.
-
-## 📝 상세 작업 내용
+# To-do
 
 - [ ]
 - [ ]
 
-## 🔆 참고 사항 (선택)
+# Estimate Time (hour)
 
-## ⏰ 예상 작업 시간
+- [ ] 0.5 hour
+- [ ] 1 hour
+- [ ] 2 hour
+- [ ] 4 hour
+- [ ] 8 hour
+- [ ] 16 hour
+
+# ETC
