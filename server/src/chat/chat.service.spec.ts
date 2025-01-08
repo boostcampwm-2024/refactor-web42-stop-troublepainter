@@ -27,18 +27,18 @@ describe('ChatService', () => {
   });
 
   describe('sendMessage 테스트', async () => {
-    it('메시지가 공백일 때', async () => {
+    it('메시지가 공백일 때 BadRequestException 발생', async () => {
       await expect(async () => {
         await chatService.sendMessage('room1', 'player1', '');
-      }).rejects.toThrowError(BadRequestException);
+      }).rejects.toThrow(BadRequestException);
     });
 
-    it('플레이어가 존재하지 않을 때', async () => {
+    it('플레이어가 존재하지 않을 때 PlayerNotFoundException 발생', async () => {
       mockChatRepository.getPlayer.mockResolvedValue(null);
 
       await expect(async () => {
         await chatService.sendMessage('room1', 'player1', 'hello world');
-      }).rejects.toThrowError(PlayerNotFoundException);
+      }).rejects.toThrow(PlayerNotFoundException);
 
       // 에러 캐치로 인해 순서를 바꿔서 배치
       expect(mockChatRepository.getPlayer).toHaveBeenCalled();
