@@ -94,7 +94,7 @@ describe('DrawingGateway 단위 테스트', () => {
       );
     });
 
-    it('should emit drawUpdated event to the room', async () => {
+    it('정상적으로 그림이 그려지는 경우', async () => {
       client.data = { roomId: 'room1', playerId: 'player1' };
       const data = { drawingData: { pos: 56, fillColor: { R: 0, G: 0, B: 0, A: 0 } } };
 
