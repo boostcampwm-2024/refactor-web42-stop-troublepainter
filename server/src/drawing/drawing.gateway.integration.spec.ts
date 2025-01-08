@@ -59,6 +59,11 @@ describe('DrawingGateway 통합 테스트', () => {
     await redisService.flushAll();
   });
 
+  // 테스트가 종료되면 Redis를 종료
+  afterAll(() => {
+    redisService.quit();
+  });
+
   describe('handleConnection', () => {
     it('roomId 또는 playerId의 값이 존재하지 않는 경우', async () => {
       const authInfo = [

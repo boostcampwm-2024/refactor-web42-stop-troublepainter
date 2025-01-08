@@ -60,4 +60,8 @@ export class RedisService {
   async flushAll() {
     await this.redis.flushall();
   }
+
+  quit() {
+    this.redis.quit();
+  }
 }
