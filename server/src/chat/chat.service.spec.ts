@@ -58,7 +58,6 @@ describe('ChatService', () => {
 
       const result = await chatService.sendMessage('room1', 'player1', 'hello world');
 
-      // TODO : 타입 narrowing 필요
       expect(result).toBeDefined();
       expect(mockChatRepository.getPlayer).toHaveBeenCalled();
     });
