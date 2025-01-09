@@ -1,18 +1,101 @@
 import { Test, TestingModule } from '@nestjs/testing';
 import { ChatService } from './chat.service';
+import { ChatRepository } from './chat.repository';
+import { describe } from 'node:test';
+import { BadRequestException, PlayerNotFoundException } from '../exceptions/game.exception';
+import { Player } from '../common/types/game.types';
+import { PlayerRole, PlayerStatus } from '../common/enums/game.status.enum';
 
 describe('ChatService', () => {
-  let service: ChatService;
+  let chatService: ChatService;
+
+  const mockChatRepository = {
+    getPlayer: jest.fn(),
+    existsRoom: jest.fn(),
+    existsPlayer: jest.fn(),
+  };
 
   beforeEach(async () => {
     const module: TestingModule = await Test.createTestingModule({
-      providers: [ChatService],
+      providers: [ChatService, { provide: ChatRepository, useValue: mockChatRepository }],
     }).compile();
 
-    service = module.get<ChatService>(ChatService);
+    chatService = module.get(ChatService);
   });
 
-  it('should be defined', () => {
-    expect(service).toBeDefined();
+  afterEach(() => {
+    jest.clearAllMocks();
+  });
+
+  describe('sendMessage 테스트', async () => {
+    it('메시지가 공백일 때 BadRequestException 발생', async () => {
+      await expect(async () => {
+        await chatService.sendMessage('room1', 'player1', '');
+      }).rejects.toThrow(BadRequestException);
+    });
+
+    it('플레이어가 존재하지 않을 때 PlayerNotFoundException 발생', async () => {
+      mockChatRepository.getPlayer.mockResolvedValue(null);
+
+      await expect(async () => {
+        await chatService.sendMessage('room1', 'player1', 'hello world');
+      }).rejects.toThrow(PlayerNotFoundException);
+
+      // 에러 캐치로 인해 순서를 바꿔서 배치
+      expect(mockChatRepository.getPlayer).toHaveBeenCalled();
+    });
+
+    it('플레이어가 정상적으로 존재할 때', async () => {
+      const player: Player = {
+        playerId: 'player1',
+        role: PlayerRole.GUESSER,
+        status: PlayerStatus.PLAYING,
+        nickname: 'player',
+        profileImage: null,
+        score: 10,
+      };
+      mockChatRepository.getPlayer.mockResolvedValue(player);
+
+      const result = await chatService.sendMessage('room1', 'player1', 'hello world');
+
+      expect(result).toBeDefined();
+      expect(mockChatRepository.getPlayer).toHaveBeenCalled();
+    });
+  });
+
+  describe('existsRoom 테스트', () => {
+    it('존재하는 방일 때 true를 리턴', async () => {
+      mockChatRepository.existsRoom.mockResolvedValue(true);
+
+      const result = await chatService.existsRoom('room1');
+      expect(result).toBe(true);
+      expect(mockChatRepository.existsRoom).toHaveBeenCalledWith('room1');
+    });
+
+    it('존재하지 않는 방일 때 false를 리턴', async () => {
+      mockChatRepository.existsRoom.mockResolvedValue(false);
+
+      const result = await chatService.existsRoom('room2');
+      expect(result).toBe(false);
+      expect(mockChatRepository.existsRoom).toHaveBeenCalledWith('room2');
+    });
+  });
+
+  describe('existsPlayer 테스트', () => {
+    it('존재하는 플레이어일 때 true를 리턴', async () => {
+      mockChatRepository.existsPlayer.mockResolvedValue(true);
+
+      const result = await chatService.existsPlayer('room1', 'player1');
+      expect(result).toBe(true);
+      expect(mockChatRepository.existsPlayer).toHaveBeenCalledWith('room1', 'player1');
+    });
+
+    it('존재하지 않는 플레이어일 때 false를 리턴', async () => {
+      mockChatRepository.existsPlayer.mockResolvedValue(false);
+
+      const result = await chatService.existsPlayer('room1', 'player2');
+      expect(result).toBe(false);
+      expect(mockChatRepository.existsPlayer).toHaveBeenCalledWith('room1', 'player2');
+    });
   });
 });

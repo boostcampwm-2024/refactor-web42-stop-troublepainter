@@ -29,6 +29,7 @@
     "@troublepainter/core": "workspace:*",
     "axios": "^1.7.7",
     "ioredis": "^5.4.1",
+    "jest-mock": "^29.7.0",
     "reflect-metadata": "^0.2.0",
     "rxjs": "^7.8.1",
     "socket.io": "^4.8.1",
@@ -77,6 +78,9 @@
       "**/*.(t|j)s"
     ],
     "coverageDirectory": "../coverage",
-    "testEnvironment": "node"
+    "testEnvironment": "node",
+    "moduleNameMapper": {
+      "^src/(.*)$": "<rootDir>/$1"
+    }
   }
 }
