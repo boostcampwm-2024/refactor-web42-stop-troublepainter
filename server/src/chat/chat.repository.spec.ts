@@ -4,7 +4,7 @@ import { RedisService } from '../redis/redis.service';
 import { describe } from 'node:test';
 import { PlayerRole } from '../common/enums/game.status.enum';
 
-describe('chat repository tests', () => {
+describe('ChatRepository', () => {
   let chatRepository: ChatRepository;
 
   const mockRedisService = {
@@ -39,7 +39,24 @@ describe('chat repository tests', () => {
       expect(result).toBeNull();
     });
 
-    it('플레이어 데이터가 있을 때 Player로 데이터를 변환해 리턴', async () => {
+    it('플레이어 데이터 중 role이 없을 때 null을 리턴', async () => {
+      const player = {
+        role: '',
+        userImg: 'test',
+        score: 15,
+      };
+
+      mockRedisService.hgetall.mockResolvedValue(player);
+
+      const result = await chatRepository.getPlayer('room1', 'player1');
+      expect(result).toEqual({
+        ...player,
+        role: null,
+        profileImage: player.userImg,
+      });
+    });
+
+    it('플레이어 데이터 중 이미지가 없을 때 profileImage가 null을 리턴', async () => {
       const player = {
         role: PlayerRole.GUESSER,
         userImg: '',
@@ -53,6 +70,49 @@ describe('chat repository tests', () => {
         ...player,
         profileImage: null,
       });
+    });
+
+    it('플레이어 데이터 중 이미지가 있을 때 profileImage가 userImg와 동일하게 리턴', async () => {
+      const player = {
+        role: PlayerRole.GUESSER,
+        userImg: 'test',
+        score: 15,
+      };
+
+      mockRedisService.hgetall.mockResolvedValue(player);
+
+      const result = await chatRepository.getPlayer('room1', 'player1');
+      expect(result).toEqual({
+        ...player,
+        profileImage: player.userImg,
+      });
+    });
+
+    it('플레이어 데이터에서 score 임계값을 처리', async () => {
+      const testCases = [
+        { inputScore: '15', expectedScore: 15 },
+        { inputScore: '-5', expectedScore: -5 },
+        { inputScore: '', expectedScore: 0 },
+        { inputScore: null, expectedScore: 0 },
+        { inputScore: 'abc', expectedScore: 0 },
+      ];
+
+      for (const testCase of testCases) {
+        const player = {
+          role: PlayerRole.GUESSER,
+          userImg: 'test',
+          score: testCase.inputScore,
+        };
+
+        mockRedisService.hgetall.mockResolvedValue(player);
+
+        const result = await chatRepository.getPlayer('room1', 'player1');
+        expect(result).toEqual({
+          ...player,
+          profileImage: player.userImg,
+          score: testCase.expectedScore,
+        });
+      }
     });
   });
 
