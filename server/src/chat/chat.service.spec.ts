@@ -12,6 +12,7 @@ describe('ChatService', () => {
   const mockChatRepository = {
     getPlayer: jest.fn(),
     existsRoom: jest.fn(),
+    existsPlayer: jest.fn(),
   };
 
   beforeEach(async () => {
@@ -60,6 +61,42 @@ describe('ChatService', () => {
       // TODO : 타입 narrowing 필요
       expect(result).toBeDefined();
       expect(mockChatRepository.getPlayer).toHaveBeenCalled();
+    });
+  });
+
+  describe('existsRoom 테스트', () => {
+    it('존재하는 방일 때 true를 리턴', async () => {
+      mockChatRepository.existsRoom.mockResolvedValue(true);
+
+      const result = await chatService.existsRoom('room1');
+      expect(result).toBe(true);
+      expect(mockChatRepository.existsRoom).toHaveBeenCalledWith('room1');
+    });
+
+    it('존재하지 않는 방일 때 false를 리턴', async () => {
+      mockChatRepository.existsRoom.mockResolvedValue(false);
+
+      const result = await chatService.existsRoom('room2');
+      expect(result).toBe(false);
+      expect(mockChatRepository.existsRoom).toHaveBeenCalledWith('room2');
+    });
+  });
+
+  describe('existsPlayer 테스트', () => {
+    it('존재하는 플레이어일 때 true를 리턴', async () => {
+      mockChatRepository.existsPlayer.mockResolvedValue(true);
+
+      const result = await chatService.existsPlayer('room1', 'player1');
+      expect(result).toBe(true);
+      expect(mockChatRepository.existsPlayer).toHaveBeenCalledWith('room1', 'player1');
+    });
+
+    it('존재하지 않는 플레이어일 때 false를 리턴', async () => {
+      mockChatRepository.existsPlayer.mockResolvedValue(false);
+
+      const result = await chatService.existsPlayer('room1', 'player2');
+      expect(result).toBe(false);
+      expect(mockChatRepository.existsPlayer).toHaveBeenCalledWith('room1', 'player2');
     });
   });
 });
