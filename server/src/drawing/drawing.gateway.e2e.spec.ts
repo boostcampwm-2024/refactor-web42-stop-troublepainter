@@ -157,6 +157,8 @@ describe('DrawingGateway e2e 테스트', () => {
        * 그림 그린 사람을 제외하고 다른 사람이 존재해야 이벤트를 제대로 수신받는지 확인이 가능함
        * 이를 위해 clientB를 생성
        */
+      await redisService.hset('room:room1:player:player2', { playerId: 'player2' });
+
       const clientB = io(URL, {
         auth: {
           roomId: 'room1',
@@ -164,17 +166,27 @@ describe('DrawingGateway e2e 테스트', () => {
         },
       });
 
-      // clientB가 이벤트를 수신받을 준비를 함
-      clientB.on('drawUpdated', (data) => {
-        expect(data).toEqual({
-          playerId: 'player1',
-          drawingData: drawingData,
+      // clientB가 연결이 완료될 때까지 기다림
+      await new Promise<void>((resolve) => {
+        clientB.on('connect', resolve);
+      });
+
+      // drawUpdated 이벤트 수신을 위한 Promise 생성
+      const drawUpdatePromise = new Promise<void>((resolve) => {
+        clientB.on('drawUpdated', (data) => {
+          expect(data).toEqual({
+            playerId: 'player1',
+            drawingData: drawingData,
+          });
+          resolve();
         });
-        clientB.close();
       });
 
       // clientA가 실제로 이벤트를 발생시킴
       clientA.emit('draw', { drawingData });
+
+      await drawUpdatePromise;
+      clientB.close();
     });
   });
 });
