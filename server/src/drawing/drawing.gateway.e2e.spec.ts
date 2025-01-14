@@ -12,7 +12,7 @@ describe('DrawingGateway e2e 테스트', () => {
   let redisService: RedisService;
   let clientA: Socket;
 
-  const URL = 'http://localhost:3001';
+  const URL = 'http://localhost:3001/socket.io/drawing';
 
   const mockConfigService = {
     provide: ConfigService,
@@ -38,6 +38,9 @@ describe('DrawingGateway e2e 테스트', () => {
   });
 
   beforeEach(async () => {
+    await redisService.hset('room:room1', { roomId: 'room1' });
+    await redisService.hset('room:room1:player:player1', { playerId: 'player1' });
+
     clientA = io(URL, {
       auth: {
         roomId: 'room1',
@@ -46,13 +49,8 @@ describe('DrawingGateway e2e 테스트', () => {
     });
 
     await new Promise<void>((resolve) => {
-      clientA.on('connect', () => {
-        resolve();
-      });
+      clientA.on('connect', resolve);
     });
-
-    await redisService.hset('room:room1', { roomId: 'room1' });
-    await redisService.hset('room:room1:player:player1', { playerId: 'player1' });
   });
 
   afterEach(async () => {
@@ -74,14 +72,19 @@ describe('DrawingGateway e2e 테스트', () => {
       ];
 
       for (const auth of authInfo) {
-        const invalidClient = io(URL, {
-          auth: { auth },
+        const socket = io(URL, {
+          auth,
         });
 
-        invalidClient.on('connect_error', (e) => {
-          expect(e.message).toBe('Room ID and Player ID are required');
-          invalidClient.close();
+        await new Promise<void>((resolve) => {
+          socket.on('error', (e) => {
+            expect(e.code).toBe(4000);
+            expect(e.message).toBe('Room ID and Player ID are required');
+            resolve();
+          });
         });
+
+        socket.close();
       }
     });
 
@@ -93,10 +96,15 @@ describe('DrawingGateway e2e 테스트', () => {
         },
       });
 
-      invalidRoomClient.on('connect_error', (e) => {
-        expect(e.message).toBe('Room not found');
-        invalidRoomClient.close();
+      await new Promise<void>((resolve) => {
+        invalidRoomClient.on('error', (e) => {
+          expect(e.code).toBe(6005);
+          expect(e.message).toBe('Room not found');
+          resolve();
+        });
       });
+
+      invalidRoomClient.close();
     });
 
     it('player가 redis 내에 존재하지 않는 경우 "Player not found in room" 에러가 발생한다.', async () => {
@@ -107,10 +115,15 @@ describe('DrawingGateway e2e 테스트', () => {
         },
       });
 
-      invalidPlayerClient.on('connect_error', (e) => {
-        expect(e.message).toBe('Player not found in room');
-        invalidPlayerClient.close();
+      await new Promise<void>((resolve) => {
+        invalidPlayerClient.on('error', (e) => {
+          expect(e.code).toBe(6006);
+          expect(e.message).toBe('Player not found in room');
+          resolve();
+        });
       });
+
+      invalidPlayerClient.close();
     });
 
     it('room과 player가 정상적으로 존재하는 경우 정상적으로 연결된다.', async () => {
