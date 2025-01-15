@@ -55,4 +55,13 @@ export class RedisService {
   multi() {
     return this.redis.multi();
   }
+
+  // 원활한 테스트 진행을 위해 redis 내 저장된 값을 지워주는 코드 추가
+  async flushAll() {
+    await this.redis.flushall();
+  }
+
+  quit() {
+    this.redis.quit();
+  }
 }
