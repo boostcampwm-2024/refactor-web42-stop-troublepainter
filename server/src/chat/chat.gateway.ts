@@ -3,7 +3,7 @@ import { Server, Socket } from 'socket.io';
 import { ChatService } from './chat.service';
 import { UseFilters } from '@nestjs/common';
 import { WsExceptionFilter } from 'src/filters/ws-exception.filter';
-import { BadRequestException, PlayerNotFoundException, RoomNotFoundException } from 'src/exceptions/game.exception';
+import { BadRequestException } from 'src/exceptions/game.exception';
 
 @WebSocketGateway({
   cors: '*',
@@ -20,12 +20,33 @@ export class ChatGateway {
     const roomId = client.handshake.auth.roomId;
     const playerId = client.handshake.auth.playerId;
 
-    if (!roomId || !playerId) throw new BadRequestException('Room ID and Player ID are required');
+    if (!roomId || !playerId) {
+      client.emit('error', {
+        code: 4000,
+        message: 'Room ID and Player ID are required',
+      });
+      client.disconnect();
+      return;
+    }
 
     const roomExists = await this.chatService.existsRoom(roomId);
-    if (!roomExists) throw new RoomNotFoundException('Room not found');
+    if (!roomExists) {
+      client.emit('error', {
+        code: 6005,
+        message: 'Room not found',
+      });
+      client.disconnect();
+      return;
+    }
     const playerExists = await this.chatService.existsPlayer(roomId, playerId);
-    if (!playerExists) throw new PlayerNotFoundException('Player not found in room');
+    if (!playerExists) {
+      client.emit('error', {
+        code: 6006,
+        message: 'Player not found in room',
+      });
+      client.disconnect();
+      return;
+    }
 
     client.data.roomId = roomId;
     client.data.playerId = playerId;
