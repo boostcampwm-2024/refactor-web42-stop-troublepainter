@@ -16,15 +16,15 @@ export class ChatGateway {
   @WebSocketServer()
   server: Server;
 
-  handleConnection(client: Socket) {
+  async handleConnection(client: Socket) {
     const roomId = client.handshake.auth.roomId;
     const playerId = client.handshake.auth.playerId;
 
     if (!roomId || !playerId) throw new BadRequestException('Room ID and Player ID are required');
 
-    const roomExists = this.chatService.existsRoom(roomId);
+    const roomExists = await this.chatService.existsRoom(roomId);
     if (!roomExists) throw new RoomNotFoundException('Room not found');
-    const playerExists = this.chatService.existsPlayer(roomId, playerId);
+    const playerExists = await this.chatService.existsPlayer(roomId, playerId);
     if (!playerExists) throw new PlayerNotFoundException('Player not found in room');
 
     client.data.roomId = roomId;
