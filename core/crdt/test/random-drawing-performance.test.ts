@@ -109,7 +109,7 @@ test.describe('Game Room Drawing Test', () => {
     clients = [];
   });
 
-  test('Drawing synchronization test with multiple browsers', async () => {
+  test('Drawing performance test with multiple browsers', async () => {
     try {
       // 셋업 및 모달 처리
       clients = await setupTestRoom('http://localhost:5173');
@@ -119,56 +119,69 @@ test.describe('Game Room Drawing Test', () => {
       const testStartTime = Date.now();
 
       // 1단계: 처음 5초 대기
-      // const waitEndTime = testStartTime + 5000;
       const waitEndTime = testStartTime + 1000;
       console.log('Waiting 5 seconds before drawing...');
       while (Date.now() < waitEndTime) {
         await new Promise((resolve) => setTimeout(resolve, 100));
       }
 
+      // 성능 측정 시작
+      const cdpSessions = await Promise.all(drawers.map((e) => e.context.newCDPSession(e.page)));
+      await Promise.all(cdpSessions.map((e) => e.send('Emulation.setCPUThrottlingRate', { rate: 4 })));
+      console.log('Emulation.setCPUThrottlingRate');
+      await Promise.all(cdpSessions.map((e) => e.send('Performance.enable')));
+      console.log('Performance.enable');
+
       // 2단계: 30초 동안 드로잉
-      const drawingEndTime = waitEndTime + 30000;
+      const drawingTime = 20000;
+      const drawingStartTime = Date.now();
       console.log('Starting 30 seconds drawing phase...');
-
-      console.log(clients.filter((client) => ['PAINTER', 'DEVIL'].includes(client.role || '')).map((e) => e.role));
-
-      while (Date.now() < drawingEndTime) {
-        console.log('성능 측정 시작');
-        const cdpSessions = await Promise.all(
-          clients
-            .filter((client) => ['PAINTER', 'DEVIL'].includes(client.role || ''))
-            .map((e) => e.context.newCDPSession(e.page)),
-        );
-        await Promise.all(cdpSessions.map((e) => e.send('Performance.enable')));
-
+      const DRAW_COUNT = 20;
+      let curDrawCount = 0;
+      while (curDrawCount < DRAW_COUNT) {
+        if (Date.now() - drawingStartTime < drawingTime * (curDrawCount / DRAW_COUNT)) continue;
+        console.log(curDrawCount++);
         await Promise.all(
           drawers.map(async (drawer) => {
             try {
               if (!drawer.page.isClosed()) {
                 await drawingPatterns.randomByMouse(drawer.page);
-                await drawer.page.waitForTimeout(100);
               }
             } catch (error) {
               console.error(`Drawing failed for ${drawer.role}:`, error);
             }
           }),
         );
-
-        const performanceMetrics = await Promise.all(cdpSessions.map((e) => e.send('Performance.getMetrics')));
-        const formattedMetrics = performanceMetrics.map((e) =>
-          e.metrics.reduce(
-            (acc, cur) => {
-              acc[cur.name] = cur.value;
-              return acc;
-            },
-            {} as Record<string, number>,
-          ),
-        );
-
-        console.log(JSON.stringify(formattedMetrics, null, 4));
-        console.log('성능 측정 종료');
-        break;
       }
+
+      // 성능 측정 종료
+      const METRIC_FILTER = [
+        'Timestamp',
+        'LayoutCount',
+        'RecalcStyleCount',
+        'LayoutDuration',
+        'RecalcStyleDuration',
+        'ScriptDuration',
+        'V8CompileDuration',
+        'TaskDuration',
+        'TaskOtherDuration',
+        'DevToolsCommandDuration',
+        'ThreadTime',
+        'ProcessTime',
+        'JSHeapUsedSize',
+        'JSHeapTotalSize',
+      ];
+      const performanceMetrics = await Promise.all(cdpSessions.map((e) => e.send('Performance.getMetrics')));
+      const formattedMetrics = performanceMetrics.map((e) =>
+        e.metrics.reduce(
+          (acc, cur) => {
+            if (METRIC_FILTER.includes(cur.name)) acc[cur.name] = cur.value;
+            return acc;
+          },
+          {} as Record<string, number>,
+        ),
+      );
+      console.log(JSON.stringify(formattedMetrics, null, 4));
 
       // 테스트 종료
       await Promise.all(clients.map((e) => e.context.close()));
