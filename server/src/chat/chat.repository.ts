@@ -24,7 +24,7 @@ export class ChatRepository {
   }
 
   async existsPlayer(roomId: string, playerId: string) {
-    const exists = await this.redisService.exists(`room:${roomId}:player:${playerId}`);
+    const exists = await this.redisService.exists(`room:${roomId}:players:${playerId}`);
     return exists === 1;
   }
 }
