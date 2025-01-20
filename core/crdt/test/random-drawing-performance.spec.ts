@@ -119,12 +119,12 @@ test.describe('Game Room Drawing Test', () => {
       const drawers = clients.filter((client) => ['PAINTER', 'DEVIL'].includes(client.role || ''));
 
       // 모달 닫힌 후 시작 시간 기록
-      const testStartTime = Date.now();
+      const testStartTime = performance.now();
 
       // 1단계: 처음 5초 대기
       const waitEndTime = testStartTime + 1000;
       console.log('Waiting 5 seconds before drawing...');
-      while (Date.now() < waitEndTime) {
+      while (performance.now() < waitEndTime) {
         await new Promise((resolve) => setTimeout(resolve, 100));
       }
 
@@ -137,12 +137,12 @@ test.describe('Game Room Drawing Test', () => {
 
       // 2단계: 30초 동안 드로잉
       const drawingTime = 20000;
-      const drawingStartTime = Date.now();
+      const drawingStartTime = performance.now();
       console.log('Starting 30 seconds drawing phase...');
       const DRAW_COUNT = 20;
       let curDrawCount = 0;
       while (curDrawCount < DRAW_COUNT) {
-        if (Date.now() - drawingStartTime < drawingTime * (curDrawCount / DRAW_COUNT)) continue;
+        if (performance.now() - drawingStartTime < drawingTime * (curDrawCount / DRAW_COUNT)) continue;
         console.log(curDrawCount++);
         await Promise.all(
           drawers.map(async (drawer) => {
