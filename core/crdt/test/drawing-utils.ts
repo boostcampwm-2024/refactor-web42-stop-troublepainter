@@ -335,17 +335,17 @@ export const drawingPatterns: Record<string, DrawingFunction> = {
 async function selectRandomColor(page: Page): Promise<void> {
   const colors = ['검정', '분홍', '노랑', '하늘', '회색'];
   const randomColor = colors[Math.floor(seedRandom(page) * colors.length)];
-  await page.getByLabel(`${randomColor} 색상 선택`).click();
+  await page.getByLabel(`${randomColor} 색상 선택`).click({ force: true });
 }
 
 async function setRandomLineWidth(page: Page): Promise<void> {
-  await page.getByLabel('펜 모드').click();
+  await page.getByLabel('펜 모드').click({ force: true });
   const lineWidth = Math.floor(seedRandom(page) * 9) * 2 + 4; // 4-20 사이의 짝수 값
   await page.getByLabel('선 굵기 조절').fill(lineWidth.toString());
 }
 
 async function toggleFillMode(page: Page): Promise<void> {
-  await page.getByLabel('채우기 모드').click();
+  await page.getByLabel('채우기 모드').click({ force: true });
 }
 
 async function performUndoRedo(page: Page): Promise<void> {
