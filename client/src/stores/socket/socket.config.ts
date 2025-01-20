@@ -92,7 +92,7 @@ export const SOCKET_CONFIG = {
 } as const;
 
 /** 소켓 타입 유니온 */
-type SocketType = GameSocket | DrawingSocket | ChatSocket;
+export type SocketType = GameSocket | DrawingSocket | ChatSocket;
 
 /** 네임스페이스별 소켓 타입 매핑 */
 type NamespaceSocketMap = {
