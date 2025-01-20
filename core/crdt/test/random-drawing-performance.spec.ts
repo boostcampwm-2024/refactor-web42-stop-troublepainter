@@ -114,7 +114,8 @@ test.describe('Game Room Drawing Test', () => {
   test('Drawing performance test with multiple browsers', async () => {
     try {
       // 셋업 및 모달 처리
-      clients = await setupTestRoom('http://localhost:5173');
+      const TEST_URL = 'http://localhost:5173';
+      clients = await setupTestRoom(TEST_URL);
       const drawers = clients.filter((client) => ['PAINTER', 'DEVIL'].includes(client.role || ''));
 
       // 모달 닫힌 후 시작 시간 기록
