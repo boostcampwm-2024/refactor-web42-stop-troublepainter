@@ -1,5 +1,4 @@
-import { test as base, expect, Page, chromium, BrowserContext, firefox, webkit } from '@playwright/test';
-import { compareByPng } from './test-utils';
+import { test as base, Page, chromium, BrowserContext } from '@playwright/test';
 import { drawingPatterns } from './drawing-utils';
 
 interface TestClient {
@@ -14,19 +13,18 @@ const test = base.extend({});
 async function setupTestRoom(baseUrl: string): Promise<TestClient[]> {
   const clients: TestClient[] = [];
 
-  const contexts = await Promise.all([
-    chromium.launchPersistentContext('./test-user-data-1', {}),
-    chromium.launchPersistentContext('./test-user-data-2', {}),
-    chromium.launchPersistentContext('./test-user-data-3', {}),
-    chromium.launchPersistentContext('./test-user-data-4', {}),
-    chromium.launchPersistentContext('./test-user-data-5', {}),
-  ]);
+  const browser = await chromium.launch();
+  const contexts = await Promise.all(
+    Array(5)
+      .fill(browser)
+      .map((e) => e.newContext()),
+  );
 
   // 호스트 설정
   const hostPage = await contexts[0].newPage();
   await hostPage.goto(baseUrl);
   await hostPage.getByRole('button', { name: '방 만들기' }).click();
-  await hostPage.getByRole('button', { name: '복사 완료! 🔗 초대' }).click();
+  await hostPage.waitForURL('**/lobby/*');
   const roomUrl = hostPage.url();
 
   clients.push({
@@ -36,15 +34,19 @@ async function setupTestRoom(baseUrl: string): Promise<TestClient[]> {
   });
 
   // 나머지 클라이언트 접속
-  for (let i = 1; i < contexts.length; i++) {
-    const page = await contexts[i].newPage();
-    await page.goto(roomUrl);
-    clients.push({
-      page,
-      context: contexts[i],
-      isHost: false,
-    });
-  }
+  clients.push(
+    ...(await Promise.all(
+      contexts.slice(1).map(async (context) => {
+        const page = await context.newPage();
+        await page.goto(roomUrl);
+        return {
+          page,
+          context,
+          isHost: false,
+        };
+      }),
+    )),
+  );
 
   // 호스트가 게임 시작
   await clients[0].page.getByRole('button', { name: '게임 시작' }).click();
@@ -62,9 +64,9 @@ async function setupTestRoom(baseUrl: string): Promise<TestClient[]> {
           state: 'visible',
         });
 
-        const painterRole = await client.page.locator('#modal-root').getByText('그림꾼', { exact: true });
-        const devilRole = await client.page.locator('#modal-root').getByText('방해꾼', { exact: true });
-        const guesserRole = await client.page.locator('#modal-root').getByText('구경꾼', { exact: true });
+        const painterRole = client.page.locator('#modal-root').getByText('그림꾼', { exact: true });
+        const devilRole = client.page.locator('#modal-root').getByText('방해꾼', { exact: true });
+        const guesserRole = client.page.locator('#modal-root').getByText('구경꾼', { exact: true });
 
         const isPainter = (await painterRole.count()) > 0;
         const isDevil = (await devilRole.count()) > 0;
@@ -126,8 +128,8 @@ test.describe('Game Room Drawing Test', () => {
       }
 
       // 성능 측정 시작
-      const cdpSessions = await Promise.all(drawers.map((e) => e.context.newCDPSession(e.page)));
-      await Promise.all(cdpSessions.map((e) => e.send('Emulation.setCPUThrottlingRate', { rate: 4 })));
+      const cdpSessions = await Promise.all(clients.map((e) => e.context.newCDPSession(e.page)));
+      await Promise.all(cdpSessions.map((e) => e.send('Emulation.setCPUThrottlingRate', { rate: 2 })));
       console.log('Emulation.setCPUThrottlingRate');
       await Promise.all(cdpSessions.map((e) => e.send('Performance.enable')));
       console.log('Performance.enable');
@@ -156,7 +158,6 @@ test.describe('Game Room Drawing Test', () => {
 
       // 성능 측정 종료
       const METRIC_FILTER = [
-        'Timestamp',
         'LayoutCount',
         'RecalcStyleCount',
         'LayoutDuration',
@@ -171,17 +172,26 @@ test.describe('Game Room Drawing Test', () => {
         'JSHeapUsedSize',
         'JSHeapTotalSize',
       ];
-      const performanceMetrics = await Promise.all(cdpSessions.map((e) => e.send('Performance.getMetrics')));
-      const formattedMetrics = performanceMetrics.map((e) =>
-        e.metrics.reduce(
-          (acc, cur) => {
-            if (METRIC_FILTER.includes(cur.name)) acc[cur.name] = cur.value;
-            return acc;
-          },
-          {} as Record<string, number>,
-        ),
+      const compareMetric = METRIC_FILTER.reduce(
+        (acc, cur) => {
+          acc[cur] = [0, 0];
+          return acc;
+        },
+        {} as Record<string, [number, number]>,
       );
-      console.log(JSON.stringify(formattedMetrics, null, 4));
+      const performanceMetrics = await Promise.all(cdpSessions.map((e) => e.send('Performance.getMetrics')));
+      performanceMetrics.forEach((e, index) =>
+        e.metrics.forEach((metric) => {
+          if (METRIC_FILTER.includes(metric.name)) {
+            compareMetric[metric.name][clients[index].role === 'GUESSER' ? 1 : 0] += metric.value;
+          }
+        }),
+      );
+      Object.values(compareMetric).forEach((e) => {
+        e[0] /= drawers.length; //DRAWER 3명
+        e[1] /= clients.length - drawers.length; //GUESSER 2명
+      });
+      console.log(JSON.stringify(compareMetric, null, 4));
 
       // 테스트 종료
       await Promise.all(clients.map((e) => e.context.close()));
