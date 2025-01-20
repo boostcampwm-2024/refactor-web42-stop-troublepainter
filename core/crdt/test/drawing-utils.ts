@@ -1,10 +1,15 @@
 import { Page } from '@playwright/test';
 import { DrawingFunction } from './test-types';
 
-let SEED = 7777;
-function seedRandom() {
-  SEED = (SEED * 16807) % 2147483647;
-  return (SEED - 1) / 2147483646;
+let initialSeed = 825347;
+const seedMap = new Map();
+function seedRandom(key: any) {
+  if (!seedMap.has(key)) seedMap.set(key, initialSeed);
+  let seed = seedMap.get(key);
+  initialSeed *= 6807;
+  seed = (seed * 16807) % 2147483647;
+  seedMap.set(key, seed);
+  return (seed - 1) / 2147483646;
 }
 
 export async function clearCanvas(page: Page): Promise<void> {
@@ -172,14 +177,14 @@ export const drawingPatterns: Record<string, DrawingFunction> = {
   // 랜덤 드로잉 (Mouse events)
   randomByMouse: async (page: Page) => {
     const CANVAS_SELECTOR = 'canvas + canvas';
-    const canvas = await page.locator(CANVAS_SELECTOR);
+    const canvas = page.locator(CANVAS_SELECTOR);
     const box = await canvas.boundingBox();
     if (!box) throw new Error('Canvas not found');
 
     // 1. 랜덤 설정 적용
-    if (seedRandom() > 0.5) await selectRandomColor(page);
-    if (seedRandom() > 0.7) await setRandomLineWidth(page);
-    // if (seedRandom() > 0.8) await toggleFillMode(page);
+    if (seedRandom(page) > 0.5) await selectRandomColor(page);
+    if (seedRandom(page) > 0.7) await setRandomLineWidth(page);
+    // if (seedRandom(page) > 0.8) await toggleFillMode(page);
 
     const margin = {
       x: box.width * 0.05,
@@ -194,35 +199,35 @@ export const drawingPatterns: Record<string, DrawingFunction> = {
     };
 
     // 2. 랜덤 드로잉 패턴 선택
-    const patternType = Math.floor(seedRandom() * 4); // 0-3까지로 확장
+    const patternType = Math.floor(seedRandom(page) * 4); // 0-3까지로 확장
 
     switch (patternType) {
       case 0: // 단일 선
         {
           const startPoint = {
-            x: safeArea.x + seedRandom() * safeArea.width,
-            y: safeArea.y + seedRandom() * safeArea.height,
+            x: safeArea.x + seedRandom(page) * safeArea.width,
+            y: safeArea.y + seedRandom(page) * safeArea.height,
           };
           const endPoint = {
-            x: safeArea.x + seedRandom() * safeArea.width,
-            y: safeArea.y + seedRandom() * safeArea.height,
+            x: safeArea.x + seedRandom(page) * safeArea.width,
+            y: safeArea.y + seedRandom(page) * safeArea.height,
           };
 
-          await page.dispatchEvent(CANVAS_SELECTOR, 'mousedown', {
+          await canvas.dispatchEvent('mousedown', {
             bubbles: true,
             cancelable: true,
             clientX: startPoint.x,
             clientY: startPoint.y,
           });
 
-          await page.dispatchEvent(CANVAS_SELECTOR, 'mousemove', {
+          await canvas.dispatchEvent('mousemove', {
             bubbles: true,
             cancelable: true,
             clientX: endPoint.x,
             clientY: endPoint.y,
           });
 
-          await page.dispatchEvent(CANVAS_SELECTOR, 'mouseup', {
+          await canvas.dispatchEvent('mouseup', {
             bubbles: true,
             cancelable: true,
             clientX: endPoint.x,
@@ -233,12 +238,12 @@ export const drawingPatterns: Record<string, DrawingFunction> = {
 
       case 1: // 여러 점 연결
         {
-          const points = Array.from({ length: Math.floor(seedRandom() * 5) + 3 }, () => ({
-            x: safeArea.x + seedRandom() * safeArea.width,
-            y: safeArea.y + seedRandom() * safeArea.height,
+          const points = Array.from({ length: Math.floor(seedRandom(page) * 5) + 3 }, () => ({
+            x: safeArea.x + seedRandom(page) * safeArea.width,
+            y: safeArea.y + seedRandom(page) * safeArea.height,
           }));
 
-          await page.dispatchEvent(CANVAS_SELECTOR, 'mousedown', {
+          await canvas.dispatchEvent('mousedown', {
             bubbles: true,
             cancelable: true,
             clientX: points[0].x,
@@ -246,7 +251,7 @@ export const drawingPatterns: Record<string, DrawingFunction> = {
           });
 
           for (let i = 1; i < points.length; i++) {
-            await page.dispatchEvent(CANVAS_SELECTOR, 'mousemove', {
+            await canvas.dispatchEvent('mousemove', {
               bubbles: true,
               cancelable: true,
               clientX: points[i].x,
@@ -255,7 +260,7 @@ export const drawingPatterns: Record<string, DrawingFunction> = {
             await page.waitForTimeout(50);
           }
 
-          await page.dispatchEvent(CANVAS_SELECTOR, 'mouseup', {
+          await canvas.dispatchEvent('mouseup', {
             bubbles: true,
             cancelable: true,
             clientX: points[points.length - 1].x,
@@ -272,12 +277,12 @@ export const drawingPatterns: Record<string, DrawingFunction> = {
           const points = Array.from({ length: 20 }, (_, i) => {
             const angle = (i / 20) * Math.PI * 2;
             return {
-              x: centerX + Math.cos(angle) * radius * (0.8 + seedRandom() * 0.4),
-              y: centerY + Math.sin(angle) * radius * (0.8 + seedRandom() * 0.4),
+              x: centerX + Math.cos(angle) * radius * (0.8 + seedRandom(page) * 0.4),
+              y: centerY + Math.sin(angle) * radius * (0.8 + seedRandom(page) * 0.4),
             };
           });
 
-          await page.dispatchEvent(CANVAS_SELECTOR, 'mousedown', {
+          await canvas.dispatchEvent('mousedown', {
             bubbles: true,
             cancelable: true,
             clientX: points[0].x,
@@ -285,7 +290,7 @@ export const drawingPatterns: Record<string, DrawingFunction> = {
           });
 
           for (const point of points) {
-            await page.dispatchEvent(CANVAS_SELECTOR, 'mousemove', {
+            await canvas.dispatchEvent('mousemove', {
               bubbles: true,
               cancelable: true,
               clientX: point.x,
@@ -294,7 +299,7 @@ export const drawingPatterns: Record<string, DrawingFunction> = {
             await page.waitForTimeout(20);
           }
 
-          await page.dispatchEvent(CANVAS_SELECTOR, 'mouseup', {
+          await canvas.dispatchEvent('mouseup', {
             bubbles: true,
             cancelable: true,
             clientX: points[points.length - 1].x,
@@ -307,8 +312,8 @@ export const drawingPatterns: Record<string, DrawingFunction> = {
         return;
         {
           const fillPoint = {
-            x: safeArea.x + seedRandom() * safeArea.width,
-            y: safeArea.y + seedRandom() * safeArea.height,
+            x: safeArea.x + seedRandom(page) * safeArea.width,
+            y: safeArea.y + seedRandom(page) * safeArea.height,
           };
 
           // 채우기 모드 활성화
@@ -321,7 +326,7 @@ export const drawingPatterns: Record<string, DrawingFunction> = {
     }
 
     // 3. 랜덤하게 되돌리기/다시실행 수행
-    // if (seedRandom() > 0.9) {
+    // if (seedRandom(page) > 0.9) {
     //   await performUndoRedo(page);
     // }
   },
@@ -329,13 +334,13 @@ export const drawingPatterns: Record<string, DrawingFunction> = {
 
 async function selectRandomColor(page: Page): Promise<void> {
   const colors = ['검정', '분홍', '노랑', '하늘', '회색'];
-  const randomColor = colors[Math.floor(seedRandom() * colors.length)];
+  const randomColor = colors[Math.floor(seedRandom(page) * colors.length)];
   await page.getByLabel(`${randomColor} 색상 선택`).click();
 }
 
 async function setRandomLineWidth(page: Page): Promise<void> {
   await page.getByLabel('펜 모드').click();
-  const lineWidth = Math.floor(seedRandom() * 9) * 2 + 4; // 4-20 사이의 짝수 값
+  const lineWidth = Math.floor(seedRandom(page) * 9) * 2 + 4; // 4-20 사이의 짝수 값
   await page.getByLabel('선 굵기 조절').fill(lineWidth.toString());
 }
 
@@ -353,7 +358,7 @@ async function performUndoRedo(page: Page): Promise<void> {
     const redoButton = page.getByLabel('다시실행');
     const isRedoEnabled = await redoButton.isEnabled();
 
-    if (isRedoEnabled && seedRandom() > 0.5) {
+    if (isRedoEnabled && seedRandom(page) > 0.5) {
       await redoButton.click();
     }
   }
