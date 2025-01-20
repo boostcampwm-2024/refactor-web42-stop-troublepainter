@@ -1,7 +1,5 @@
-import { Browser, expect, Page } from '@playwright/test';
-import { DrawingClient, TEST_CONFIG } from './test-types';
+import { Page } from '@playwright/test';
 import { PNG } from 'pngjs';
-import { clearCanvas } from './drawing-utils';
 
 // export const compareCanvasPixels = async (basePage: Page, targetPage: Page): Promise<number> => {
 //   const getCanvasData = async (page: Page) => {
@@ -73,8 +71,8 @@ export const compareByPng = async (basePage: Page, targetPage: Page): Promise<nu
   // 임시 대기 시간 추가
   await Promise.all([basePage.waitForTimeout(100), targetPage.waitForTimeout(100)]);
 
-  const screenshot1 = await basePage.locator('canvas + canvas').screenshot();
-  const screenshot2 = await targetPage.locator('canvas + canvas').screenshot();
+  const screenshot1 = await basePage.locator('canvas:first-child').screenshot();
+  const screenshot2 = await targetPage.locator('canvas:first-child').screenshot();
 
   const img1 = PNG.sync.read(screenshot1);
   const img2 = PNG.sync.read(screenshot2);
