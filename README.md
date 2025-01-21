@@ -307,24 +307,21 @@
 
 <table align="center">
   <tr>
-    <th><a href="https://github.com/kwaksj329">곽수정</a></th>
-    <th><a href="https://github.com/rhino-ty">윤태연</a></th>
-    <th><a href="https://github.com/sweetyr928">유미라</a></th>
-    <th><a href="https://github.com/aeujoung">정다솔</a></th>
-    <th><a href="https://github.com/choiseona">최선아</a></th>
+    <th><a href="https://github.com/kwaksj329">김성환</a></th>
+    <th><a href="https://github.com/rhino-ty">김준기</a></th>
+    <th><a href="https://github.com/sweetyr928">김진</a></th>
+    <th><a href="https://github.com/aeujoung">서산</a></th>
   </tr>
   <tr>
-    <td><img src="https://github.com/user-attachments/assets/51fab285-bd79-420e-8626-c0ed8ee495e4" width="120" height="120"></td>
-    <td><img src="https://github.com/user-attachments/assets/7859d594-9d43-439a-a035-af040d1b368b" width="120" height="120"></td>
-    <td><img src="https://github.com/user-attachments/assets/c1abc9ca-780d-4677-825b-c18eed526fa1" width="120" height="120"></td>
-    <td><img src="https://github.com/user-attachments/assets/4c45e9b6-eb90-4257-bdfb-faf5b3eacde0" width="120" height="120"></td>
-    <td><img src="https://github.com/user-attachments/assets/b435b634-f676-407a-8fba-18c9bc1ace40" width="120" height="120"></td>
+    <td><img src="https://avatars.githubusercontent.com/u/52474291?v=4" width="150" height="150"></td>
+    <td><img src="https://avatars.githubusercontent.com/u/54887575?v=4" width="150" height="150"></td>
+    <td><img src="https://avatars.githubusercontent.com/u/80706216?v=4" width="150" height="150"></td>
+    <td><img src="https://avatars.githubusercontent.com/u/48199716?v=4" width="150" height="150"></td>
   </tr>
   <tr align="center">
-    <td>FE<br />👑 팀장</td>
-    <td>FE<br />부팀장</td>
-    <td>FE, BE<br />BE 팀장</td>
-    <td>FE<br />캔버스 팀장</td>
-    <td>FE<br />FE 팀장</td>
+    <td>BE</td>
+    <td>FE</td>
+    <td>BE</td>
+    <td>FE</td>
   </tr>
 </table>
