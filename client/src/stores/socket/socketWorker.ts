@@ -114,7 +114,6 @@ class SocketManager {
       console.warn(`Socket for namespace ${namespace} is not connected`);
       return;
     }
-
     socket.emit(event, ...args);
   }
 

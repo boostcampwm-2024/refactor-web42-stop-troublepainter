@@ -23,6 +23,7 @@ import { useTimerStore } from '@/stores/timer.store';
 import { checkTimerDifference } from '@/utils/checkTimerDifference';
 import { playerIdStorageUtils } from '@/utils/playerIdStorage';
 import { SOUND_IDS, SoundManager } from '@/utils/soundManager';
+// import { offGameEvent, onGameEvent } from '@/stores/socket/gameWorker.ts';
 
 /**
  * 게임 진행에 필요한 소켓 연결과 상태를 관리하는 Hook입니다.
@@ -89,16 +90,12 @@ export const useGameSocket = () => {
     const savedPlayerId = playerIdStorageUtils.getPlayerId(roomId);
     // console.log(savedPlayerId, roomId);
     if (savedPlayerId) {
-      gameSocketHandlers.reconnect({ playerId: savedPlayerId, roomId }).catch((error) => {
-        // 재연결 실패 시 계정 삭제
-        console.error('Reconnection failed:', error);
-        playerIdStorageUtils.removePlayerId(roomId);
-      });
+      gameSocketHandlers.reconnect({ playerId: savedPlayerId, roomId });
     }
     // savedPlayerId가 없다면 새로운 접속 시도
     else {
       playerIdStorageUtils.removeAllPlayerIds();
-      gameSocketHandlers.joinRoom({ roomId }).catch(console.error);
+      gameSocketHandlers.joinRoom({ roomId });
     }
 
     // 연결 해제 시 현재 방의 playerId만 제거
@@ -224,12 +221,14 @@ export const useGameSocket = () => {
     // 이벤트 리스너 등록
     Object.entries(handlers).forEach(([event, handler]) => {
       socket.on(event, handler);
+      // onGameEvent(event as any, handler);
     });
 
     return () => {
       // 이벤트 리스너 제거
       Object.entries(handlers).forEach(([event, handler]) => {
         socket.off(event, handler);
+        // offGameEvent(event as any, handler);
       });
     };
   }, [sockets.game, roomId]);

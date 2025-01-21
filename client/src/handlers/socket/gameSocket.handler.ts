@@ -2,70 +2,73 @@ import type {
   CRDTSyncMessage,
   CheckAnswerRequest,
   JoinRoomRequest,
-  JoinRoomResponse,
   ReconnectRequest,
   UpdateSettingsRequest,
 } from '@troublepainter/core';
 import { useSocketStore } from '@/stores/socket/socket.store';
+// import {
+//   gameSocketConnect,
+//   gameWorkerCheckAnswer,
+//   gameWorkerGameStart,
+//   gameWorkerJoinRoom,
+//   gameWorkerReconnectRoom,
+//   gameWorkerSubmitDrawing,
+//   gameWorkerUpdateSetting,
+// } from '@/stores/socket/gameWorker.ts';
 
 // socket 요청만 처리하는 핸들러
 export const gameSocketHandlers = {
-  joinRoom: (request: JoinRoomRequest): Promise<JoinRoomResponse> => {
+  joinRoom: (request: JoinRoomRequest) => {
     const socket = useSocketStore.getState().sockets.game;
     if (!socket) throw new Error('Socket not connected');
 
-    return new Promise(() => {
-      socket.emit('joinRoom', request);
-    });
+    socket.emit('joinRoom', request);
+    // gameSocketConnect();
+    //
+    // // 약간의 지연 후 joinRoom 실행
+    // setTimeout(() => {
+    //   gameWorkerJoinRoom(request);
+    // }, 100);
   },
 
-  reconnect: (request: ReconnectRequest): Promise<void> => {
+  reconnect: (request: ReconnectRequest) => {
     const socket = useSocketStore.getState().sockets.game;
     if (!socket) throw new Error('Socket not connected');
 
-    return new Promise(() => {
-      socket.emit('reconnect', request);
-    });
+    socket.emit('reconnect', request);
+    // gameWorkerReconnectRoom(request);
   },
 
-  updateSettings: (request: UpdateSettingsRequest): Promise<void> => {
+  updateSettings: (request: UpdateSettingsRequest) => {
     const socket = useSocketStore.getState().sockets.game;
     if (!socket) throw new Error('Socket not connected');
 
-    return new Promise((resolve) => {
-      socket.emit('updateSettings', request);
-      resolve();
-    });
+    socket.emit('updateSettings', request);
+    // gameWorkerUpdateSetting(request);
   },
 
-  gameStart: (): Promise<void> => {
+  gameStart: () => {
     const socket = useSocketStore.getState().sockets.game;
     if (!socket) throw new Error('Socket not connected');
 
-    return new Promise((resolve) => {
-      socket.emit('gameStart');
-      resolve();
-    });
+    socket.emit('gameStart');
+    // gameWorkerGameStart();
   },
 
-  checkAnswer: (request: CheckAnswerRequest): Promise<void> => {
+  checkAnswer: (request: CheckAnswerRequest) => {
     const socket = useSocketStore.getState().sockets.game;
     if (!socket) throw new Error('Socket not connected');
 
-    return new Promise((resolve) => {
-      socket.emit('checkAnswer', request);
-      resolve();
-    });
+    socket.emit('checkAnswer', request);
+    // gameWorkerCheckAnswer(request);
   },
 
-  submittedDrawing: (drawing: CRDTSyncMessage): Promise<void> => {
+  submittedDrawing: (drawing: CRDTSyncMessage) => {
     const socket = useSocketStore.getState().sockets.game;
     if (!socket) throw new Error('Socket not connected');
 
-    return new Promise((resolve) => {
-      socket.emit('submittedDrawing', { drawing });
-      resolve();
-    });
+    socket.emit('submittedDrawing', { drawing });
+    // gameWorkerSubmitDrawing(drawing);
   },
 
   // updatePlayerStatus: async (request) => {

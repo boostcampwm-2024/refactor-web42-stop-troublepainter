@@ -6,15 +6,15 @@ interface ChatAuth {
   playerId: string;
 }
 
-class WorkerManager {
-  private static instance: WorkerManager;
+class ChatWorkerManager {
+  private static instance: ChatWorkerManager;
   private worker: SharedWorker | null = null;
   private messageHandlers: Set<(e: MessageEvent) => void> = new Set();
   private connected: boolean = false;
   private auth: ChatAuth | null = null;
 
   private constructor() {
-    console.log('Initializing WorkerManager...');
+    console.log('Initializing ChatWorkerManager...');
     try {
       this.worker = new SharedWorker(new URL('./socketWorker.ts', import.meta.url), {
         type: 'module',
@@ -25,7 +25,7 @@ class WorkerManager {
       this.setupWorkerListeners();
       this.worker.port.start();
     } catch (error) {
-      console.error('Error initializing WorkerManager:', error);
+      console.error('Error initializing ChatWorkerManager:', error);
     }
   }
 
@@ -34,24 +34,26 @@ class WorkerManager {
     this.worker.port.onmessage = (e) => {
       const { type, namespace, connected, event, args } = e.data;
 
+      // CHAT 네임스페이스 이벤트만 처리
+      if (type === 'connection_update' || type === 'socket_event' || type === 'socket_error') {
+        if (namespace !== SocketNamespace.CHAT) return;
+      }
+
       switch (type) {
         case 'init':
-          console.log('초기 연결 상태:', e.data.connected);
-          this.connected = e.data.connected.chat;
+          this.connected = e.data.connected[SocketNamespace.CHAT] || false;
           break;
         case 'connection_update':
-          console.log(`${namespace} 연결 상태 변경:`, connected);
-          if (namespace === SocketNamespace.CHAT) {
-            this.connected = connected;
-          }
+          console.log('Chat connection status:', connected);
+          this.connected = connected;
           break;
         case 'socket_event':
           if (event === 'messageReceived') {
-            console.log('메시지 수신:', args[0]);
+            console.log('Chat message received:', args[0]);
           }
           break;
         case 'socket_error':
-          console.error(`${namespace} 에러 발생:`, e.data.error);
+          console.error('Chat socket error:', e.data.error);
           break;
       }
 
@@ -59,11 +61,11 @@ class WorkerManager {
     };
   }
 
-  public static getInstance(): WorkerManager {
-    if (!WorkerManager.instance) {
-      WorkerManager.instance = new WorkerManager();
+  public static getInstance(): ChatWorkerManager {
+    if (!ChatWorkerManager.instance) {
+      ChatWorkerManager.instance = new ChatWorkerManager();
     }
-    return WorkerManager.instance;
+    return ChatWorkerManager.instance;
   }
 
   public connect(auth: ChatAuth) {
@@ -71,7 +73,7 @@ class WorkerManager {
       console.error('Worker not initialized');
       return;
     }
-    console.log('Connecting to chat socket with auth:', auth);
+
     this.auth = auth;
 
     this.worker.port.postMessage({
@@ -130,10 +132,11 @@ class WorkerManager {
   }
 }
 
-export const workerManager = WorkerManager.getInstance();
+export const chatWorkerManager = ChatWorkerManager.getInstance();
 
-export const connectChat = (auth: ChatAuth) => workerManager.connect(auth);
-export const sendChatMessage = (message: string) => workerManager.sendChatMessage(message);
-export const addMessageHandler = (handler: (e: MessageEvent) => void) => workerManager.addMessageHandler(handler);
-export const removeMessageHandler = (handler: (e: MessageEvent) => void) => workerManager.removeMessageHandler(handler);
-export const disconnectChat = () => workerManager.disconnect();
+export const connectChat = (auth: ChatAuth) => chatWorkerManager.connect(auth);
+export const sendChatMessage = (message: string) => chatWorkerManager.sendChatMessage(message);
+export const addMessageHandler = (handler: (e: MessageEvent) => void) => chatWorkerManager.addMessageHandler(handler);
+export const removeMessageHandler = (handler: (e: MessageEvent) => void) =>
+  chatWorkerManager.removeMessageHandler(handler);
+export const disconnectChat = () => chatWorkerManager.disconnect();
