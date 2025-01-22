@@ -1,4 +1,11 @@
-import { MouseEvent as ReactMouseEvent, TouchEvent as ReactTouchEvent, useCallback, useEffect, useRef } from 'react';
+import {
+  memo,
+  MouseEvent as ReactMouseEvent,
+  TouchEvent as ReactTouchEvent,
+  useCallback,
+  useEffect,
+  useRef,
+} from 'react';
 import { PlayerRole, RoomStatus } from '@troublepainter/core';
 import { throttle } from 'lodash';
 import { Canvas } from '@/components/canvas/CanvasUI';
@@ -50,161 +57,163 @@ interface GameCanvasProps {
  *
  * @category Components
  */
-const GameCanvas = ({ role, maxPixels = DEFAULT_MAX_PIXELS, currentRound, roomStatus, isHidden }: GameCanvasProps) => {
-  const canvasRef = useRef<HTMLCanvasElement>(null);
-  const cursorCanvasRef = useRef<HTMLCanvasElement>(null);
-  const { convertCoordinate } = useCoordinateScale(MAINCANVAS_RESOLUTION_WIDTH, canvasRef);
+const GameCanvas = memo(
+  ({ role, maxPixels = DEFAULT_MAX_PIXELS, currentRound, roomStatus, isHidden }: GameCanvasProps) => {
+    const canvasRef = useRef<HTMLCanvasElement>(null);
+    const cursorCanvasRef = useRef<HTMLCanvasElement>(null);
+    const { convertCoordinate } = useCoordinateScale(MAINCANVAS_RESOLUTION_WIDTH, canvasRef);
 
-  const {
-    currentColor,
-    setCurrentColor,
-    brushSize,
-    setBrushSize,
-    drawingMode,
-    setDrawingMode,
-    inkRemaining,
-    startDrawing,
-    continueDrawing,
-    stopDrawing,
-    applyDrawing,
-    canUndo,
-    canRedo,
-    undo,
-    redo,
-    getAllDrawingData,
-    resetCanvas,
-  } = useDrawing(canvasRef, roomStatus, {
-    maxPixels,
-  });
+    const {
+      currentColor,
+      setCurrentColor,
+      brushSize,
+      setBrushSize,
+      drawingMode,
+      setDrawingMode,
+      inkRemaining,
+      startDrawing,
+      continueDrawing,
+      stopDrawing,
+      applyDrawing,
+      canUndo,
+      canRedo,
+      undo,
+      redo,
+      getAllDrawingData,
+      resetCanvas,
+    } = useDrawing(canvasRef, roomStatus, {
+      maxPixels,
+    });
 
-  useEffect(() => {
-    resetCanvas();
-  }, [currentRound, resetCanvas]);
+    useEffect(() => {
+      resetCanvas();
+    }, [currentRound, resetCanvas]);
 
-  const { isConnected } = useDrawingSocket({
-    onDrawUpdate: (response) => {
-      if (response.drawingData) {
-        applyDrawing(response.drawingData);
-      }
-    },
-    onSubmitRequest: () => {
-      if (!isConnected) return;
+    const { isConnected } = useDrawingSocket({
+      onDrawUpdate: (response) => {
+        if (response.drawingData) {
+          applyDrawing(response.drawingData);
+        }
+      },
+      onSubmitRequest: () => {
+        if (!isConnected) return;
 
-      const allDrawingData = getAllDrawingData();
-      if (!allDrawingData) return;
+        const allDrawingData = getAllDrawingData();
+        if (!allDrawingData) return;
 
-      void gameSocketHandlers.submittedDrawing(allDrawingData);
-    },
-  });
+        void gameSocketHandlers.submittedDrawing(allDrawingData);
+      },
+    });
 
-  const colorsWithSelect = COLORS_INFO.map((color) => ({
-    ...color,
-    isSelected: currentColor === color.backgroundColor,
-    onClick: () => setCurrentColor(color.backgroundColor),
-  }));
+    const colorsWithSelect = COLORS_INFO.map((color) => ({
+      ...color,
+      isSelected: currentColor === color.backgroundColor,
+      onClick: () => setCurrentColor(color.backgroundColor),
+    }));
 
-  const handleDrawStart = useCallback(
-    (e: ReactMouseEvent<HTMLCanvasElement> | ReactTouchEvent<HTMLCanvasElement>) => {
-      if (!isConnected) return;
+    const handleDrawStart = useCallback(
+      (e: ReactMouseEvent<HTMLCanvasElement> | ReactTouchEvent<HTMLCanvasElement>) => {
+        if (!isConnected) return;
 
-      const { canvas } = getCanvasContext(canvasRef);
-      const point = getDrawPoint(e, canvas);
-      const convertPoint = convertCoordinate(point);
+        const { canvas } = getCanvasContext(canvasRef);
+        const point = getDrawPoint(e, canvas);
+        const convertPoint = convertCoordinate(point);
 
-      const crdtDrawingData = startDrawing(convertPoint);
-      if (crdtDrawingData) {
-        void drawingSocketHandlers.sendDrawing(crdtDrawingData);
-      }
-    },
-    [startDrawing, convertCoordinate, isConnected],
-  );
+        const crdtDrawingData = startDrawing(convertPoint);
+        if (crdtDrawingData) {
+          void drawingSocketHandlers.sendDrawing(crdtDrawingData);
+        }
+      },
+      [startDrawing, convertCoordinate, isConnected],
+    );
 
-  const handleDrawMove = useCallback(
-    throttle((e: ReactMouseEvent<HTMLCanvasElement> | ReactTouchEvent<HTMLCanvasElement>) => {
-      const { canvas } = getCanvasContext(canvasRef);
-      const point = getDrawPoint(e, canvas);
-      const convertPoint = convertCoordinate(point);
+    const handleDrawMove = useCallback(
+      throttle((e: ReactMouseEvent<HTMLCanvasElement> | ReactTouchEvent<HTMLCanvasElement>) => {
+        const { canvas } = getCanvasContext(canvasRef);
+        const point = getDrawPoint(e, canvas);
+        const convertPoint = convertCoordinate(point);
 
-      handleInCanvas(cursorCanvasRef, convertPoint, brushSize);
+        handleInCanvas(cursorCanvasRef, convertPoint, brushSize);
 
-      const crdtDrawingData = continueDrawing(convertPoint);
-      if (crdtDrawingData) {
-        void drawingSocketHandlers.sendDrawing(crdtDrawingData);
-      }
-    }, 16),
-    [continueDrawing, convertCoordinate, isConnected],
-  );
+        const crdtDrawingData = continueDrawing(convertPoint);
+        if (crdtDrawingData) {
+          void drawingSocketHandlers.sendDrawing(crdtDrawingData);
+        }
+      }, 16),
+      [continueDrawing, convertCoordinate, isConnected],
+    );
 
-  const handleDrawLeave = useCallback(
-    (e: ReactMouseEvent<HTMLCanvasElement> | ReactTouchEvent<HTMLCanvasElement>) => {
-      const { canvas } = getCanvasContext(canvasRef);
-      const point = getDrawPoint(e, canvas);
-      const convertPoint = convertCoordinate(point);
+    const handleDrawLeave = useCallback(
+      (e: ReactMouseEvent<HTMLCanvasElement> | ReactTouchEvent<HTMLCanvasElement>) => {
+        const { canvas } = getCanvasContext(canvasRef);
+        const point = getDrawPoint(e, canvas);
+        const convertPoint = convertCoordinate(point);
 
-      const crdtDrawingData = continueDrawing(convertPoint);
-      if (crdtDrawingData) {
-        void drawingSocketHandlers.sendDrawing(crdtDrawingData);
-      }
+        const crdtDrawingData = continueDrawing(convertPoint);
+        if (crdtDrawingData) {
+          void drawingSocketHandlers.sendDrawing(crdtDrawingData);
+        }
 
-      handleOutCanvas(cursorCanvasRef);
+        handleOutCanvas(cursorCanvasRef);
+        stopDrawing();
+      },
+      [continueDrawing, handleOutCanvas, stopDrawing],
+    );
+
+    const handleDrawEnd = useCallback(() => {
       stopDrawing();
-    },
-    [continueDrawing, handleOutCanvas, stopDrawing],
-  );
+    }, [stopDrawing]);
 
-  const handleDrawEnd = useCallback(() => {
-    stopDrawing();
-  }, [stopDrawing]);
+    const handleUndo = useCallback(() => {
+      if (!isConnected) return;
+      const updates = undo();
+      if (!updates) return;
+      updates.forEach((update) => {
+        void drawingSocketHandlers.sendDrawing(update);
+      });
+    }, [undo, isConnected]);
 
-  const handleUndo = useCallback(() => {
-    if (!isConnected) return;
-    const updates = undo();
-    if (!updates) return;
-    updates.forEach((update) => {
-      void drawingSocketHandlers.sendDrawing(update);
-    });
-  }, [undo, isConnected]);
+    const handleRedo = useCallback(() => {
+      if (!isConnected) return;
+      const updates = redo();
+      if (!updates) return;
+      updates.forEach((update) => {
+        void drawingSocketHandlers.sendDrawing(update);
+      });
+    }, [redo, isConnected]);
 
-  const handleRedo = useCallback(() => {
-    if (!isConnected) return;
-    const updates = redo();
-    if (!updates) return;
-    updates.forEach((update) => {
-      void drawingSocketHandlers.sendDrawing(update);
-    });
-  }, [redo, isConnected]);
+    const canvasEventHandlers: CanvasEventHandlers = {
+      onMouseDown: handleDrawStart,
+      onMouseMove: handleDrawMove,
+      onMouseUp: handleDrawEnd,
+      onMouseLeave: handleDrawLeave,
+      onTouchStart: handleDrawStart,
+      onTouchMove: handleDrawMove,
+      onTouchEnd: handleDrawEnd,
+      onTouchCancel: handleDrawEnd,
+    };
 
-  const canvasEventHandlers: CanvasEventHandlers = {
-    onMouseDown: handleDrawStart,
-    onMouseMove: handleDrawMove,
-    onMouseUp: handleDrawEnd,
-    onMouseLeave: handleDrawLeave,
-    onTouchStart: handleDrawStart,
-    onTouchMove: handleDrawMove,
-    onTouchEnd: handleDrawEnd,
-    onTouchCancel: handleDrawEnd,
-  };
-
-  return (
-    <Canvas
-      canvasRef={canvasRef}
-      cursorCanvasRef={cursorCanvasRef}
-      isDrawable={(role === 'PAINTER' || role === 'DEVIL') && roomStatus === 'DRAWING'}
-      isHidden={isHidden}
-      colors={colorsWithSelect}
-      brushSize={brushSize}
-      setBrushSize={setBrushSize}
-      drawingMode={drawingMode}
-      onDrawingModeChange={setDrawingMode}
-      inkRemaining={inkRemaining}
-      maxPixels={maxPixels}
-      canUndo={canUndo}
-      canRedo={canRedo}
-      onUndo={handleUndo}
-      onRedo={handleRedo}
-      canvasEvents={canvasEventHandlers}
-    />
-  );
-};
+    return (
+      <Canvas
+        canvasRef={canvasRef}
+        cursorCanvasRef={cursorCanvasRef}
+        isDrawable={(role === 'PAINTER' || role === 'DEVIL') && roomStatus === 'DRAWING'}
+        isHidden={isHidden}
+        colors={colorsWithSelect}
+        brushSize={brushSize}
+        setBrushSize={setBrushSize}
+        drawingMode={drawingMode}
+        onDrawingModeChange={setDrawingMode}
+        inkRemaining={inkRemaining}
+        maxPixels={maxPixels}
+        canUndo={canUndo}
+        canRedo={canRedo}
+        onUndo={handleUndo}
+        onRedo={handleRedo}
+        canvasEvents={canvasEventHandlers}
+      />
+    );
+  },
+);
 
 export { GameCanvas };
