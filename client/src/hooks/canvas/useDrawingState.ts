@@ -1,5 +1,6 @@
 import { useCallback, useEffect, useRef, useState } from 'react';
 import { LWWMap } from '@troublepainter/core';
+import { throttle } from 'lodash';
 import { useParams } from 'react-router-dom';
 import { COLORS_INFO, DRAWING_MODE, LINEWIDTH_VARIABLE, DEFAULT_MAX_PIXELS } from '@/constants/canvasConstants';
 import { useToastStore } from '@/stores/toast.store';
@@ -101,18 +102,25 @@ export const useDrawingState = (options?: { maxPixels?: number }) => {
     setCanRedo(currentLocalIndex < localHistory.length - 1);
   }, [strokeHistoryRef, historyPointerRef, setCanUndo, setCanRedo]);
 
-  const checkInkAvailability = useCallback(() => {
-    if (inkRemaining <= 0) {
+  const showInkToast = useCallback(
+    throttle(() => {
       actions.addToast({
         title: '잉크 부족',
         description: '잉크를 다 써버렸어요 🥲😛😥',
         variant: 'error',
         duration: 2000,
       });
+    }, 3000),
+    [actions.addToast],
+  );
+
+  const checkInkAvailability = useCallback(() => {
+    if (inkRemaining <= 0) {
+      showInkToast();
       return false;
     }
     return true;
-  }, [inkRemaining, actions.addToast]);
+  }, [inkRemaining, actions.addToast, showInkToast]);
 
   const resetDrawingState = useCallback(() => {
     // CRDT 초기화
