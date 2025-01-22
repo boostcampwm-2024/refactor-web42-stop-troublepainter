@@ -214,7 +214,7 @@ export class GameService {
 
     let hostId = room.hostId;
     if (hostId === playerId) {
-      hostId = remainingPlayers[remainingPlayers.length - 1].playerId;
+      hostId = remainingPlayers[0].playerId;
       await this.gameRepository.updateRoom(roomId, { hostId });
     }
 
