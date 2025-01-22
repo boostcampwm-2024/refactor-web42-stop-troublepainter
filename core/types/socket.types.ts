@@ -151,7 +151,7 @@ export interface DrawRequest {
 
 export interface DrawUpdateResponse {
   playerId: string;
-  drawingData: CRDTMessage[];
+  drawingData: CRDTMessage;
 }
 
 export interface DrawTimeEndedResponse {
