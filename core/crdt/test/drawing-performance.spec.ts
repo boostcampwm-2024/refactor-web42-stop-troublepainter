@@ -25,7 +25,7 @@ async function setupTestRoom(baseUrl: string): Promise<TestClient[]> {
 
   // 호스트 설정
   const hostPage = await contexts[0].newPage();
-  await hostPage.goto(baseUrl);
+  await hostPage.goto(baseUrl, { waitUntil: 'commit' });
   await hostPage.getByRole('button', { name: '방 만들기' }).click();
   await hostPage.waitForURL('**/lobby/*');
   const roomUrl = hostPage.url();
@@ -41,7 +41,7 @@ async function setupTestRoom(baseUrl: string): Promise<TestClient[]> {
     ...(await Promise.all(
       contexts.slice(1).map(async (context) => {
         const page = await context.newPage();
-        await page.goto(roomUrl);
+        await page.goto(roomUrl, { waitUntil: 'load' });
         return {
           page,
           context,
