@@ -92,7 +92,14 @@ const GameCanvas = memo(
     const { isConnected } = useDrawingSocket({
       onDrawUpdate: (response) => {
         if (response.drawingData) {
-          applyDrawing(response.drawingData);
+          let i = 0;
+          // 부드럽게 렌더링
+          const fn = () =>
+            requestAnimationFrame(() => {
+              applyDrawing(response.drawingData[i]);
+              if (++i < response.drawingData.length) fn();
+            });
+          fn();
         }
       },
       onSubmitRequest: () => {
