@@ -139,6 +139,23 @@ export const useDrawingState = (options?: { maxPixels?: number }) => {
     setCanRedo(false);
   }, [crdtRef, currentPlayerId, maxPixels, setInkRemaining, setCanUndo, setCanRedo]);
 
+  const inkRef = useRef(inkRemaining);
+  const throttleSetInkRemaining = useCallback(
+    (fn: (p: number) => number) => {
+      if (inkRemaining === 0) return;
+      const nextInk = fn(inkRef.current);
+      if (nextInk === 0) {
+        setInkRemaining(0);
+      } else if (inkRef.current === inkRemaining) {
+        setTimeout(() => {
+          if (inkRef.current > 0) setInkRemaining(inkRef.current);
+        }, 500);
+      }
+      inkRef.current = nextInk;
+    },
+    [inkRemaining, inkRef],
+  );
+
   return {
     currentPlayerId,
     currentColor,
@@ -148,7 +165,7 @@ export const useDrawingState = (options?: { maxPixels?: number }) => {
     drawingMode,
     setDrawingMode,
     inkRemaining,
-    setInkRemaining,
+    setInkRemaining: throttleSetInkRemaining,
     canUndo,
     canRedo,
     crdtRef,
