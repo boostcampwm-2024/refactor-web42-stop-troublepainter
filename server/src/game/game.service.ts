@@ -91,7 +91,7 @@ export class GameService {
 
     await this.gameRepository.addPlayerToRoom(roomId, playerId, player);
 
-    const updatedPlayers = [player, ...players].reverse();
+    const updatedPlayers = [...players, player];
 
     return { room, roomSettings, player, players: updatedPlayers };
   }
@@ -130,7 +130,7 @@ export class GameService {
 
     await this.gameRepository.addPlayerToRoom(roomId, playerId, player);
 
-    const updatedPlayers = [player, ...players].reverse();
+    const updatedPlayers = [...players, player];
 
     return { room, roomSettings, player, players: updatedPlayers };
   }

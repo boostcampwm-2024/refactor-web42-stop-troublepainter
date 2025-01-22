@@ -78,7 +78,8 @@ export class GameRepository {
 
   async addPlayerToRoom(roomId: string, playerId: string, player: Player) {
     const multi = this.redisService.multi();
-    multi.lpush(`room:${roomId}:players`, playerId);
+    // multi.lpush(`room:${roomId}:players`, playerId);
+    multi.rpush(`room:${roomId}:players`, playerId);
     multi.hset(`room:${roomId}:players:${playerId}`, player);
     await multi.exec();
   }
