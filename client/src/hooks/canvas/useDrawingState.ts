@@ -99,7 +99,7 @@ export const useDrawingState = (options?: { maxPixels?: number }) => {
 
     setCanUndo(currentLocalIndex >= 0);
     setCanRedo(currentLocalIndex < localHistory.length - 1);
-  }, []);
+  }, [strokeHistoryRef, historyPointerRef, setCanUndo, setCanRedo]);
 
   const checkInkAvailability = useCallback(() => {
     if (inkRemaining <= 0) {
@@ -112,7 +112,7 @@ export const useDrawingState = (options?: { maxPixels?: number }) => {
       return false;
     }
     return true;
-  }, [inkRemaining, actions]);
+  }, [inkRemaining, actions.addToast]);
 
   const resetDrawingState = useCallback(() => {
     // CRDT 초기화
@@ -129,7 +129,7 @@ export const useDrawingState = (options?: { maxPixels?: number }) => {
     // Undo/Redo 상태 초기화
     setCanUndo(false);
     setCanRedo(false);
-  }, [currentPlayerId, maxPixels]);
+  }, [crdtRef, currentPlayerId, maxPixels, setInkRemaining, setCanUndo, setCanRedo]);
 
   return {
     currentPlayerId,

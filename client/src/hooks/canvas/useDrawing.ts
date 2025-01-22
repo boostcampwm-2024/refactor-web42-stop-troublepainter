@@ -95,7 +95,7 @@ export const useDrawing = (
       style: operation.getCurrentStyle(),
       timestamp: Date.now(),
     }),
-    [operation],
+    [operation.getCurrentStyle],
   );
 
   const renderStroke = useCallback(
@@ -110,7 +110,7 @@ export const useDrawing = (
         }
       }
     },
-    [operation],
+    [operation.redrawCanvas, operation.applyFill, operation.drawStroke],
   );
 
   const startDrawing = useCallback(
@@ -139,7 +139,15 @@ export const useDrawing = (
         },
       };
     },
-    [state, operation, createDrawingData, renderStroke],
+    [
+      state.checkInkAvailability,
+      state.crdtRef,
+      state.drawingMode,
+      state.currentStrokeIdsRef,
+      operation.floodFill,
+      createDrawingData,
+      renderStroke,
+    ],
   );
 
   const continueDrawing = useCallback(
@@ -172,7 +180,15 @@ export const useDrawing = (
         },
       };
     },
-    [state, createDrawingData, renderStroke],
+    [
+      state.crdtRef,
+      state.inkRemaining,
+      state.drawingMode,
+      state.setInkRemaining,
+      state.currentStrokeIdsRef,
+      createDrawingData,
+      renderStroke,
+    ],
   );
 
   const stopDrawing = useCallback(() => {
@@ -196,7 +212,13 @@ export const useDrawing = (
     currentDrawingPoints.current = [];
     state.currentStrokeIdsRef.current = [];
     state.updateHistoryState();
-  }, [state]);
+  }, [
+    state.crdtRef,
+    state.currentStrokeIdsRef,
+    state.historyPointerRef,
+    state.strokeHistoryRef,
+    state.updateHistoryState,
+  ]);
 
   const undo = useCallback((): CRDTUpdateMessage[] | null => {
     if (!state.crdtRef.current || state.historyPointerRef.current < 0) return null;
@@ -330,7 +352,17 @@ export const useDrawing = (
         }
       }
     },
-    [state.currentPlayerId, operation, roomStatus],
+    [
+      state.crdtRef,
+      state.strokeHistoryRef,
+      state.historyPointerRef,
+      state.updateHistoryState,
+      state.currentPlayerId,
+      operation.redrawCanvas,
+      operation.applyFill,
+      operation.drawStroke,
+      roomStatus,
+    ],
   );
 
   const getAllDrawingData = useCallback((): CRDTSyncMessage | null => {
