@@ -1,5 +1,6 @@
 import { MouseEvent as ReactMouseEvent, TouchEvent as ReactTouchEvent, useCallback, useEffect, useRef } from 'react';
 import { PlayerRole, RoomStatus } from '@troublepainter/core';
+import { throttle } from 'lodash';
 import { Canvas } from '@/components/canvas/CanvasUI';
 import { COLORS_INFO, DEFAULT_MAX_PIXELS, MAINCANVAS_RESOLUTION_WIDTH } from '@/constants/canvasConstants';
 import { handleInCanvas, handleOutCanvas } from '@/handlers/canvas/cursorInOutHandler';
@@ -119,7 +120,7 @@ const GameCanvas = ({ role, maxPixels = DEFAULT_MAX_PIXELS, currentRound, roomSt
   );
 
   const handleDrawMove = useCallback(
-    (e: ReactMouseEvent<HTMLCanvasElement> | ReactTouchEvent<HTMLCanvasElement>) => {
+    throttle((e: ReactMouseEvent<HTMLCanvasElement> | ReactTouchEvent<HTMLCanvasElement>) => {
       const { canvas } = getCanvasContext(canvasRef);
       const point = getDrawPoint(e, canvas);
       const convertPoint = convertCoordinate(point);
@@ -130,7 +131,7 @@ const GameCanvas = ({ role, maxPixels = DEFAULT_MAX_PIXELS, currentRound, roomSt
       if (crdtDrawingData) {
         void drawingSocketHandlers.sendDrawing(crdtDrawingData);
       }
-    },
+    }, 16),
     [continueDrawing, convertCoordinate, isConnected],
   );
 
