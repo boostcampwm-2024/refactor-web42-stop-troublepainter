@@ -27,6 +27,8 @@
     "@nestjs/platform-socket.io": "^10.4.7",
     "@nestjs/websockets": "^10.4.7",
     "@troublepainter/core": "workspace:*",
+    "artillery": "^2.0.22",
+    "artillery-engine-socketio-v3": "^1.2.0",
     "axios": "^1.7.7",
     "ioredis": "^5.4.1",
     "jest-mock": "^29.7.0",

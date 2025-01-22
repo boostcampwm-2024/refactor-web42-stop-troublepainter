@@ -91,7 +91,46 @@ export class GameService {
 
     await this.gameRepository.addPlayerToRoom(roomId, playerId, player);
 
-    const updatedPlayers = [player, ...players].reverse();
+    const updatedPlayers = [...players, player];
+
+    return { room, roomSettings, player, players: updatedPlayers };
+  }
+
+  async testJoinRoom(roomId: string, playerId: string) {
+    const [room, roomSettings, players] = await Promise.all([
+      this.gameRepository.getRoom(roomId),
+      this.gameRepository.getRoomSettings(roomId),
+      this.gameRepository.getRoomPlayers(roomId),
+    ]);
+
+    if (!room) throw new RoomNotFoundException();
+    if (room.status === RoomStatus.GUESSING || room.status === RoomStatus.DRAWING) {
+      throw new GameAlreadyStartedException('Cannot join room while game is in progress');
+    }
+    if (!roomSettings) throw new RoomNotFoundException('Room settings not found');
+    if (players.length >= roomSettings.maxPlayers) {
+      throw new RoomFullException('Room is full');
+    }
+
+    const nickname = this.generateNickname();
+    const player: Player = {
+      playerId,
+      role: null,
+      status: PlayerStatus.NOT_PLAYING,
+      nickname,
+      profileImage: `https://api.dicebear.com/9.x/pixel-art/svg?seed=${nickname}`,
+      score: 0,
+    };
+
+    const isFirstPlayer = players.length === 0;
+    if (isFirstPlayer) {
+      room.hostId = playerId;
+      await this.gameRepository.updateRoom(roomId, { hostId: playerId });
+    }
+
+    await this.gameRepository.addPlayerToRoom(roomId, playerId, player);
+
+    const updatedPlayers = [...players, player];
 
     return { room, roomSettings, player, players: updatedPlayers };
   }
@@ -175,7 +214,7 @@ export class GameService {
 
     let hostId = room.hostId;
     if (hostId === playerId) {
-      hostId = remainingPlayers[remainingPlayers.length - 1].playerId;
+      hostId = remainingPlayers[0].playerId;
       await this.gameRepository.updateRoom(roomId, { hostId });
     }
 
