@@ -37,7 +37,7 @@ export const useGameStart = () => {
 
   const handleStartGame = useCallback(() => {
     if (!room || buttonConfig.disabled || !room.roomId || !currentPlayerId) return;
-    void gameSocketHandlers.gameStart();
+    gameSocketHandlers.gameStart();
     setIsStarting(true);
   }, [room, buttonConfig.disabled, room?.roomId, currentPlayerId]);
 
