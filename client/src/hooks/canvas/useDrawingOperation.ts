@@ -82,29 +82,54 @@ export const useDrawingOperation = (
     [currentColor, brushSize],
   );
 
-  const drawStroke = useCallback((drawingData: DrawingData) => {
-    const { ctx } = getCanvasContext(canvasRef);
-    const { points, style } = drawingData;
+  const drawStroke = useCallback(
+    (drawingData: DrawingData) => {
+      const { ctx } = getCanvasContext(canvasRef);
+      const { points, style } = drawingData;
 
-    if (points.length === 0) return;
+      if (points.length === 0) return;
 
-    ctx.strokeStyle = style.color;
-    ctx.fillStyle = style.color;
-    ctx.lineWidth = style.width;
-    ctx.beginPath();
-    ctx.lineCap = 'round';
-    ctx.lineJoin = 'round';
+      ctx.strokeStyle = style.color;
+      ctx.fillStyle = style.color;
+      ctx.lineWidth = style.width;
+      ctx.beginPath();
+      ctx.lineCap = 'round';
+      ctx.lineJoin = 'round';
 
-    if (points.length === 1) {
-      const point = points[0];
-      ctx.arc(point.x, point.y, style.width / 2, 0, Math.PI * 2);
-      ctx.fill();
-    } else {
-      ctx.moveTo(points[0].x, points[0].y);
-      points.slice(1).forEach((point) => ctx.lineTo(point.x, point.y));
-      ctx.stroke();
-    }
-  }, []);
+      if (points.length === 1) {
+        const point = points[0];
+        ctx.arc(point.x, point.y, style.width / 2, 0, Math.PI * 2);
+        ctx.fill();
+      } else {
+        ctx.moveTo(points[0].x, points[0].y);
+        points.slice(1).forEach((point) => ctx.lineTo(point.x, point.y));
+        ctx.stroke();
+      }
+    },
+    [canvasRef],
+  );
+
+  const applyFill = useCallback(
+    (drawingData: DrawingData) => {
+      const { canvas, ctx } = getCanvasContext(canvasRef);
+      const { points, style } = drawingData;
+
+      if (points.length === 0) return;
+
+      const color = hexToRGBA(style.color);
+
+      const imageData = ctx.getImageData(0, 0, canvas.width, canvas.height);
+      const data = imageData.data;
+
+      points.forEach(({ x, y }) => {
+        const pos = (y * canvas.width + x) * 4;
+        fillTargetColor(pos, color, data);
+      });
+
+      ctx.putImageData(imageData, 0, 0);
+    },
+    [canvasRef],
+  );
 
   const redrawCanvas = useCallback(() => {
     if (!state.crdtRef.current) return;
@@ -117,26 +142,7 @@ export const useDrawingOperation = (
       if (stroke.points.length > 2) applyFill(stroke);
       else drawStroke(stroke);
     }
-  }, [drawStroke]);
-
-  const applyFill = (drawingData: DrawingData) => {
-    const { canvas, ctx } = getCanvasContext(canvasRef);
-    const { points, style } = drawingData;
-
-    if (points.length === 0) return;
-
-    const color = hexToRGBA(style.color);
-
-    const imageData = ctx.getImageData(0, 0, canvas.width, canvas.height);
-    const data = imageData.data;
-
-    points.forEach(({ x, y }) => {
-      const pos = (y * canvas.width + x) * 4;
-      fillTargetColor(pos, color, data);
-    });
-
-    ctx.putImageData(imageData, 0, 0);
-  };
+  }, [drawStroke, applyFill, state.crdtRef, canvasRef]);
 
   const floodFill = useCallback(
     (startX: number, startY: number) => {
@@ -199,13 +205,13 @@ export const useDrawingOperation = (
         timestamp: Date.now(),
       };
     },
-    [currentColor, inkRemaining, getCurrentStyle, setInkRemaining],
+    [canvasRef, currentColor, inkRemaining, getCurrentStyle, setInkRemaining],
   );
 
   const clearCanvas = useCallback(() => {
     const { canvas, ctx } = getCanvasContext(canvasRef);
     ctx.clearRect(0, 0, canvas.width, canvas.height);
-  }, []);
+  }, [canvasRef]);
 
   return {
     getCurrentStyle,

@@ -44,9 +44,9 @@ export const useCoordinateScale = (resolutionWidth: number, canvas: RefObject<HT
     };
   }, []);
 
-  const convertCoordinate = ({ x, y }: Point): Point => {
+  const convertCoordinate = useCallback(({ x, y }: Point): Point => {
     return { x: x * coordinateScale.current, y: y * coordinateScale.current };
-  };
+  }, []);
 
   return { coordinateScale, convertCoordinate };
 };
