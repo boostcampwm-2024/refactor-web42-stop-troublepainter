@@ -29,28 +29,36 @@ import { addMessageHandler, connectChat, disconnectChat, removeMessageHandler } 
  * sendMessage("안녕하세요");
  * ```
  */
+let isConnected = false;
+
 export const useChatSocket = () => {
   const { roomId } = useParams<{ roomId: string }>();
-  // const sockets = useSocketStore((state) => state.sockets);
-  // const socketActions = useSocketStore((state) => state.actions);
   const currentPlayerId = useGameSocketStore((state) => state.currentPlayerId);
   const chatActions = useChatSocketStore((state) => state.actions);
 
+  // const currentRoomRef = useRef<string | null>(null);
+
   useEffect(() => {
+    // console.log('Ref: ', currentRoomRef.current, 'player id: ', currentPlayerId, 'roomiD: ', roomId);
     if (!roomId || !currentPlayerId) return;
 
-    connectChat({
-      roomId,
-      playerId: currentPlayerId,
-    });
+    // 아직 연결되지 않은 경우에만 연결 시도
+    if (!isConnected) {
+      isConnected = true;
+      // currentRoomRef.current = roomId;
+      connectChat({
+        roomId,
+        playerId: currentPlayerId,
+      });
+    }
 
     return () => {
       disconnectChat();
       chatActions.clearMessages();
+      isConnected = false;
     };
   }, [roomId, currentPlayerId, chatActions]);
 
-  // 메시지 수신 이벤트 리스너
   useEffect(() => {
     if (!currentPlayerId) return;
 

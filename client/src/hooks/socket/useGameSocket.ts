@@ -17,13 +17,19 @@ import { useNavigate, useParams } from 'react-router-dom';
 import entrySound from '@/assets/sounds/entry-sound-effect.mp3';
 import { gameSocketHandlers } from '@/handlers/socket/gameSocket.handler';
 import { useGameSocketStore } from '@/stores/socket/gameSocket.store';
-import { SocketNamespace } from '@/stores/socket/socket.config';
-import { useSocketStore } from '@/stores/socket/socket.store';
+// import { SocketNamespace } from '@/stores/socket/socket.config';
+// import { useSocketStore } from '@/stores/socket/socket.store';
 import { useTimerStore } from '@/stores/timer.store';
 import { checkTimerDifference } from '@/utils/checkTimerDifference';
 import { playerIdStorageUtils } from '@/utils/playerIdStorage';
 import { SOUND_IDS, SoundManager } from '@/utils/soundManager';
-// import { offGameEvent, onGameEvent } from '@/stores/socket/gameWorker.ts';
+import {
+  gameSocketConnect,
+  gameSocketDisconnect,
+  gameSocketIsConnected,
+  offGameEvent,
+  onGameEvent,
+} from '@/stores/socket/gameWorker.ts';
 
 /**
  * 게임 진행에 필요한 소켓 연결과 상태를 관리하는 Hook입니다.
@@ -73,53 +79,49 @@ import { SOUND_IDS, SoundManager } from '@/utils/soundManager';
  */
 export const useGameSocket = () => {
   const { roomId } = useParams<{ roomId: string }>();
-  const { sockets, actions: socketActions } = useSocketStore();
+  // const { sockets, actions: socketActions } = useSocketStore();
   const gameActions = useGameSocketStore((state) => state.actions);
   const timerActions = useTimerStore((state) => state.actions);
   const navigate = useNavigate();
 
   // 연결 + 재연결 시도
   useEffect(() => {
-    // roomId가 없으면 연결하지 않음
     if (!roomId) return;
 
-    // 소켓 연결
-    socketActions.connect(SocketNamespace.GAME);
-
-    // 현재 방의 연결 정보 처리
-    const savedPlayerId = playerIdStorageUtils.getPlayerId(roomId);
-    // console.log(savedPlayerId, roomId);
-    if (savedPlayerId) {
-      gameSocketHandlers.reconnect({ playerId: savedPlayerId, roomId });
-    }
-    // savedPlayerId가 없다면 새로운 접속 시도
-    else {
-      playerIdStorageUtils.removeAllPlayerIds();
-      gameSocketHandlers.joinRoom({ roomId });
+    if (gameSocketIsConnected() && !playerIdStorageUtils.getPlayerId(roomId)) {
+      // 현재 방의 연결 정보 처리
+      const savedPlayerId = playerIdStorageUtils.getPlayerId(roomId);
+      if (savedPlayerId) {
+        gameSocketHandlers.reconnect({ playerId: savedPlayerId, roomId });
+      } else {
+        playerIdStorageUtils.removeAllPlayerIds();
+        gameSocketHandlers.joinRoom({ roomId });
+      }
     }
 
     // 연결 해제 시 현재 방의 playerId만 제거
     return () => {
-      socketActions.disconnect(SocketNamespace.GAME);
+      gameSocketDisconnect();
       playerIdStorageUtils.removePlayerId(roomId);
     };
   }, [roomId]);
 
   // 컴포넌트 마운트 시 사운드 미리 로드
   useEffect(() => {
+    gameSocketConnect();
     const soundManager = SoundManager.getInstance();
     soundManager.preloadSound(SOUND_IDS.ENTRY, entrySound);
   }, []);
 
   useEffect(() => {
-    const socket = sockets.game;
-    if (!socket || !roomId) return;
+    if (!roomId) return;
 
     const soundManager = SoundManager.getInstance();
 
     const handlers = {
       joinedRoom: (response: JoinRoomResponse) => {
         const { room, roomSettings, players, playerId } = response;
+        console.log('joinRoom Res: ', response);
         gameActions.updateRoom(room);
         gameActions.updateRoomSettings({ ...roomSettings, drawTime: roomSettings.drawTime - 5 });
         gameActions.updatePlayers(players);
@@ -220,16 +222,14 @@ export const useGameSocket = () => {
 
     // 이벤트 리스너 등록
     Object.entries(handlers).forEach(([event, handler]) => {
-      socket.on(event, handler);
-      // onGameEvent(event as any, handler);
+      onGameEvent(event as any, handler);
     });
 
     return () => {
       // 이벤트 리스너 제거
       Object.entries(handlers).forEach(([event, handler]) => {
-        socket.off(event, handler);
-        // offGameEvent(event as any, handler);
+        offGameEvent(event as any, handler);
       });
     };
-  }, [sockets.game, roomId]);
+  }, [roomId]);
 };

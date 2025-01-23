@@ -33,7 +33,7 @@ class GameWorkerManager {
   private connected: boolean = false;
   private eventHandlers: Map<keyof GameEventMap, Set<Function>> = new Map();
   private constructor() {
-    console.log('Initializing ChatWorkerManager...');
+    console.log('Initializing GameWorkerManager...');
     try {
       this.worker = new SharedWorker(new URL('./socketWorker.ts', import.meta.url), {
         type: 'module',
@@ -174,6 +174,10 @@ class GameWorkerManager {
   public submittedDrawing(drawing: CRDTSyncMessage) {
     this.emitEvent('submittedDrawing', { drawing });
   }
+
+  public isConnected() {
+    return this.connected;
+  }
 }
 
 export const gameWorkerManager = GameWorkerManager.getInstance();
@@ -189,3 +193,4 @@ export const gameWorkerUpdateSetting = (request: UpdateSettingsRequest) => gameW
 export const gameWorkerGameStart = () => gameWorkerManager.gameStart();
 export const gameWorkerCheckAnswer = (request: CheckAnswerRequest) => gameWorkerManager.checkAnswer(request);
 export const gameWorkerSubmitDrawing = (drawing: CRDTSyncMessage) => gameWorkerManager.submittedDrawing(drawing);
+export const gameSocketIsConnected = () => gameWorkerManager.isConnected();

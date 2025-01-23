@@ -63,6 +63,7 @@ class SocketManager {
     });
 
     socket.onAny((eventName, ...args) => {
+      console.log('namespace:', namespace, 'event:', eventName, 'args:', args);
       this.broadcast({
         type: 'socket_event',
         namespace,

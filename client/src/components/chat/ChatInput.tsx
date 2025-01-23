@@ -1,5 +1,4 @@
-import { FormEvent, memo, useMemo, useRef, useState, useEffect } from 'react';
-import { useParams } from 'react-router-dom';
+import { FormEvent, memo, useMemo, useRef, useState } from 'react';
 import { PlayerRole, RoomStatus, type ChatResponse } from '@troublepainter/core';
 import { Input } from '@/components/ui/Input';
 import { chatSocketHandlers } from '@/handlers/socket/chatSocket.handler';
@@ -7,11 +6,8 @@ import { gameSocketHandlers } from '@/handlers/socket/gameSocket.handler';
 import { useShortcuts } from '@/hooks/useShortcuts';
 import { useChatSocketStore } from '@/stores/socket/chatSocket.store';
 import { useGameSocketStore } from '@/stores/socket/gameSocket.store';
-// import { useSocketStore } from '@/stores/socket/socket.store';
-import { connectChat } from '@/stores/socket/chatWorker.ts';
 
 export const ChatInput = memo(() => {
-  const { roomId } = useParams<{ roomId: string }>();
   const [inputMessage, setInputMessage] = useState('');
   const inputRef = useRef<HTMLInputElement | null>(null);
 
@@ -24,15 +20,15 @@ export const ChatInput = memo(() => {
   // 챗 액션
   const chatActions = useChatSocketStore((state) => state.actions);
 
-  // Socket 연결 설정
-  useEffect(() => {
-    if (!roomId || !currentPlayerId) return;
-
-    connectChat({
-      roomId,
-      playerId: currentPlayerId,
-    });
-  }, [roomId, currentPlayerId]);
+  // // Socket 연결 설정
+  // useEffect(() => {
+  //   if (!roomId || !currentPlayerId) return;
+  //
+  //   connectChat({
+  //     roomId,
+  //     playerId: currentPlayerId,
+  //   });
+  // }, [roomId, currentPlayerId]);
 
   const shouldDisableInput = useMemo(() => {
     const ispainters = roundAssignedRole !== PlayerRole.GUESSER;
