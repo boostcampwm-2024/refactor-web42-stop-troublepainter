@@ -84,6 +84,7 @@ export const useDrawingState = (options?: { maxPixels?: number }) => {
   const [inkRemaining, setInkRemaining] = useState(maxPixels);
   const [canUndo, setCanUndo] = useState(false);
   const [canRedo, setCanRedo] = useState(false);
+  const inkRef = useRef(inkRemaining);
 
   const crdtRef = useRef<LWWMap>();
   const strokeHistoryRef = useRef<StrokeHistoryEntry[]>([]);
@@ -133,18 +134,18 @@ export const useDrawingState = (options?: { maxPixels?: number }) => {
 
     // 잉크량 초기화
     setInkRemaining(maxPixels);
+    inkRef.current = maxPixels;
 
     // Undo/Redo 상태 초기화
     setCanUndo(false);
     setCanRedo(false);
   }, [crdtRef, currentPlayerId, maxPixels, setInkRemaining, setCanUndo, setCanRedo]);
 
-  const inkRef = useRef(inkRemaining);
   const throttleSetInkRemaining = useCallback(
     (fn: (p: number) => number) => {
       if (inkRemaining === 0) return;
       const nextInk = fn(inkRef.current);
-      if (nextInk === 0) {
+      if (nextInk <= 0) {
         setInkRemaining(0);
       } else if (inkRef.current === inkRemaining) {
         setTimeout(() => {
