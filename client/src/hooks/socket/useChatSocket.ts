@@ -3,8 +3,9 @@ import { ChatResponse } from '@troublepainter/core';
 import { useParams } from 'react-router-dom';
 import { useChatSocketStore } from '@/stores/socket/chatSocket.store';
 import { useGameSocketStore } from '@/stores/socket/gameSocket.store';
-import { SocketNamespace } from '@/stores/socket/socket.config';
-import { useSocketStore } from '@/stores/socket/socket.store';
+// import { SocketNamespace } from '@/stores/socket/socket.config';
+// import { useSocketStore } from '@/stores/socket/socket.store';
+import { addMessageHandler, connectChat, disconnectChat, removeMessageHandler } from '@/stores/socket/chatWorker.ts';
 
 /**
  * 채팅 소켓 연결과 메시지 처리를 관리하는 커스텀 훅입니다.
@@ -28,41 +29,52 @@ import { useSocketStore } from '@/stores/socket/socket.store';
  * sendMessage("안녕하세요");
  * ```
  */
+let isConnected = false;
+
 export const useChatSocket = () => {
   const { roomId } = useParams<{ roomId: string }>();
-  const sockets = useSocketStore((state) => state.sockets);
-  const socketActions = useSocketStore((state) => state.actions);
   const currentPlayerId = useGameSocketStore((state) => state.currentPlayerId);
   const chatActions = useChatSocketStore((state) => state.actions);
 
-  // Socket 연결 설정
+  // const currentRoomRef = useRef<string | null>(null);
+
   useEffect(() => {
+    // console.log('Ref: ', currentRoomRef.current, 'player id: ', currentPlayerId, 'roomiD: ', roomId);
     if (!roomId || !currentPlayerId) return;
 
-    socketActions.connect(SocketNamespace.CHAT, {
-      roomId,
-      playerId: currentPlayerId,
-    });
+    // 아직 연결되지 않은 경우에만 연결 시도
+    if (!isConnected) {
+      isConnected = true;
+      // currentRoomRef.current = roomId;
+      connectChat({
+        roomId,
+        playerId: currentPlayerId,
+      });
+    }
 
     return () => {
-      socketActions.disconnect(SocketNamespace.CHAT);
+      disconnectChat();
       chatActions.clearMessages();
+      isConnected = false;
     };
-  }, [roomId, currentPlayerId, socketActions]);
+  }, [roomId, currentPlayerId, chatActions]);
 
-  // 메시지 수신 이벤트 리스너
   useEffect(() => {
-    const socket = sockets.chat;
-    if (!socket || !currentPlayerId) return;
+    if (!currentPlayerId) return;
 
-    const handleMessageReceived = (response: ChatResponse) => {
-      chatActions.addMessage(response);
+    const messageHandler = (e: MessageEvent) => {
+      const { type, event, args } = e.data;
+
+      if (type === 'socket_event' && event === 'messageReceived' && args?.[0]) {
+        const messageData = args[0] as ChatResponse;
+        chatActions.addMessage(messageData);
+      }
     };
 
-    socket.on('messageReceived', handleMessageReceived);
+    addMessageHandler(messageHandler);
 
     return () => {
-      socket.off('messageReceived', handleMessageReceived);
+      removeMessageHandler(messageHandler);
     };
-  }, [sockets.chat, currentPlayerId, chatActions]);
+  }, [currentPlayerId, chatActions]);
 };

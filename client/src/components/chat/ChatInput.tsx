@@ -6,20 +6,29 @@ import { gameSocketHandlers } from '@/handlers/socket/gameSocket.handler';
 import { useShortcuts } from '@/hooks/useShortcuts';
 import { useChatSocketStore } from '@/stores/socket/chatSocket.store';
 import { useGameSocketStore } from '@/stores/socket/gameSocket.store';
-import { useSocketStore } from '@/stores/socket/socket.store';
 
 export const ChatInput = memo(() => {
   const [inputMessage, setInputMessage] = useState('');
   const inputRef = useRef<HTMLInputElement | null>(null);
 
   // 개별 Selector
-  const isConnected = useSocketStore((state) => state.connected.chat);
+  // const isConnected = useSocketStore((state) => state.connected.chat);
   const currentPlayerId = useGameSocketStore((state) => state.currentPlayerId);
   const players = useGameSocketStore((state) => state.players);
   const roomStatus = useGameSocketStore((state) => state.room?.status);
   const roundAssignedRole = useGameSocketStore((state) => state.roundAssignedRole);
   // 챗 액션
   const chatActions = useChatSocketStore((state) => state.actions);
+
+  // // Socket 연결 설정
+  // useEffect(() => {
+  //   if (!roomId || !currentPlayerId) return;
+  //
+  //   connectChat({
+  //     roomId,
+  //     playerId: currentPlayerId,
+  //   });
+  // }, [roomId, currentPlayerId]);
 
   const shouldDisableInput = useMemo(() => {
     const ispainters = roundAssignedRole !== PlayerRole.GUESSER;
@@ -29,7 +38,7 @@ export const ChatInput = memo(() => {
 
   const handleSubmit = (e: FormEvent) => {
     e.preventDefault();
-    if (!isConnected || !inputMessage.trim()) return;
+    if (!inputMessage.trim()) return;
     void chatSocketHandlers.sendMessage(inputMessage);
 
     const currentPlayer = players?.find((player) => player.playerId === currentPlayerId);
@@ -54,7 +63,6 @@ export const ChatInput = memo(() => {
     {
       key: 'CHAT',
       action: () => {
-        // 현재 포커스된 요소가 없거나, 포커스된 요소가 body라면 input을 포커싱
         const isNoFocusedElement = !document.activeElement || document.activeElement === document.body;
 
         if (isNoFocusedElement) {
@@ -74,7 +82,7 @@ export const ChatInput = memo(() => {
         value={inputMessage}
         onChange={(e) => setInputMessage(e.target.value)}
         placeholder="메시지를 입력하세요"
-        disabled={!isConnected || shouldDisableInput}
+        disabled={shouldDisableInput}
         autoComplete="off"
       />
     </form>
