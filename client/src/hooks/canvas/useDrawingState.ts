@@ -1,5 +1,6 @@
 import { useCallback, useEffect, useRef, useState } from 'react';
 import { LWWMap } from '@troublepainter/core';
+import { throttle } from 'lodash';
 import { useParams } from 'react-router-dom';
 import { COLORS_INFO, DRAWING_MODE, LINEWIDTH_VARIABLE, DEFAULT_MAX_PIXELS } from '@/constants/canvasConstants';
 import { useToastStore } from '@/stores/toast.store';
@@ -83,6 +84,7 @@ export const useDrawingState = (options?: { maxPixels?: number }) => {
   const [inkRemaining, setInkRemaining] = useState(maxPixels);
   const [canUndo, setCanUndo] = useState(false);
   const [canRedo, setCanRedo] = useState(false);
+  const inkRef = useRef(inkRemaining);
 
   const crdtRef = useRef<LWWMap>();
   const strokeHistoryRef = useRef<StrokeHistoryEntry[]>([]);
@@ -99,20 +101,27 @@ export const useDrawingState = (options?: { maxPixels?: number }) => {
 
     setCanUndo(currentLocalIndex >= 0);
     setCanRedo(currentLocalIndex < localHistory.length - 1);
-  }, []);
+  }, [strokeHistoryRef, historyPointerRef, setCanUndo, setCanRedo]);
 
-  const checkInkAvailability = useCallback(() => {
-    if (inkRemaining <= 0) {
+  const showInkToast = useCallback(
+    throttle(() => {
       actions.addToast({
         title: '잉크 부족',
         description: '잉크를 다 써버렸어요 🥲😛😥',
         variant: 'error',
         duration: 2000,
       });
+    }, 3000),
+    [actions.addToast],
+  );
+
+  const checkInkAvailability = useCallback(() => {
+    if (inkRemaining <= 0) {
+      showInkToast();
       return false;
     }
     return true;
-  }, [inkRemaining, actions]);
+  }, [inkRemaining, actions.addToast, showInkToast]);
 
   const resetDrawingState = useCallback(() => {
     // CRDT 초기화
@@ -125,11 +134,28 @@ export const useDrawingState = (options?: { maxPixels?: number }) => {
 
     // 잉크량 초기화
     setInkRemaining(maxPixels);
+    inkRef.current = maxPixels;
 
     // Undo/Redo 상태 초기화
     setCanUndo(false);
     setCanRedo(false);
-  }, [currentPlayerId, maxPixels]);
+  }, [crdtRef, currentPlayerId, maxPixels, setInkRemaining, setCanUndo, setCanRedo]);
+
+  const throttleSetInkRemaining = useCallback(
+    (fn: (p: number) => number) => {
+      if (inkRemaining === 0) return;
+      const nextInk = fn(inkRef.current);
+      if (nextInk <= 0) {
+        setInkRemaining(0);
+      } else if (inkRef.current === inkRemaining) {
+        setTimeout(() => {
+          if (inkRef.current > 0) setInkRemaining(inkRef.current);
+        }, 500);
+      }
+      inkRef.current = nextInk;
+    },
+    [inkRemaining, inkRef],
+  );
 
   return {
     currentPlayerId,
@@ -140,7 +166,7 @@ export const useDrawingState = (options?: { maxPixels?: number }) => {
     drawingMode,
     setDrawingMode,
     inkRemaining,
-    setInkRemaining,
+    setInkRemaining: throttleSetInkRemaining,
     canUndo,
     canRedo,
     crdtRef,

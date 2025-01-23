@@ -12,7 +12,8 @@
     "types": ["vitest/globals"],
     "paths": {
       "@/*": ["./*"]
-    }
+    },
+    "resolveJsonModule": true
   },
   "include": ["index.ts", "crdt/**/*", "types/**/*"],
   "exclude": ["node_modules", "dist"]

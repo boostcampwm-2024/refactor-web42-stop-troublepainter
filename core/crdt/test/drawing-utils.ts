@@ -24,7 +24,7 @@ export async function clearCanvas(page: Page): Promise<void> {
   });
 }
 
-async function drawWithFillMode(page: Page, point: { x: number; y: number }): Promise<void> {
+async function drawWithFillMode(page: Page, point: { x: number; y: number }) {
   // 채우기 모드에서는 mousedown 이벤트 하나만 필요
   await page.dispatchEvent('canvas', 'mousedown', {
     bubbles: true,
@@ -41,6 +41,46 @@ async function drawWithFillMode(page: Page, point: { x: number; y: number }): Pr
     clientX: point.x,
     clientY: point.y,
   });
+}
+
+export async function drawEventData(page: Page, eventData: any[]) {
+  const CANVAS_SELECTOR = 'canvas + canvas';
+  const canvas = page.locator(CANVAS_SELECTOR);
+  const box = await canvas.boundingBox();
+  if (!box) throw new Error('Canvas not found');
+
+  const margin = {
+    x: box.width * 0.05,
+    y: box.height * 0.05,
+  };
+
+  const safeArea = {
+    x: box.x + margin.x,
+    y: box.y + margin.y,
+    width: box.width - margin.x * 2,
+    height: box.height - margin.y * 2,
+  };
+
+  let delayOfDelay = 0;
+
+  for (const event of eventData) {
+    const [eventName, pos, delay] = event;
+    const convertedPos = [safeArea.x + pos[0] * safeArea.width, safeArea.y + pos[1] * safeArea.height];
+
+    canvas.dispatchEvent('mouse' + eventName, {
+      bubbles: true,
+      cancelable: true,
+      clientX: convertedPos[0],
+      clientY: convertedPos[1],
+    });
+
+    const startDelay = performance.now();
+    if (delay - delayOfDelay > 0) await new Promise((res) => setTimeout(res, delay - delayOfDelay));
+    delayOfDelay = Math.floor(performance.now() - startDelay) - delay;
+    if (delayOfDelay < 0) delayOfDelay = 0;
+  }
+
+  console.log('드로잉 종료');
 }
 
 export const drawingPatterns: Record<string, DrawingFunction> = {
