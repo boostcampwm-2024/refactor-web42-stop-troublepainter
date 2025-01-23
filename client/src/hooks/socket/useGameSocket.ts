@@ -23,13 +23,7 @@ import { useTimerStore } from '@/stores/timer.store';
 import { checkTimerDifference } from '@/utils/checkTimerDifference';
 import { playerIdStorageUtils } from '@/utils/playerIdStorage';
 import { SOUND_IDS, SoundManager } from '@/utils/soundManager';
-import {
-  gameSocketConnect,
-  gameSocketDisconnect,
-  gameSocketIsConnected,
-  offGameEvent,
-  onGameEvent,
-} from '@/stores/socket/gameWorker.ts';
+import { gameSocketConnect, gameSocketDisconnect, offGameEvent, onGameEvent } from '@/stores/socket/gameWorker.ts';
 
 /**
  * 게임 진행에 필요한 소켓 연결과 상태를 관리하는 Hook입니다.
@@ -84,19 +78,26 @@ export const useGameSocket = () => {
   const timerActions = useTimerStore((state) => state.actions);
   const navigate = useNavigate();
 
+  // 컴포넌트 마운트 시 사운드 미리 로드
+  useEffect(() => {
+    gameSocketConnect();
+    const soundManager = SoundManager.getInstance();
+    soundManager.preloadSound(SOUND_IDS.ENTRY, entrySound);
+  }, []);
+
   // 연결 + 재연결 시도
   useEffect(() => {
     if (!roomId) return;
-
-    if (gameSocketIsConnected() && !playerIdStorageUtils.getPlayerId(roomId)) {
-      // 현재 방의 연결 정보 처리
-      const savedPlayerId = playerIdStorageUtils.getPlayerId(roomId);
-      if (savedPlayerId) {
-        gameSocketHandlers.reconnect({ playerId: savedPlayerId, roomId });
-      } else {
-        playerIdStorageUtils.removeAllPlayerIds();
-        gameSocketHandlers.joinRoom({ roomId });
-      }
+    // connected : boolean
+    // console.log(gameSocketIsConnected(), playerIdStorageUtils.getPlayerId(roomId));
+    // if (gameSocketIsConnected() && !playerIdStorageUtils.getPlayerId(roomId)) {
+    // 현재 방의 연결 정보 처리
+    const savedPlayerId = playerIdStorageUtils.getPlayerId(roomId);
+    if (savedPlayerId) {
+      gameSocketHandlers.reconnect({ playerId: savedPlayerId, roomId });
+    } else {
+      playerIdStorageUtils.removeAllPlayerIds();
+      gameSocketHandlers.joinRoom({ roomId });
     }
 
     // 연결 해제 시 현재 방의 playerId만 제거
@@ -105,13 +106,6 @@ export const useGameSocket = () => {
       playerIdStorageUtils.removePlayerId(roomId);
     };
   }, [roomId]);
-
-  // 컴포넌트 마운트 시 사운드 미리 로드
-  useEffect(() => {
-    gameSocketConnect();
-    const soundManager = SoundManager.getInstance();
-    soundManager.preloadSound(SOUND_IDS.ENTRY, entrySound);
-  }, []);
 
   useEffect(() => {
     if (!roomId) return;

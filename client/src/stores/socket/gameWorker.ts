@@ -27,10 +27,16 @@ type GameEventMap = {
   gameEnded: (response: RoomEndResponse) => void;
 };
 
+type WaitingQueueType = {
+  event: string;
+  args: any[];
+};
+
 class GameWorkerManager {
   private static instance: GameWorkerManager;
   private worker: SharedWorker | null = null;
   private connected: boolean = false;
+  private waitingQueue: WaitingQueueType[] = [];
   private eventHandlers: Map<keyof GameEventMap, Set<Function>> = new Map();
   private constructor() {
     console.log('Initializing GameWorkerManager...');
@@ -64,6 +70,11 @@ class GameWorkerManager {
         case 'connection_update':
           console.log('Game connection status:', connected);
           this.connected = connected;
+          if (this.connected && this.waitingQueue.length) {
+            this.waitingQueue.forEach((v) => {
+              this.emitEvent(v.event, ...v.args);
+            });
+          }
           break;
         case 'socket_event':
           const handlers = this.eventHandlers.get(event as keyof GameEventMap);
@@ -120,6 +131,9 @@ class GameWorkerManager {
   public disconnect() {
     if (!this.worker) return;
     console.log('Disconnecting from game socket...');
+    if (this.waitingQueue.length) {
+      this.waitingQueue = [];
+    }
     this.worker.port.postMessage({
       type: 'disconnect',
       payload: {
@@ -138,6 +152,7 @@ class GameWorkerManager {
 
     if (!this.connected) {
       console.warn('Game socket is not connected');
+      this.waitingQueue.push({ event, args });
       return;
     }
 
