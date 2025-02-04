@@ -1,7 +1,7 @@
 services:
-  server:
+  server1:
     image: ${DOCKERHUB_USERNAME}/troublepainter-server:latest
-    container_name: troublepainter_server
+    container_name: server1
     environment:
       - NODE_ENV=production
       - REDIS_HOST=${REDIS_HOST}
@@ -10,6 +10,23 @@ services:
       - CLOVA_GATEWAY_KEY=${CLOVA_GATEWAY_KEY}
     networks:
       - app_network
+    extra_hosts:
+      - "host.docker.internal:host-gateway"
+    restart: unless-stopped
+
+  server2:
+    image: ${DOCKERHUB_USERNAME}/troublepainter-server:latest
+    container_name: server2
+    environment:
+      - NODE_ENV=production
+      - REDIS_HOST=${REDIS_HOST}
+      - REDIS_PORT=${REDIS_PORT}
+      - CLOVA_API_KEY=${CLOVA_API_KEY}
+      - CLOVA_GATEWAY_KEY=${CLOVA_GATEWAY_KEY}
+    networks:
+      - app_network
+    extra_hosts:
+      - "host.docker.internal:host-gateway"
     restart: unless-stopped
 
   nginx:
@@ -17,11 +34,13 @@ services:
     container_name: troublepainter_nginx
     volumes:
       - /etc/letsencrypt:/etc/letsencrypt
+      - nginx.conf:/etc/nginx/templates/default.conf.template
     ports:
       - "80:80"
       - "443:443"
     depends_on:
-      - server
+      - server1
+      - server2
     networks:
       - app_network
     restart: unless-stopped
