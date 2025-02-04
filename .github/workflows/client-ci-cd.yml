@@ -27,7 +27,7 @@ jobs:
           version: '9'
 
       - name: Install Dependencies
-        run: pnpm install --frozen-lockfile
+        run: pnpm install --frozen-lockfile --prod
 
       - name: Lint Client
         working-directory: ./client
@@ -47,7 +47,7 @@ jobs:
           password: ${{ secrets.DOCKERHUB_TOKEN }}
 
       - name: Build and Push Docker Image
-        uses: docker/build-push-action@v5
+        uses: docker/build-push-action@v6
         with:
           context: .
           file: ./Dockerfile.nginx
@@ -58,7 +58,7 @@ jobs:
             VITE_SOCKET_URL=${{secrets.VITE_SOCKET_URL}}
 
       - name: Deploy to Server
-        uses: appleboy/ssh-action@v1.0.0
+        uses: appleboy/ssh-action@v1.2.0
         with:
           host: ${{ secrets.SSH_HOST }}
           username: root
