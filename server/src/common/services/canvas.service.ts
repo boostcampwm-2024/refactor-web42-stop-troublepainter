@@ -46,6 +46,7 @@ export class CanvasService {
   }
 
   // 캔버스 이미지를 base64로 변환
+  // shared: 공용 캔버스 / 그외: 각 플레이어의 개인 캔버스
   async getImagesByBase64(roomId: string): Promise<Record<string, string>> {
     const lwwMap = this.crdtMap.get(roomId);
     if (!lwwMap) return;
@@ -97,6 +98,7 @@ export class CanvasService {
   }
 
   // 지워야하는 CRDT 메시지 반환
+  // 만약 공용 캔버스의 바운더리라면 playerId를 'shared'로 설정
   getEraseLineMessage(
     roomId: string,
     boundaryList: { playerId: string; boundary: { x: number; y: number }[] }[],
