@@ -23,11 +23,13 @@
     "format": "prettier --write .",
     "format:check": "prettier --check ."
   },
+  "dependencies": {
+    "tsup": "^8.0.0"
+  },
   "devDependencies": {
     "@playwright/test": "^1.49.0",
     "@types/pngjs": "^6.0.5",
     "pngjs": "^7.0.0",
-    "tsup": "^8.0.0",
     "typescript": "^5.0.0",
     "vitest": "^2.1.5"
   }
