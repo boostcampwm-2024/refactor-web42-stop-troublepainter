@@ -82,7 +82,6 @@ export const SOCKET_CONFIG = {
     reconnection: true,
     reconnectionAttempts: 5,
     reconnectionDelay: 1000,
-    transports: ['websocket'],
   },
   /** 네임스페이스별 경로 */
   PATHS: {
