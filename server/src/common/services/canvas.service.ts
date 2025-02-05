@@ -56,6 +56,8 @@ export class CanvasService {
 
     const sharedCanvas = PImage.make(MAINCANVAS_RESOLUTION_WIDTH, MAINCANVAS_RESOLUTION_HEIGHT);
     const sharedCtx = sharedCanvas.getContext('2d');
+    sharedCtx.fillStyle = 'white';
+    sharedCtx.fillRect(0, 0, MAINCANVAS_RESOLUTION_WIDTH, MAINCANVAS_RESOLUTION_HEIGHT);
     const individualCanvasMap: Record<string, { canvas: PImage.Bitmap; ctx: PImage.Context }> = {};
 
     // 그림 그리기
@@ -67,6 +69,8 @@ export class CanvasService {
       if (!individualCanvasMap[playerId]) {
         const canvas = PImage.make(MAINCANVAS_RESOLUTION_WIDTH, MAINCANVAS_RESOLUTION_HEIGHT);
         const ctx = canvas.getContext('2d');
+        ctx.fillStyle = 'white';
+        ctx.fillRect(0, 0, MAINCANVAS_RESOLUTION_WIDTH, MAINCANVAS_RESOLUTION_HEIGHT);
         individualCanvasMap[playerId] = { canvas, ctx };
       }
       this.drawStroke(individualCanvasMap[playerId].ctx, stroke);
