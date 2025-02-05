@@ -74,13 +74,13 @@ export class CanvasService {
 
     //그림을 base64 이미지로 변환
     const canvasList = [sharedCanvas, ...Object.values(individualCanvasMap).map(({ canvas }) => canvas)];
-    const resultKeyList = [null, ...Object.keys(individualCanvasMap)];
+    const resultKeyList = ['shared', ...Object.keys(individualCanvasMap)];
     const resultValueList = await Promise.all(
       canvasList.map(async (canvas) => {
         const passThroughStream = new PassThrough();
         const pngData = [];
         passThroughStream.on('data', (chunk) => pngData.push(chunk));
-        await PImage.encodePNGToStream(canvas, passThroughStream);
+        await PImage.encodeJPEGToStream(canvas, passThroughStream);
         const buf = Buffer.concat(pngData);
         return buf.toString('base64');
       }),
