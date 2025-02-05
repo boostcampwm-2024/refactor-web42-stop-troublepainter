@@ -1,5 +1,5 @@
 import { Injectable } from '@nestjs/common';
-import { LWWMap, CRDTMessage, CRDTMessageTypes } from '@troublepainter/core';
+import { LWWMap, CRDTMessage, CRDTMessageTypes, CRDTSyncMessage, MapState } from '@troublepainter/core';
 import { DrawingData } from '@troublepainter/core';
 import * as PImage from 'pureimage';
 import { PassThrough } from 'stream';
@@ -94,5 +94,54 @@ export class CanvasService {
       acc[key] = resultValueList[idx];
       return acc;
     }, {});
+  }
+
+  // 지워야하는 CRDT 메시지 반환
+  getEraseLineMessage(
+    roomId: string,
+    boundaryList: { playerId: string; boundary: { x: number; y: number }[] }[],
+  ): CRDTSyncMessage {
+    const lwwMap = this.crdtMap.get(roomId);
+    if (!lwwMap) return;
+    const lwwMapState = lwwMap.state;
+
+    // 점이 경계 안에 있는지 확인
+    const isPointInBoundary = (point: { x: number; y: number }, boundary: { x: number; y: number }[]) => {
+      const C = point;
+      const crossList = boundary.map((A, index) => {
+        const B = boundary[(index + 1) % boundary.length];
+        return (B.x - A.x) * (C.y - A.y) - (B.y - A.y) * (C.x - A.x);
+      });
+      return crossList.every((cross) => cross >= 0) || crossList.every((cross) => cross <= 0);
+    };
+
+    // 개인 캔버스의 바운더리와 겹치는 공용 캔버스 바운더리 제거
+    const sharedBoundaryList = boundaryList.filter(({ playerId }) => playerId === 'shared');
+    const individualBoundaryList = boundaryList.filter(({ playerId }) => playerId !== 'shared');
+    const filteredSharedBoundaryList = sharedBoundaryList.filter(({ boundary: sharedBoundary }) =>
+      individualBoundaryList.every(
+        ({ boundary: individualBoundary }) =>
+          sharedBoundary.every((point) => !isPointInBoundary(point, individualBoundary)) &&
+          individualBoundary.every((point) => !isPointInBoundary(point, sharedBoundary)),
+      ),
+    );
+
+    // 제거할 선 필터링
+    const newBoundaryList = [...individualBoundaryList, ...filteredSharedBoundaryList];
+    const resultMapState = lwwMap
+      .getActiveStrokes()
+      .filter(({ stroke, id }) =>
+        newBoundaryList.some(({ boundary, playerId }) => {
+          if (playerId !== lwwMapState[id].peerId && playerId !== 'shared') return false;
+          // 선의 점이 모두 경계 안에 있는지 확인
+          return stroke.points.every((strokePoint) => isPointInBoundary(strokePoint, boundary));
+        }),
+      )
+      .reduce((acc, { id, stroke }) => {
+        acc[id] = { peerId: lwwMapState[id].peerId, timestamp: stroke.timestamp, value: stroke, isDeactivated: true };
+        return acc;
+      }, {} as MapState);
+
+    return { type: CRDTMessageTypes.SYNC, state: resultMapState };
   }
 }
