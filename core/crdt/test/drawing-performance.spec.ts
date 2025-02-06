@@ -1,8 +1,8 @@
 import { test as base, Page, chromium, BrowserContext } from '@playwright/test';
 import { drawEventData } from './drawing-utils';
-import eventData1 from './event-data-1.json' assert { type: 'json' };
-import eventData2 from './event-data-2.json' assert { type: 'json' };
-import eventData3 from './event-data-3.json' assert { type: 'json' };
+import eventData1 from './drawing-performance/event-data-1.json' assert { type: 'json' };
+import eventData2 from './drawing-performance/event-data-2.json' assert { type: 'json' };
+import eventData3 from './drawing-performance/event-data-3.json' assert { type: 'json' };
 
 interface TestClient {
   page: Page;
