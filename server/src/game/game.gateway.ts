@@ -15,6 +15,9 @@ import { BadRequestException } from 'src/exceptions/game.exception';
 import { PlayerRole, RoomStatus, TerminationType } from 'src/common/enums/game.status.enum';
 import { TimerService } from 'src/common/services/timer.service';
 import { TimerType } from 'src/common/enums/game.timer.enum';
+import { CanvasService } from '../common/services/canvas.service';
+import { RedisService } from '../redis/redis.service';
+import { ClovaOcr } from '../common/clova-ocr';
 
 @WebSocketGateway({
   cors: '*',
@@ -32,6 +35,9 @@ export class GameGateway implements OnGatewayDisconnect {
   constructor(
     private readonly gameService: GameService,
     private readonly timerService: TimerService,
+    private readonly canvasService: CanvasService,
+    private readonly redisService: RedisService,
+    private readonly clovaOcr: ClovaOcr,
   ) {}
 
   @SubscribeMessage('joinRoom')
@@ -129,6 +135,13 @@ export class GameGateway implements OnGatewayDisconnect {
 
     await this.notifyPlayersRoundStart(roomId, room, roomSettings, roles, players);
 
+    // 라운드가 시작되면 가상 room 생성 및 pub/sub으로 데이터 수신 시작
+    this.canvasService.createRoom(roomId);
+    await this.redisService.subscribe(`drawing:${roomId}`, (message) => {
+      const { drawingData } = JSON.parse(message);
+      this.canvasService.applyDrawing(roomId, drawingData);
+    });
+
     await this.runTimer(roomId, roomSettings.drawTime * 1000, TimerType.DRAWING);
 
     const roomStatus = await this.gameService.handleDrawingTimeout(roomId);
@@ -136,9 +149,41 @@ export class GameGateway implements OnGatewayDisconnect {
       roomStatus,
     });
 
+    // drawing 시간이 종료되면, 이미지를 base64로 변환
+    const canvasImages = await this.canvasService.getImagesByBase64(roomId);
+
+    for (const [playerId, imageBase64] of Object.entries(canvasImages)) {
+      const ocrResult = await this.clovaOcr.doOCR(imageBase64);
+
+      // OCR 결과에서 텍스트 영역의 좌표 추출
+      const boundaries =
+        ocrResult.images[0].fields.map((field) => ({
+          playerId,
+          boundary: [
+            { x: field.boundingPoly.vertices[0].x, y: field.boundingPoly.vertices[0].y },
+            { x: field.boundingPoly.vertices[1].x, y: field.boundingPoly.vertices[1].y },
+            { x: field.boundingPoly.vertices[2].x, y: field.boundingPoly.vertices[2].y },
+            { x: field.boundingPoly.vertices[3].x, y: field.boundingPoly.vertices[3].y },
+          ],
+        })) || [];
+
+      if (boundaries.length > 0) {
+        // 텍스트가 있는 영역의 선 지우기
+        const eraseMessage = this.canvasService.getEraseLineMessage(roomId, boundaries);
+        this.server.to(roomId).emit('drawUpdated', {
+          playerId,
+          drawingData: eraseMessage,
+        });
+      }
+    }
+
     await this.runTimer(roomId, 15000, TimerType.GUESSING);
     const result = await this.gameService.handleGuessingTimeout(roomId);
     this.server.to(roomId).emit('roundEnded', result);
+
+    // 라운드가 종료되면 가상 room 제거 및 구독 해제
+    this.canvasService.removeRoom(roomId);
+    await this.redisService.unsubscribe(`drawing:${roomId}`);
 
     await this.runTimer(roomId, 10000, TimerType.ENDING);
     await this.startNewRound(roomId);

@@ -6,10 +6,12 @@ import { RedisModule } from 'src/redis/redis.module';
 import { GameRepository } from './game.repository';
 import { TimerService } from 'src/common/services/timer.service';
 import { ClovaClient } from 'src/common/clova-client';
+import { CanvasService } from '../common/services/canvas.service';
+import { ClovaOcr } from '../common/clova-ocr';
 
 @Module({
   imports: [RedisModule],
-  providers: [GameService, GameGateway, GameRepository, TimerService, ClovaClient],
+  providers: [GameService, GameGateway, GameRepository, TimerService, ClovaClient, CanvasService, ClovaOcr],
   controllers: [GameController],
 })
 export class GameModule {}
