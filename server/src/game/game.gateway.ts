@@ -170,10 +170,13 @@ export class GameGateway implements OnGatewayDisconnect {
       if (boundaries.length > 0) {
         // 텍스트가 있는 영역의 선 지우기
         const eraseMessage = this.canvasService.getEraseLineMessage(roomId, boundaries);
-        this.server.to(roomId).emit('drawUpdated', {
-          playerId,
-          drawingData: eraseMessage,
-        });
+        await this.redisService.publish(
+          `erasing:${roomId}`,
+          JSON.stringify({
+            playerId,
+            drawingData: eraseMessage,
+          }),
+        );
       }
     }
 
