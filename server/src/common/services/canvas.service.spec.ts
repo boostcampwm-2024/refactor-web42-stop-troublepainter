@@ -70,10 +70,8 @@ describe('CanvasService', () => {
   describe('applyDrawing', () => {
     it('should update CRDT state when a drawing is applied', () => {
       service.createRoom('room1');
+      CRDT_DATAS.forEach((crdtData) => service.applyDrawing('room1', crdtData.drawingData));
 
-      for (const crdtDate of CRDT_DATAS) {
-        service.applyDrawing('room1', crdtDate.drawingData);
-      }
       expect(service['crdtMap'].get('room1').getActiveStrokes().length).toBe(10);
     });
   });
@@ -81,10 +79,7 @@ describe('CanvasService', () => {
   describe('getImagesByBase64', () => {
     it('should return base64 encoded images', async () => {
       service.createRoom('room1');
-
-      for (const crdtDate of CRDT_DATAS) {
-        service.applyDrawing('room1', crdtDate.drawingData);
-      }
+      CRDT_DATAS.forEach((crdtData) => service.applyDrawing('room1', crdtData.drawingData));
 
       const result = await service.getImagesByBase64('room1');
       // 개인 캔버스
@@ -94,5 +89,71 @@ describe('CanvasService', () => {
       // 공용 캔버스
       expect(typeof result['shared']).toBe('string');
     }, 20000);
+  });
+
+  describe('getEraseLineMessage', () => {
+    it('erase player1 data', () => {
+      service.createRoom('room1');
+      CRDT_DATAS.forEach((crdtData) => service.applyDrawing('room1', crdtData.drawingData));
+
+      const crdtMessage = service.getEraseLineMessage('room1', [
+        {
+          playerId: '1',
+          boundary: [
+            { x: 0, y: 0 },
+            { x: 1000, y: 0 },
+            { x: 1000, y: 1000 },
+            { x: 0, y: 1000 },
+          ],
+        },
+      ]);
+      expect(Object.keys(crdtMessage.state).length).toBe(4);
+    });
+
+    it('remove all stroke', () => {
+      service.createRoom('room1');
+      CRDT_DATAS.forEach((crdtData) => service.applyDrawing('room1', crdtData.drawingData));
+
+      const crdtMessage = service.getEraseLineMessage(
+        'room1',
+        PLAYER_IDS.map((playerId) => ({
+          playerId,
+          boundary: [
+            { x: 0, y: 0 },
+            { x: 1000, y: 0 },
+            { x: 1000, y: 1000 },
+            { x: 0, y: 1000 },
+          ],
+        })),
+      );
+      expect(Object.keys(crdtMessage.state).length).toBe(10);
+    });
+
+    it('shared boundary', () => {
+      service.createRoom('room1');
+      CRDT_DATAS.forEach((crdtData) => service.applyDrawing('room1', crdtData.drawingData));
+
+      const crdtMessage = service.getEraseLineMessage('room1', [
+        {
+          playerId: '1',
+          boundary: [
+            { x: 0, y: 0 },
+            { x: 1000, y: 0 },
+            { x: 1000, y: 1000 },
+            { x: 0, y: 1000 },
+          ],
+        },
+        {
+          playerId: 'shared',
+          boundary: [
+            { x: 0, y: 0 },
+            { x: 1000, y: 0 },
+            { x: 1000, y: 1000 },
+            { x: 0, y: 1000 },
+          ],
+        },
+      ]);
+      expect(Object.keys(crdtMessage.state).length).toBe(4);
+    });
   });
 });
