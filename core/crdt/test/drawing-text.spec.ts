@@ -1,8 +1,8 @@
 import { test as base, Page, chromium, BrowserContext } from '@playwright/test';
 import { drawEventData } from './drawing-utils';
-import eventData1 from './drawing-performance/event-data-1.json' assert { type: 'json' };
-import eventData2 from './drawing-performance/event-data-2.json' assert { type: 'json' };
-import eventData3 from './drawing-performance/event-data-3.json' assert { type: 'json' };
+import eventData1 from './drawing-text/event-data-1.json' assert { type: 'json' };
+import eventData2 from './drawing-text/event-data-2.json' assert { type: 'json' };
+import eventData3 from './drawing-text/event-data-3.json' assert { type: 'json' };
 
 interface TestClient {
   page: Page;
@@ -114,7 +114,7 @@ test.describe('Game Room Drawing Test', () => {
     clients = [];
   });
 
-  test('Drawing performance test', async () => {
+  test('Drawing text test', async () => {
     try {
       // 셋업 및 모달 처리
       const TEST_URL = 'http://localhost:5173';
@@ -131,58 +131,14 @@ test.describe('Game Room Drawing Test', () => {
         await new Promise((resolve) => setTimeout(resolve, 100));
       }
 
-      // 성능 측정 시작
-      const cdpSessions = await Promise.all(clients.map((e) => e.context.newCDPSession(e.page)));
-      await Promise.all(cdpSessions.map((e) => e.send('Emulation.setCPUThrottlingRate', { rate: 2 })));
-      console.log('Emulation.setCPUThrottlingRate');
-      await Promise.all(cdpSessions.map((e) => e.send('Performance.enable')));
-      console.log('Performance.enable');
-
       // 2단계: 드로잉
       console.log('Starting drawing phase...');
-      await Promise.all([
-        drawEventData(drawers[0].page, eventData1),
-        drawEventData(drawers[1].page, eventData2),
-        drawEventData(drawers[2].page, eventData3),
-      ]);
+      drawEventData(drawers[0].page, eventData1);
+      drawEventData(drawers[1].page, eventData2);
+      drawEventData(drawers[2].page, eventData3);
 
-      // 성능 측정 종료
-      const METRIC_FILTER = [
-        'LayoutCount',
-        'RecalcStyleCount',
-        'LayoutDuration',
-        'RecalcStyleDuration',
-        'ScriptDuration',
-        'V8CompileDuration',
-        'TaskDuration',
-        'TaskOtherDuration',
-        'DevToolsCommandDuration',
-        'ThreadTime',
-        'ProcessTime',
-        'JSHeapUsedSize',
-        'JSHeapTotalSize',
-      ];
-      const compareMetric = METRIC_FILTER.reduce(
-        (acc, cur) => {
-          acc[cur] = [0, 0];
-          return acc;
-        },
-        {} as Record<string, [number, number]>,
-      );
-      const performanceMetrics = await Promise.all(cdpSessions.map((e) => e.send('Performance.getMetrics')));
-      performanceMetrics.forEach((e, index) =>
-        e.metrics.forEach((metric) => {
-          if (METRIC_FILTER.includes(metric.name)) {
-            compareMetric[metric.name][clients[index].role === 'GUESSER' ? 1 : 0] += metric.value;
-          }
-        }),
-      );
-
-      Object.values(compareMetric).forEach((e) => {
-        e[0] /= drawers.length; //DRAWER 3명
-        e[1] /= clients.length - drawers.length; //GUESSER 2명
-      });
-      console.log(JSON.stringify(compareMetric, null, 4));
+      // 드로잉 종료 대기: 드로잉 시간 35초 + OCR 시간 넉넉하게 15초
+      await new Promise((resolve) => setTimeout(resolve, 50000));
 
       // 테스트 종료
       await Promise.all(clients.map((e) => e.context.close()));
