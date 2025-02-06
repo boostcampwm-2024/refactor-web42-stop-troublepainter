@@ -20,7 +20,7 @@ export class ClovaOcr {
     });
   }
 
-  async doOCR(base64Data: string): Promise<string[]> {
+  async doOCR(base64Data: string) {
     let data = base64Data;
 
     // data:<image/png>;base64,
