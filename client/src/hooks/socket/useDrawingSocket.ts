@@ -91,19 +91,14 @@ export const useDrawingSocket = ({ onDrawUpdate, onSubmitRequest }: UseDrawingSo
   // 이벤트 리스너 설정
   useEffect(() => {
     const drawingSocket = sockets.drawing;
-    const gameSocket = sockets.game;
 
-    if (!drawingSocket || !gameSocket) return;
+    if (!drawingSocket) return;
 
     // drawing 네임스페이스 이벤트
     drawingSocket.on('drawUpdated', handleDrawUpdate);
 
-    // game 네임스페이스 이벤트
-    gameSocket.on('submitDrawing', handleSubmitDrawing);
-
     return () => {
       drawingSocket.off('drawUpdated', handleDrawUpdate);
-      gameSocket.off('submitDrawing', handleSubmitDrawing);
     };
   }, [sockets.drawing, sockets.game, handleDrawUpdate, handleSubmitDrawing]);
 
