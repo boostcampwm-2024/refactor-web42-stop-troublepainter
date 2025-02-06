@@ -156,6 +156,7 @@ export class LWWMap {
         const index = this.#sortedStrokes.findIndex((item) => item.id === key);
         if (remoteRegisterState.isDeactivated) {
           if (index !== -1) {
+            if (index < this.#sortedStrokes.length - 1) position = 'middle';
             this.#sortedStrokes.splice(index, 1);
           }
         } else if (remoteRegisterState.value !== null) {
