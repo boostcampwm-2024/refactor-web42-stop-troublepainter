@@ -40,6 +40,10 @@ export class DrawingGateway implements OnGatewayConnection {
     });
   }
 
+  async beforeApplicationShutdown() {
+    await this.redisService.punsubscribe('erasing:*');
+  }
+
   async handleConnection(client: Socket) {
     const roomId = client.handshake.auth.roomId;
     const playerId = client.handshake.auth.playerId;
