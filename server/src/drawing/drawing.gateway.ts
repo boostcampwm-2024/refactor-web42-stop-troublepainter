@@ -29,12 +29,9 @@ export class DrawingGateway implements OnGatewayConnection {
 
   async afterInit() {
     await this.redisService.psubscribe('erasing:*', (channel, message) => {
-      console.log(`[Redis] Received message on channel ${channel}: ${message}`);
-
       const roomId = channel.split(':')[1];
       const { playerId, drawingData } = JSON.parse(message);
 
-      console.log(`[Redis] Emitting drawUpdated to room ${roomId} for player ${playerId}`);
       this.server.to(roomId).emit('drawUpdated', {
         playerId,
         drawingData,
