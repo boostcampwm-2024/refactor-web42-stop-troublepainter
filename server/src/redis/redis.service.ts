@@ -79,6 +79,17 @@ export class RedisService {
     await this.subscriber.unsubscribe(channel);
   }
 
+  async psubscribe(pattern: string, callback: (channel: string, message: string) => void) {
+    await this.subscriber.psubscribe(pattern);
+    this.subscriber.on('pmessage', (pattern, channel, message) => {
+      callback(channel, message);
+    });
+  }
+
+  async punsubscribe(pattern: string) {
+    await this.subscriber.punsubscribe(pattern);
+  }
+
   // 원활한 테스트 진행을 위해 redis 내 저장된 값을 지워주는 코드 추가
   async flushAll() {
     await this.redis.flushall();
