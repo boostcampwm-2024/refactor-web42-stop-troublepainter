@@ -8,6 +8,7 @@ export const useTimer = () => {
 
   const intervalRefs = useRef<Record<TimerType, NodeJS.Timeout | null>>({
     [TimerType.DRAWING]: null,
+    [TimerType.OCR]: null,
     [TimerType.GUESSING]: null,
     [TimerType.ENDING]: null,
   });
@@ -43,6 +44,7 @@ export const useTimer = () => {
     };
   }, [
     timers.DRAWING !== null && timers.DRAWING > 0,
+    timers.OCR !== null && timers.OCR > 0,
     timers.GUESSING !== null && timers.GUESSING > 0,
     timers.ENDING !== null && timers.ENDING > 0,
     actions,
