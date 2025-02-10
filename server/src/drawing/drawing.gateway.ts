@@ -11,6 +11,7 @@ import { Server, Socket } from 'socket.io';
 import { BadRequestException } from '../exceptions/game.exception';
 import { WsExceptionFilter } from '../filters/ws-exception.filter';
 import { DrawingService } from './drawing.service';
+import { RedisService } from '../redis/redis.service';
 
 @WebSocketGateway({
   cors: '*',
@@ -21,7 +22,23 @@ export class DrawingGateway implements OnGatewayConnection {
   @WebSocketServer()
   server: Server;
 
-  constructor(private readonly drawingService: DrawingService) {}
+  constructor(
+    private readonly drawingService: DrawingService,
+    private readonly redisService: RedisService,
+  ) {}
+
+  async afterInit() {
+    await this.redisService.psubscribe('erasing:*', (channel, message) => {
+      const roomId = channel.split(':')[1];
+      const { playerId, drawingData } = JSON.parse(message);
+
+      this.server.to(roomId).emit('drawUpdated', {
+        playerId,
+        drawingData,
+        isFinalUpdate: true,
+      });
+    });
+  }
 
   async handleConnection(client: Socket) {
     const roomId = client.handshake.auth.roomId;
@@ -70,5 +87,13 @@ export class DrawingGateway implements OnGatewayConnection {
       playerId: client.data.playerId,
       drawingData: data.drawingData,
     });
+
+    await this.redisService.publish(
+      `drawing:${roomId}`,
+      JSON.stringify({
+        playerId: client.data.playerId,
+        drawingData: data.drawingData,
+      }),
+    );
   }
 }

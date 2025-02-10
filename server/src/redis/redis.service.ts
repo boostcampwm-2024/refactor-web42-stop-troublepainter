@@ -5,12 +5,18 @@ import Redis from 'ioredis';
 @Injectable()
 export class RedisService {
   private readonly redis: Redis;
+  private publisher: Redis;
+  private subscriber: Redis;
 
   constructor(private configService: ConfigService) {
-    this.redis = new Redis({
+    const redisConfig = {
       host: this.configService.get<string>('REDIS_HOST'),
       port: parseInt(this.configService.get<string>('REDIS_PORT'), 10),
-    });
+    };
+
+    this.redis = new Redis(redisConfig);
+    this.publisher = new Redis(redisConfig);
+    this.subscriber = new Redis(redisConfig);
   }
 
   async hset(key: string, value: Record<string, any>): Promise<void> {
@@ -54,6 +60,34 @@ export class RedisService {
 
   multi() {
     return this.redis.multi();
+  }
+
+  async publish(channel: string, message: string) {
+    await this.publisher.publish(channel, message);
+  }
+
+  async subscribe(channel: string, callback: (message: string) => void) {
+    await this.subscriber.subscribe(channel);
+    this.subscriber.on('message', (ch, message) => {
+      if (ch === channel) {
+        callback(message);
+      }
+    });
+  }
+
+  async unsubscribe(channel: string) {
+    await this.subscriber.unsubscribe(channel);
+  }
+
+  async psubscribe(pattern: string, callback: (channel: string, message: string) => void) {
+    await this.subscriber.psubscribe(pattern);
+    this.subscriber.on('pmessage', (pattern, channel, message) => {
+      callback(channel, message);
+    });
+  }
+
+  async punsubscribe(pattern: string) {
+    await this.subscriber.punsubscribe(pattern);
   }
 
   // 원활한 테스트 진행을 위해 redis 내 저장된 값을 지워주는 코드 추가
