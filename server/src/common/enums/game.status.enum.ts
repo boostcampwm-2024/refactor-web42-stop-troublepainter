@@ -13,6 +13,7 @@ export enum RoomStatus {
   WAITING = 'WAITING',
   DRAWING = 'DRAWING',
   GUESSING = 'GUESSING',
+  OCR = 'OCR',
 }
 
 export enum Difficulty {
