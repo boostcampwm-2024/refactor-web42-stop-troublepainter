@@ -144,42 +144,53 @@ export class GameGateway implements OnGatewayDisconnect {
 
     await this.runTimer(roomId, roomSettings.drawTime * 1000, TimerType.DRAWING);
 
-    const roomStatus = await this.gameService.handleDrawingTimeout(roomId);
+    // drawing 시간이 종료되면 OCR 및 선 삭제하는 시간으로 변경할 수 있도록 수정
+    let roomStatus = await this.gameService.handleDrawingTimeout(roomId);
     this.server.to(roomId).emit('drawingTimeEnded', {
       roomStatus,
     });
 
-    // drawing 시간이 종료되면, 이미지를 base64로 변환
-    const canvasImages = await this.canvasService.getImagesByBase64(roomId);
+    const timerPromise = this.runTimer(roomId, 15000, TimerType.OCR);
+    const processingTimerPromise = (async () => {
+      // drawing 시간이 종료되면, 이미지를 base64로 변환
+      const canvasImages = await this.canvasService.getImagesByBase64(roomId);
 
-    await Promise.all(
-      Object.entries(canvasImages).map(async ([playerId, imageBase64]) => {
-        const ocrResult = await this.clovaOcr.doOCR(imageBase64);
+      await Promise.all(
+        Object.entries(canvasImages).map(async ([playerId, imageBase64]) => {
+          const ocrResult = await this.clovaOcr.doOCR(imageBase64);
 
-        const boundaries =
-          ocrResult.images[0].fields.map((field) => ({
-            playerId,
-            boundary: [
-              { x: field.boundingPoly.vertices[0].x, y: field.boundingPoly.vertices[0].y },
-              { x: field.boundingPoly.vertices[1].x, y: field.boundingPoly.vertices[1].y },
-              { x: field.boundingPoly.vertices[2].x, y: field.boundingPoly.vertices[2].y },
-              { x: field.boundingPoly.vertices[3].x, y: field.boundingPoly.vertices[3].y },
-            ],
-          })) || [];
-
-        if (boundaries.length > 0) {
-          // 텍스트가 있는 영역의 선 지우기
-          const eraseMessage = this.canvasService.getEraseLineMessage(roomId, boundaries);
-          await this.redisService.publish(
-            `erasing:${roomId}`,
-            JSON.stringify({
+          const boundaries =
+            ocrResult.images[0].fields.map((field) => ({
               playerId,
-              drawingData: eraseMessage,
-            }),
-          );
-        }
-      }),
-    );
+              boundary: [
+                { x: field.boundingPoly.vertices[0].x, y: field.boundingPoly.vertices[0].y },
+                { x: field.boundingPoly.vertices[1].x, y: field.boundingPoly.vertices[1].y },
+                { x: field.boundingPoly.vertices[2].x, y: field.boundingPoly.vertices[2].y },
+                { x: field.boundingPoly.vertices[3].x, y: field.boundingPoly.vertices[3].y },
+              ],
+            })) || [];
+
+          if (boundaries.length > 0) {
+            // 텍스트가 있는 영역의 선 지우기
+            const eraseMessage = this.canvasService.getEraseLineMessage(roomId, boundaries);
+            await this.redisService.publish(
+              `erasing:${roomId}`,
+              JSON.stringify({
+                playerId,
+                drawingData: eraseMessage,
+              }),
+            );
+          }
+        }),
+      );
+    })();
+    await Promise.all([timerPromise, processingTimerPromise]);
+
+    // OCR 및 선 삭제 로직이 종료된 이후 추측 시간으로 변경
+    roomStatus = await this.gameService.handleOCRTimeout(roomId);
+    this.server.to(roomId).emit('ocrTimeEnded', {
+      roomStatus,
+    });
 
     await this.runTimer(roomId, 15000, TimerType.GUESSING);
     const result = await this.gameService.handleGuessingTimeout(roomId);

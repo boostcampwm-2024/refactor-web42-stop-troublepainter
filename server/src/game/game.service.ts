@@ -361,6 +361,16 @@ export class GameService {
     const room = await this.gameRepository.getRoom(roomId);
     if (!room) throw new RoomNotFoundException('Room not found');
 
+    // drawing 시간이 종료되면 OCR 및 선 삭제 로직을 수행할 수 있게 RoomStatus를 OCR로 변경
+    await this.gameRepository.updateRoom(roomId, { status: RoomStatus.OCR });
+
+    return RoomStatus.OCR;
+  }
+
+  async handleOCRTimeout(roomId: string) {
+    const room = await this.gameRepository.getRoom(roomId);
+    if (!room) throw new RoomNotFoundException('Room not found');
+
     await this.gameRepository.updateRoom(roomId, { status: RoomStatus.GUESSING });
 
     return RoomStatus.GUESSING;
