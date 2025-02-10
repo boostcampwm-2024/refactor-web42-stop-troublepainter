@@ -62,8 +62,11 @@ export const useDrawingSocket = ({ onDrawUpdate, onSubmitRequest }: UseDrawingSo
 
   // 소켓 연결 설정
   const handleDrawUpdate = useCallback(
-    (response: DrawUpdateResponse) => {
-      if (response.playerId !== currentPlayerId) {
+    (response: DrawUpdateResponse & { isFinalUpdate?: boolean }) => {
+      console.log(`[Client] Received drawUpdated event:`, response);
+
+      if (response.isFinalUpdate || response.playerId !== currentPlayerId) {
+        console.log(`[Client] Applying drawing update from player ${response.playerId}`);
         onDrawUpdate(response);
       }
     },
@@ -95,9 +98,11 @@ export const useDrawingSocket = ({ onDrawUpdate, onSubmitRequest }: UseDrawingSo
     if (!drawingSocket) return;
 
     // drawing 네임스페이스 이벤트
+    console.log(`[Client] Subscribing to drawUpdated event`);
     drawingSocket.on('drawUpdated', handleDrawUpdate);
 
     return () => {
+      console.log(`[Client] Unsubscribing from drawUpdated event`);
       drawingSocket.off('drawUpdated', handleDrawUpdate);
     };
   }, [sockets.drawing, sockets.game, handleDrawUpdate, handleSubmitDrawing]);
