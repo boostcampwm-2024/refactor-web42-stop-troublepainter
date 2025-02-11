@@ -7,12 +7,17 @@ import { PassThrough } from 'stream';
 @Injectable()
 export class CanvasService {
   private crdtMap: Map<string, LWWMap> = new Map();
+  private canvasScale = 0.5;
 
   createRoom(roomId: string) {
     this.crdtMap.set(roomId, new LWWMap(roomId));
   }
   removeRoom(roomID: string) {
     this.crdtMap.delete(roomID);
+  }
+
+  applyScale(position: { x: number; y: number }) {
+    return { x: Math.ceil(position.x * this.canvasScale), y: Math.ceil(position.y * this.canvasScale) };
   }
 
   // 선 그리기
@@ -23,13 +28,16 @@ export class CanvasService {
     ctx.fillStyle = style.color;
     ctx.lineWidth = style.width;
     ctx.beginPath();
+    const scaledPoint = this.applyScale(points[0]);
     if (points.length === 1) {
-      const point = points[0];
-      ctx.arc(point.x, point.y, style.width / 2, 0, Math.PI * 2);
+      ctx.arc(scaledPoint.x, scaledPoint.y, style.width / 2, 0, Math.PI * 2);
       ctx.fill();
     } else {
-      ctx.moveTo(points[0].x, points[0].y);
-      points.slice(1).forEach((point) => ctx.lineTo(point.x, point.y));
+      ctx.moveTo(scaledPoint.x, scaledPoint.y);
+      points.slice(1).forEach((point) => {
+        point = this.applyScale(point);
+        ctx.lineTo(point.x, point.y);
+      });
       ctx.stroke();
     }
   };
@@ -52,8 +60,8 @@ export class CanvasService {
     if (!lwwMap) return;
     const lwwMapState = lwwMap.state;
 
-    const MAINCANVAS_RESOLUTION_WIDTH = 1000;
-    const MAINCANVAS_RESOLUTION_HEIGHT = 625;
+    const MAINCANVAS_RESOLUTION_WIDTH = Math.ceil(1000 * this.canvasScale);
+    const MAINCANVAS_RESOLUTION_HEIGHT = Math.ceil(625 * this.canvasScale);
 
     const sharedCanvas = PImage.make(MAINCANVAS_RESOLUTION_WIDTH, MAINCANVAS_RESOLUTION_HEIGHT);
     const sharedCtx = sharedCanvas.getContext('2d');
@@ -62,6 +70,7 @@ export class CanvasService {
     const individualCanvasMap: Record<string, { canvas: PImage.Bitmap; ctx: PImage.Context }> = {};
 
     // 그림 그리기
+    const drawStart = performance.now();
     const activeStrokes = lwwMap.getActiveStrokes();
     for (const { stroke, id } of activeStrokes) {
       const playerId = lwwMapState[id].peerId;
@@ -76,8 +85,10 @@ export class CanvasService {
       }
       this.drawStroke(individualCanvasMap[playerId].ctx, stroke);
     }
+    console.log('draw time:', performance.now() - drawStart);
 
     //그림을 base64 이미지로 변환
+    const base64Start = performance.now();
     const canvasList = [sharedCanvas, ...Object.values(individualCanvasMap).map(({ canvas }) => canvas)];
     const resultKeyList = ['shared', ...Object.keys(individualCanvasMap)];
     const resultValueList = await Promise.all(
@@ -90,6 +101,7 @@ export class CanvasService {
         return buf.toString('base64');
       }),
     );
+    console.log('base64 time:', performance.now() - base64Start);
 
     return resultKeyList.reduce((acc, key, idx) => {
       acc[key] = resultValueList[idx];
@@ -109,7 +121,7 @@ export class CanvasService {
 
     // 점이 경계 안에 있는지 확인
     const isPointInBoundary = (point: { x: number; y: number }, boundary: { x: number; y: number }[]) => {
-      const C = point;
+      const C = this.applyScale(point);
       const crossList = boundary.map((A, index) => {
         const B = boundary[(index + 1) % boundary.length];
         return (B.x - A.x) * (C.y - A.y) - (B.y - A.y) * (C.x - A.x);
