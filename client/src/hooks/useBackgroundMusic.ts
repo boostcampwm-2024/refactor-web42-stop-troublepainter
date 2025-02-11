@@ -1,5 +1,6 @@
 import { useCallback, useEffect, useRef, useState } from 'react';
 import { CDN } from '@/constants/cdn';
+import { SoundManager } from '@/utils/soundManager';
 
 /**
  * 배경 음악을 재생하고 제어하는 커스텀 훅입니다. 자동 재생 정책에 따라 초기 재생이 차단될 수 있으며, 이 경우 콘솔에 경고가 표시됩니다.
@@ -98,11 +99,13 @@ export const useBackgroundMusic = () => {
       const newVolume = previousVolume.current;
       setVolume(newVolume);
       void audioRef.current.play();
+      SoundManager.getInstance().activate();
     } else {
       // 일시정지할 때는 현재 볼륨을 저장하고 0으로 설정
       previousVolume.current = volume;
       setVolume(0);
       audioRef.current.pause();
+      SoundManager.getInstance().deactivate();
     }
   }, [volume]);
 
