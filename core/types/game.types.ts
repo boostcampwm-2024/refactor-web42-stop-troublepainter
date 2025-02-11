@@ -34,12 +34,14 @@ export enum RoomStatus {
   WAITING = 'WAITING',
   DRAWING = 'DRAWING',
   GUESSING = 'GUESSING',
+  OCR = 'OCR',
 }
 
 export enum TimerType {
   DRAWING = 'DRAWING',
   GUESSING = 'GUESSING',
   ENDING = 'ENDING',
+  OCR = 'OCR',
 }
 
 export enum TerminationType {

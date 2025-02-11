@@ -1,12 +1,12 @@
-import { useMemo } from 'react';
-import { PlayerRole, RoomStatus } from '@troublepainter/core';
-import { GameCanvas } from '../canvas/GameCanvas';
-import { QuizTitle } from '../ui/QuizTitle';
+import {useMemo} from 'react';
+import {PlayerRole, RoomStatus} from '@troublepainter/core';
+import {GameCanvas} from '../canvas/GameCanvas';
+import {QuizTitle} from '../ui/QuizTitle';
 import sizzlingTimer from '@/assets/big-timer.gif';
-import { DEFAULT_MAX_PIXELS } from '@/constants/canvasConstants';
-import { useTimer } from '@/hooks/useTimer';
-import { useGameSocketStore } from '@/stores/socket/gameSocket.store';
-import { cn } from '@/utils/cn';
+import {DEFAULT_MAX_PIXELS} from '@/constants/canvasConstants';
+import {useTimer} from '@/hooks/useTimer';
+import {useGameSocketStore} from '@/stores/socket/gameSocket.store';
+import {cn} from '@/utils/cn';
 
 const QuizStageContainer = () => {
   const room = useGameSocketStore((state) => state.room);
@@ -20,12 +20,22 @@ const QuizStageContainer = () => {
   const shouldHideCanvas = useMemo(() => {
     const isGuesser = roundAssignedRole === PlayerRole.GUESSER;
     const isDrawing = room?.status === 'DRAWING';
+    const isOCR = room?.status === 'OCR';
+
+    // OCR일 경우 Canvas를 Hidden으로 설정해야 함
+    if (isOCR) return true;
+
     return isGuesser && isDrawing;
   }, [roundAssignedRole, room?.status]);
 
   const shouldHideQuizTitle = useMemo(() => {
     const isGuesser = roundAssignedRole === PlayerRole.GUESSER;
     const isDrawing = room?.status === 'DRAWING';
+    const isOCR = room?.status === 'OCR';
+
+    // OCR일 경우 QuizTitle을 Hidden으로 설정해야 함
+    if (isOCR) return true;
+
     return isGuesser && isDrawing;
   }, [roundAssignedRole, room?.status]);
 
@@ -33,6 +43,11 @@ const QuizStageContainer = () => {
     const isPainters = roundAssignedRole === PlayerRole.DEVIL || roundAssignedRole === PlayerRole.PAINTER;
     const isDrawing = room?.status === 'DRAWING';
     const isGuessing = room?.status === 'GUESSING';
+    const isOCR = room?.status === 'OCR';
+
+    // OCR 때는 모든 플레이어에게 타이머를 표시해야 함
+    if (isOCR) return false;
+
     return (isPainters && isDrawing) || isGuessing;
   }, [roundAssignedRole, room?.status]);
 
@@ -40,6 +55,8 @@ const QuizStageContainer = () => {
     switch (room?.status) {
       case 'DRAWING':
         return timers.DRAWING ?? roomSettings?.drawTime;
+      case 'OCR':
+        return timers.OCR ?? 15;
       case 'GUESSING':
         return timers.GUESSING ?? 15;
       default:
@@ -56,17 +73,24 @@ const QuizStageContainer = () => {
     }
   }, [room.status, room.currentWord, roundAssignedRole]);
 
+  const timerText = useMemo(() => {
+    if (room.status === 'OCR') {
+      return '그림을 분석하는 중...';
+    }
+    return '화가들이 실력을 뽐내는 중...';
+  }, [room.status]);
+
   return (
     <>
       {/* 구경꾼 전용 타이머 */}
       <div className={cn(shouldHideSizzlingTimer && 'hidden')}>
         <p className="mb-3 text-center text-xl text-eastbay-50 text-stroke-md sm:mb-0 sm:text-2xl lg:text-3xl">
-          화가들이 실력을 뽐내는중...
+          {timerText}
         </p>
         <div className="relative">
           <img src={sizzlingTimer} alt="구경꾼 전용 타이머" width={450} />
           <span className="absolute left-[42%] top-[45%] text-6xl text-stroke-md lg:text-7xl">
-            {timers.DRAWING ?? roomSettings.drawTime - 5}
+            {room.status === 'DRAWING' ? (timers.DRAWING ?? roomSettings.drawTime - 5) : (timers.OCR ?? 15)}
           </span>
         </div>
       </div>
