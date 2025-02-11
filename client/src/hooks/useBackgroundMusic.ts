@@ -54,8 +54,6 @@ export const useBackgroundMusic = () => {
       try {
         // 자동 재생 시도
         await audioRef.current.play();
-        // 자동 재생 성공하면 기본 볼륨(0.5)으로 설정
-        setVolume(0.5);
       } catch (err) {
         // 자동 재생이 차단된 경우
         console.error('Auto-play prevented:', err);
