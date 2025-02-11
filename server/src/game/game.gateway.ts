@@ -152,33 +152,34 @@ export class GameGateway implements OnGatewayDisconnect {
     // drawing 시간이 종료되면, 이미지를 base64로 변환
     const canvasImages = await this.canvasService.getImagesByBase64(roomId);
 
-    for (const [playerId, imageBase64] of Object.entries(canvasImages)) {
-      const ocrResult = await this.clovaOcr.doOCR(imageBase64);
+    await Promise.all(
+      Object.entries(canvasImages).map(async ([playerId, imageBase64]) => {
+        const ocrResult = await this.clovaOcr.doOCR(imageBase64);
 
-      // OCR 결과에서 텍스트 영역의 좌표 추출
-      const boundaries =
-        ocrResult.images[0].fields.map((field) => ({
-          playerId,
-          boundary: [
-            { x: field.boundingPoly.vertices[0].x, y: field.boundingPoly.vertices[0].y },
-            { x: field.boundingPoly.vertices[1].x, y: field.boundingPoly.vertices[1].y },
-            { x: field.boundingPoly.vertices[2].x, y: field.boundingPoly.vertices[2].y },
-            { x: field.boundingPoly.vertices[3].x, y: field.boundingPoly.vertices[3].y },
-          ],
-        })) || [];
-
-      if (boundaries.length > 0) {
-        // 텍스트가 있는 영역의 선 지우기
-        const eraseMessage = this.canvasService.getEraseLineMessage(roomId, boundaries);
-        await this.redisService.publish(
-          `erasing:${roomId}`,
-          JSON.stringify({
+        const boundaries =
+          ocrResult.images[0].fields.map((field) => ({
             playerId,
-            drawingData: eraseMessage,
-          }),
-        );
-      }
-    }
+            boundary: [
+              { x: field.boundingPoly.vertices[0].x, y: field.boundingPoly.vertices[0].y },
+              { x: field.boundingPoly.vertices[1].x, y: field.boundingPoly.vertices[1].y },
+              { x: field.boundingPoly.vertices[2].x, y: field.boundingPoly.vertices[2].y },
+              { x: field.boundingPoly.vertices[3].x, y: field.boundingPoly.vertices[3].y },
+            ],
+          })) || [];
+
+        if (boundaries.length > 0) {
+          // 텍스트가 있는 영역의 선 지우기
+          const eraseMessage = this.canvasService.getEraseLineMessage(roomId, boundaries);
+          await this.redisService.publish(
+            `erasing:${roomId}`,
+            JSON.stringify({
+              playerId,
+              drawingData: eraseMessage,
+            }),
+          );
+        }
+      }),
+    );
 
     await this.runTimer(roomId, 15000, TimerType.GUESSING);
     const result = await this.gameService.handleGuessingTimeout(roomId);
