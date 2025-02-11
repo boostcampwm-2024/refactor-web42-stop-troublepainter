@@ -19,6 +19,7 @@ const initialState: TimerState = {
     [TimerType.DRAWING]: null,
     [TimerType.GUESSING]: null,
     [TimerType.ENDING]: null,
+    [TimerType.OCR]: null,
   },
 };
 
