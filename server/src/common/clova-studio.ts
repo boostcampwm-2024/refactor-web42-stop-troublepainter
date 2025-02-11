@@ -3,7 +3,7 @@ import { ConfigService } from '@nestjs/config';
 import axios, { AxiosInstance } from 'axios';
 
 @Injectable()
-export class ClovaClient {
+export class ClovaStudio {
   private readonly client: AxiosInstance;
 
   constructor(private configService: ConfigService) {
