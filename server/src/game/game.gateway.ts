@@ -158,28 +158,11 @@ export class GameGateway implements OnGatewayDisconnect {
       await Promise.all(
         Object.entries(canvasImages).map(async ([playerId, imageBase64]) => {
           const ocrResult = await this.clovaOcr.doOCR(imageBase64);
+          const boundaries = this.getTextBoundaries(ocrResult, playerId);
 
-          const boundaries =
-            ocrResult.images[0].fields.map((field) => ({
-              playerId,
-              boundary: [
-                { x: field.boundingPoly.vertices[0].x, y: field.boundingPoly.vertices[0].y },
-                { x: field.boundingPoly.vertices[1].x, y: field.boundingPoly.vertices[1].y },
-                { x: field.boundingPoly.vertices[2].x, y: field.boundingPoly.vertices[2].y },
-                { x: field.boundingPoly.vertices[3].x, y: field.boundingPoly.vertices[3].y },
-              ],
-            })) || [];
-
+          // 단어가 존재한다면 영역 내 선 지우기 및 연관 여부 판단하기
           if (boundaries.length > 0) {
-            // 텍스트가 있는 영역의 선 지우기
-            const eraseMessage = this.canvasService.getEraseLineMessage(roomId, boundaries);
-            await this.redisService.publish(
-              `erasing:${roomId}`,
-              JSON.stringify({
-                playerId,
-                drawingData: eraseMessage,
-              }),
-            );
+            await this.eraseMessage(roomId, playerId, boundaries);
           }
         }),
       );
@@ -320,5 +303,30 @@ export class GameGateway implements OnGatewayDisconnect {
     } catch (error) {
       console.error('Disconnect handler error:', error);
     }
+  }
+
+  private getTextBoundaries(ocrResult: any, playerId: string) {
+    return (
+      ocrResult.images[0].fields.map((field) => ({
+        playerId,
+        boundary: [
+          { x: field.boundingPoly.vertices[0].x, y: field.boundingPoly.vertices[0].y },
+          { x: field.boundingPoly.vertices[1].x, y: field.boundingPoly.vertices[1].y },
+          { x: field.boundingPoly.vertices[2].x, y: field.boundingPoly.vertices[2].y },
+          { x: field.boundingPoly.vertices[3].x, y: field.boundingPoly.vertices[3].y },
+        ],
+      })) || []
+    );
+  }
+
+  private async eraseMessage(roomId: string, playerId: string, boundaries: any) {
+    const eraseMessage = this.canvasService.getEraseLineMessage(roomId, boundaries);
+    await this.redisService.publish(
+      `erasing:${roomId}`,
+      JSON.stringify({
+        playerId,
+        drawingData: eraseMessage,
+      }),
+    );
   }
 }
