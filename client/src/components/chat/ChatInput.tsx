@@ -32,7 +32,7 @@ export const ChatInput = memo(() => {
 
   const shouldDisableInput = useMemo(() => {
     const ispainters = roundAssignedRole !== PlayerRole.GUESSER;
-    const isDrawing = roomStatus === 'DRAWING' || roomStatus === 'GUESSING';
+    const isDrawing = roomStatus === 'DRAWING' || roomStatus === 'OCR' || roomStatus === 'GUESSING';
     return ispainters && isDrawing;
   }, [roundAssignedRole, roomStatus]);
 
