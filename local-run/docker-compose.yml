@@ -1,0 +1,52 @@
+services:
+  server:
+    image: troublepainter-server
+    container_name: troublepainter_server
+    environment:
+      - NODE_ENV=production
+      - REDIS_HOST=${REDIS_HOST}
+      - REDIS_PORT=${REDIS_PORT}
+      - CLOVA_API_KEY=${CLOVA_API_KEY}
+      - CLOVA_GATEWAY_KEY=${CLOVA_GATEWAY_KEY}
+      - CLOVA_OCR_SECRET_KEY=${CLOVA_OCR_SECRET_KEY}
+      - CLOVA_OCR_INVOKE_URL=${CLOVA_OCR_INVOKE_URL}
+      - CLOVA_STUDIO_API_KEY=${CLOVA_STUDIO_API_KEY}
+      - CLOVA_STUDIO_REQUEST_ID=${CLOVA_STUDIO_REQUEST_ID}
+    networks:
+      - app_network
+    logging:
+      driver: 'json-file'
+      options:
+        max-size: '10m'
+        max-file: '10'
+    extra_hosts:
+      - "host.docker.internal:host-gateway"
+    restart: unless-stopped
+
+  nginx:
+    image: troublepainter-nginx
+    container_name: troublepainter_nginx
+    ports:
+      - "80:80"
+    depends_on:
+      - server
+    networks:
+      - app_network
+    logging:
+      driver: 'json-file'
+      options:
+        max-size: '10m'
+        max-file: '10'
+    restart: unless-stopped
+
+  redis:
+    image: redis:latest
+    container_name: troublepainter_redis
+    networks:
+      - app_network
+    restart: unless-stopped
+
+networks:
+  app_network:
+    name: app_network
+    driver: bridge
