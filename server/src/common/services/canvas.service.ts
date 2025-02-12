@@ -1,8 +1,7 @@
 import { Injectable } from '@nestjs/common';
 import { LWWMap, CRDTMessage, CRDTMessageTypes, CRDTSyncMessage, MapState } from '@troublepainter/core';
 import { DrawingData } from '@troublepainter/core';
-import * as PImage from 'pureimage';
-import { PassThrough } from 'stream';
+import { createCanvas, Canvas, CanvasRenderingContext2D } from 'canvas';
 
 @Injectable()
 export class CanvasService {
@@ -21,13 +20,15 @@ export class CanvasService {
   }
 
   // 선 그리기
-  private drawStroke = (ctx: PImage.Context, drawingData: DrawingData) => {
+  private drawStroke = (ctx: CanvasRenderingContext2D, drawingData: DrawingData) => {
     const { points, style } = drawingData;
     if (points.length === 0) return;
     ctx.strokeStyle = style.color;
     ctx.fillStyle = style.color;
     ctx.lineWidth = style.width;
     ctx.beginPath();
+    ctx.lineCap = 'round';
+    ctx.lineJoin = 'round';
     const scaledPoint = this.applyScale(points[0]);
     if (points.length === 1) {
       ctx.arc(scaledPoint.x, scaledPoint.y, style.width / 2, 0, Math.PI * 2);
@@ -63,21 +64,23 @@ export class CanvasService {
     const MAINCANVAS_RESOLUTION_WIDTH = Math.ceil(1000 * this.canvasScale);
     const MAINCANVAS_RESOLUTION_HEIGHT = Math.ceil(625 * this.canvasScale);
 
-    const sharedCanvas = PImage.make(MAINCANVAS_RESOLUTION_WIDTH, MAINCANVAS_RESOLUTION_HEIGHT);
+    const sharedCanvas = createCanvas(MAINCANVAS_RESOLUTION_WIDTH, MAINCANVAS_RESOLUTION_HEIGHT);
+    // const ctxStart = performance.now();
     const sharedCtx = sharedCanvas.getContext('2d');
+    // console.log('ctx time:', performance.now() - ctxStart);
     sharedCtx.fillStyle = 'white';
     sharedCtx.fillRect(0, 0, MAINCANVAS_RESOLUTION_WIDTH, MAINCANVAS_RESOLUTION_HEIGHT);
-    const individualCanvasMap: Record<string, { canvas: PImage.Bitmap; ctx: PImage.Context }> = {};
+    const individualCanvasMap: Record<string, { canvas: Canvas; ctx: CanvasRenderingContext2D }> = {};
 
     // 그림 그리기
-    const drawStart = performance.now();
+    // const drawStart = performance.now();
     const activeStrokes = lwwMap.getActiveStrokes();
     for (const { stroke, id } of activeStrokes) {
       const playerId = lwwMapState[id].peerId;
       if (stroke.points.length > 2) return; // 채우기는 제외
       this.drawStroke(sharedCtx, stroke);
       if (!individualCanvasMap[playerId]) {
-        const canvas = PImage.make(MAINCANVAS_RESOLUTION_WIDTH, MAINCANVAS_RESOLUTION_HEIGHT);
+        const canvas = createCanvas(MAINCANVAS_RESOLUTION_WIDTH, MAINCANVAS_RESOLUTION_HEIGHT);
         const ctx = canvas.getContext('2d');
         ctx.fillStyle = 'white';
         ctx.fillRect(0, 0, MAINCANVAS_RESOLUTION_WIDTH, MAINCANVAS_RESOLUTION_HEIGHT);
@@ -85,23 +88,23 @@ export class CanvasService {
       }
       this.drawStroke(individualCanvasMap[playerId].ctx, stroke);
     }
-    console.log('draw time:', performance.now() - drawStart);
+    // console.log('draw time:', performance.now() - drawStart);
 
     //그림을 base64 이미지로 변환
-    const base64Start = performance.now();
+    // const base64Start = performance.now();
     const canvasList = [sharedCanvas, ...Object.values(individualCanvasMap).map(({ canvas }) => canvas)];
     const resultKeyList = ['shared', ...Object.keys(individualCanvasMap)];
     const resultValueList = await Promise.all(
       canvasList.map(async (canvas) => {
-        const passThroughStream = new PassThrough();
         const pngData = [];
-        passThroughStream.on('data', (chunk) => pngData.push(chunk));
-        await PImage.encodeJPEGToStream(canvas, passThroughStream);
+        const stream = canvas.createJPEGStream();
+        stream.on('data', (chunk) => pngData.push(chunk));
+        await new Promise((resolve) => stream.on('end', resolve));
         const buf = Buffer.concat(pngData);
         return buf.toString('base64');
       }),
     );
-    console.log('base64 time:', performance.now() - base64Start);
+    // console.log('base64 time:', performance.now() - base64Start);
 
     return resultKeyList.reduce((acc, key, idx) => {
       acc[key] = resultValueList[idx];
