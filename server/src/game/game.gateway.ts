@@ -18,6 +18,7 @@ import { TimerType } from 'src/common/enums/game.timer.enum';
 import { CanvasService } from '../common/services/canvas.service';
 import { RedisService } from '../redis/redis.service';
 import { ClovaOcr } from '../common/clova-ocr';
+import { ClovaStudio } from '../common/clova-studio';
 
 @WebSocketGateway({
   cors: '*',
@@ -38,6 +39,7 @@ export class GameGateway implements OnGatewayDisconnect {
     private readonly canvasService: CanvasService,
     private readonly redisService: RedisService,
     private readonly clovaOcr: ClovaOcr,
+    private readonly clovaStudio: ClovaStudio,
   ) {}
 
   @SubscribeMessage('joinRoom')
@@ -142,6 +144,9 @@ export class GameGateway implements OnGatewayDisconnect {
       this.canvasService.applyDrawing(roomId, drawingData);
     });
 
+    // 현재 라운드의 제시어를 확인
+    const currentWord = await this.gameService.getCurrentWord(roomId);
+
     await this.runTimer(roomId, roomSettings.drawTime * 1000, TimerType.DRAWING);
 
     // drawing 시간이 종료되면 OCR 및 선 삭제하는 시간으로 변경할 수 있도록 수정
@@ -154,7 +159,6 @@ export class GameGateway implements OnGatewayDisconnect {
     const processingTimerPromise = (async () => {
       // drawing 시간이 종료되면, 이미지를 base64로 변환
       const canvasImages = await this.canvasService.getImagesByBase64(roomId);
-
       await Promise.all(
         Object.entries(canvasImages).map(async ([playerId, imageBase64]) => {
           const ocrResult = await this.clovaOcr.doOCR(imageBase64);
@@ -162,6 +166,12 @@ export class GameGateway implements OnGatewayDisconnect {
 
           // 단어가 존재한다면 영역 내 선 지우기 및 연관 여부 판단하기
           if (boundaries.length > 0) {
+            // 인식된 단어만 추출
+            const inferTexts = ocrResult.images[0].fields.map((field) => field.inferText);
+            if (await this.isRelatedWord(currentWord, inferTexts)) {
+              await this.gameService.applyPenalty(roomId, playerId);
+            }
+
             await this.eraseMessage(roomId, playerId, boundaries);
           }
         }),
@@ -328,5 +338,15 @@ export class GameGateway implements OnGatewayDisconnect {
         drawingData: eraseMessage,
       }),
     );
+  }
+
+  // 캔버스 내 인식된 단어 중 하나라도 제시어와 연관되어 있다면 true 리턴
+  private async isRelatedWord(suggestedWord: string, inferTexts: string[]) {
+    for (const inferText of inferTexts) {
+      if (await this.clovaStudio.isRelatedWord(suggestedWord, inferText)) {
+        return true;
+      }
+    }
+    return false;
   }
 }
