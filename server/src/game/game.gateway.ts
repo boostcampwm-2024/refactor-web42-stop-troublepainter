@@ -315,7 +315,7 @@ export class GameGateway implements OnGatewayDisconnect {
     }
   }
 
-  private getTextBoundaries(ocrResult: any, playerId: string) {
+  private getTextBoundaries(ocrResult: OCRResult, playerId: string) {
     return (
       ocrResult.images[0].fields.map((field) => ({
         playerId,
@@ -329,7 +329,7 @@ export class GameGateway implements OnGatewayDisconnect {
     );
   }
 
-  private async eraseMessage(roomId: string, playerId: string, boundaries: any) {
+  private async eraseMessage(roomId: string, playerId: string, boundaries: TextBoundary[]) {
     const eraseMessage = this.canvasService.getEraseLineMessage(roomId, boundaries);
     await this.redisService.publish(
       `erasing:${roomId}`,
@@ -349,4 +349,42 @@ export class GameGateway implements OnGatewayDisconnect {
     }
     return false;
   }
+}
+
+interface OCRResult {
+  version: string;
+  requestId: string;
+  timestamp: number;
+  images: Array<{
+    uid: string;
+    name: string;
+    inferResult: string;
+    message: string;
+    validationResult: {
+      result: string;
+    };
+    fields: Array<{
+      valueType: string;
+      boundingPoly: {
+        vertices: Array<{
+          x: number;
+          y: number;
+        }>;
+      };
+      inferText: string;
+      inferConfidence: number;
+      type: string;
+      lineBreak: boolean;
+    }>;
+  }>;
+}
+
+interface Point {
+  x: number;
+  y: number;
+}
+
+interface TextBoundary {
+  playerId: string;
+  boundary: Point[];
 }
