@@ -12,14 +12,14 @@ RUN pnpm install --frozen-lockfile
 
 COPY . .
 
-ARG VITE_API_URL='http://localhost/api'
-ARG VITE_SOCKET_URL='http://localhost'
+ARG VITE_API_URL
+ARG VITE_SOCKET_URL
 
 RUN echo "VITE_API_URL=$VITE_API_URL" > client/.env && echo "VITE_SOCKET_URL=$VITE_SOCKET_URL" >> client/.env && pnpm --filter @troublepainter/core build && pnpm --filter client build
 
 FROM nginx:alpine
 
-COPY ./local-run/nginx.conf /etc/nginx/templates/default.conf.template
+COPY ./docker-build/prod/nginx.conf /etc/nginx/templates/default.conf.template
 COPY --from=builder /app/client/dist /usr/share/nginx/html
 
 EXPOSE 80 443
