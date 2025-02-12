@@ -15,8 +15,7 @@ export class ClovaStudio {
       headers: {
         Authorization: `Bearer ${apiKey}`,
         'X-NCP-CLOVASTUDIO-REQUEST-ID': requestId,
-        'Content-Type': 'application/json; charset=utf-8',
-        Accept: 'text/event-stream',
+        'Content-Type': 'application/json',
       },
     });
   }
@@ -51,7 +50,7 @@ export class ClovaStudio {
 
     try {
       const response = await this.client.post('', request);
-      return response.data === 'true';
+      return response.data.result.message.content.trim() === 'true';
     } catch (error) {
       throw new Error(`CLOVA API request failed: ${error.message}`);
     }
