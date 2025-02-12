@@ -16,6 +16,7 @@
 export class SoundManager {
   private static instance: SoundManager;
   private audioMap: Map<string, HTMLAudioElement> = new Map();
+  private IsActivated = false;
 
   private constructor() {}
 
@@ -29,6 +30,24 @@ export class SoundManager {
       SoundManager.instance = new SoundManager();
     }
     return SoundManager.instance;
+  }
+
+  /**
+   * 사운드 재생을 활성화합니다.
+   */
+  activate() {
+    this.IsActivated = true;
+  }
+
+  /**
+   * 사운드 재생을 비활성화합니다.
+   */
+  deactivate() {
+    this.IsActivated = false;
+    this.audioMap.forEach((audio) => {
+      audio.pause();
+      audio.currentTime = 0;
+    });
   }
 
   /**
@@ -57,6 +76,7 @@ export class SoundManager {
    * - 자동 재생 제한을 처리하고 적절한 메시지를 로그로 남깁니다.
    */
   async playSound(id: string, volume = 1): Promise<void> {
+    if (!this.IsActivated) return;
     const audio = this.audioMap.get(id);
     if (!audio) return;
 

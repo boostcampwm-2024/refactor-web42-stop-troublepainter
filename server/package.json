@@ -29,6 +29,7 @@
     "@socket.io/redis-adapter": "^8.3.0",
     "@troublepainter/core": "workspace:*",
     "axios": "^1.7.7",
+    "canvas": "^3.1.0",
     "ioredis": "^5.4.1",
     "pureimage": "^0.4.18",
     "redis": "^4.7.0",
