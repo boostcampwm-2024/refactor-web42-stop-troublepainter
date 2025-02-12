@@ -5,12 +5,12 @@ RUN corepack enable && corepack prepare pnpm@9.12.3 --activate
 WORKDIR /app
 
 COPY pnpm-workspace.yaml package.json pnpm-lock.yaml ./
-COPY core/package.json ./core/
-COPY server/package.json ./server/
+COPY core ./core
+COPY server ./server
+
+RUN apk update && apk add build-base g++ cairo-dev pango-dev giflib-dev
 
 RUN pnpm install --frozen-lockfile
-
-COPY . .
 
 RUN pnpm --filter @troublepainter/core build
 RUN pnpm --filter server build
@@ -24,7 +24,9 @@ COPY --from=builder /app/server/dist ./server/dist
 COPY --from=builder /app/core/package.json ./core/package.json
 COPY --from=builder /app/core/dist ./core/dist
 
-RUN corepack enable && corepack prepare pnpm@9.12.3 --activate && cd server && pnpm install --prod
+RUN apk update && apk add build-base g++ cairo-dev pango-dev giflib-dev
+
+RUN corepack enable && corepack prepare pnpm@9.12.3 --activate && cd server && pnpm install --prod --filter '!@troublepainter/core'
 
 WORKDIR /app/server
 
