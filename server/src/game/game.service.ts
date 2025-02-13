@@ -468,4 +468,18 @@ export class GameService {
       players: updatedPlayers,
     };
   }
+
+  async getCurrentWord(roomId: string) {
+    const room = await this.gameRepository.getRoom(roomId);
+    return room?.currentWord;
+  }
+
+  async applyPenalty(roomId: string, playerId: string) {
+    if (playerId === 'shared') return;
+
+    const player = await this.gameRepository.getPlayer(roomId, playerId);
+    const updatedScore = player.score - 1;
+
+    await this.gameRepository.updatePlayer(roomId, playerId, { score: updatedScore });
+  }
 }

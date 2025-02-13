@@ -3,7 +3,7 @@ import { ConfigService } from '@nestjs/config';
 import axios, { AxiosInstance } from 'axios';
 
 @Injectable()
-export class ClovaClient {
+export class ClovaStudio {
   private readonly client: AxiosInstance;
 
   constructor(private configService: ConfigService) {
@@ -15,8 +15,7 @@ export class ClovaClient {
       headers: {
         Authorization: `Bearer ${apiKey}`,
         'X-NCP-CLOVASTUDIO-REQUEST-ID': requestId,
-        'Content-Type': 'application/json; charset=utf-8',
-        Accept: 'text/event-stream',
+        'Content-Type': 'application/json',
       },
     });
   }
@@ -51,7 +50,7 @@ export class ClovaClient {
 
     try {
       const response = await this.client.post('', request);
-      return response.data === 'true';
+      return response.data.result.message.content.trim() === 'true';
     } catch (error) {
       throw new Error(`CLOVA API request failed: ${error.message}`);
     }
