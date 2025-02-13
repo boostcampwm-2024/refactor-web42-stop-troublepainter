@@ -59,7 +59,7 @@ jobs:
         uses: docker/build-push-action@v6
         with:
           context: .
-          file: ./Dockerfile.server
+          file: ./docker-build/prod/Dockerfile.server
           push: true
           tags: ${{ secrets.DOCKERHUB_USERNAME }}/troublepainter-server:latest
           build-args: |

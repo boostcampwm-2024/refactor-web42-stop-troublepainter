@@ -28,12 +28,9 @@
     "@nestjs/websockets": "^10.4.7",
     "@socket.io/redis-adapter": "^8.3.0",
     "@troublepainter/core": "workspace:*",
-    "artillery": "^2.0.22",
-    "artillery-engine-socketio-v3": "^1.2.0",
     "axios": "^1.7.7",
     "canvas": "^3.1.0",
     "ioredis": "^5.4.1",
-    "jest-mock": "^29.7.0",
     "pureimage": "^0.4.18",
     "redis": "^4.7.0",
     "reflect-metadata": "^0.2.0",
@@ -67,7 +64,10 @@
     "ts-loader": "^9.4.3",
     "ts-node": "^10.9.1",
     "tsconfig-paths": "^4.2.0",
-    "typescript": "^5.1.3"
+    "typescript": "^5.1.3",
+    "artillery": "^2.0.22",
+    "artillery-engine-socketio-v3": "^1.2.0",
+    "jest-mock": "^29.7.0"
   },
   "jest": {
     "moduleFileExtensions": [

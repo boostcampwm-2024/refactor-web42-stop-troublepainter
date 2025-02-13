@@ -9,12 +9,17 @@
     "build": "pnpm -r build",
     "build:core": "pnpm --filter @troublepainter/core build",
     "build:full": "pnpm build:core && pnpm build",
+    "docker": "docker-compose -f docker-build/dev/docker-compose.yml --env-file docker-build/dev/.env up",
+    "docker:full": "pnpm docker:build && pnpm docker",
+    "docker:build": "pnpm docker:client; pnpm docker:server",
+    "docker:client": "source docker-build/dev/.env && set +a && docker build -f docker-build/dev/Dockerfile.nginx -t troublepainter-nginx .",
+    "docker:server": "docker build -f docker-build/dev/Dockerfile.server -t troublepainter-server .",
     "start": "pnpm -r --parallel start",
     "start:client": "pnpm --filter client start",
     "start:server": "pnpm --filter server start",
     "run:full": "pnpm build:full && pnpm start",
     "clean": "pnpm -r clean",
-    "test": "pnpm -r test"
+    "test": "pnpm -r e2e"
   },
   "devDependencies": {
     "typedoc": "^0.26.11",
