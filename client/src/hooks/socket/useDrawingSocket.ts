@@ -63,7 +63,6 @@ export const useDrawingSocket = ({ onDrawUpdate, onSubmitRequest }: UseDrawingSo
   // 소켓 연결 설정
   const handleDrawUpdate = useCallback(
     (response: DrawUpdateResponse & { isFinalUpdate?: boolean }) => {
-
       if (response.isFinalUpdate || response.playerId !== currentPlayerId) {
         onDrawUpdate(response);
       }

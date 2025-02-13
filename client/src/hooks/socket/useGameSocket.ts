@@ -188,7 +188,7 @@ export const useGameSocket = () => {
 
       drawingTimeEnded: () => {
         gameActions.updateRoomStatus(RoomStatus.OCR);
-        timerActions.updateTimer(TimerType.OCR, 15);
+        timerActions.updateTimer(TimerType.OCR, 10);
       },
 
       ocrTimeEnded: () => {
