@@ -155,7 +155,7 @@ export class GameGateway implements OnGatewayDisconnect {
       roomStatus,
     });
 
-    const timerPromise = this.runTimer(roomId, 15000, TimerType.OCR);
+    const timerPromise = this.runTimer(roomId, 10000, TimerType.OCR);
     const processingTimerPromise = (async () => {
       // drawing 시간이 종료되면, 이미지를 base64로 변환
       const canvasImages = await this.canvasService.getImagesByBase64(roomId);

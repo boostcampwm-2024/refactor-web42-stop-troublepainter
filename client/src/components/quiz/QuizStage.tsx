@@ -56,7 +56,7 @@ const QuizStageContainer = () => {
       case 'DRAWING':
         return timers.DRAWING ?? roomSettings?.drawTime;
       case 'OCR':
-        return timers.OCR ?? 15;
+        return timers.OCR ?? 10;
       case 'GUESSING':
         return timers.GUESSING ?? 15;
       default:
@@ -90,7 +90,7 @@ const QuizStageContainer = () => {
         <div className="relative">
           <img src={sizzlingTimer} alt="구경꾼 전용 타이머" width={450} />
           <span className="absolute left-[42%] top-[45%] text-6xl text-stroke-md lg:text-7xl">
-            {room.status === 'DRAWING' ? (timers.DRAWING ?? roomSettings.drawTime - 5) : (timers.OCR ?? 15)}
+            {room.status === 'DRAWING' ? (timers.DRAWING ?? roomSettings.drawTime - 5) : (timers.OCR ?? 10)}
           </span>
         </div>
       </div>
