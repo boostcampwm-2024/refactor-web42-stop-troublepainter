@@ -1,12 +1,12 @@
-import {useMemo} from 'react';
-import {PlayerRole, RoomStatus} from '@troublepainter/core';
-import {GameCanvas} from '../canvas/GameCanvas';
-import {QuizTitle} from '../ui/QuizTitle';
+import { useMemo } from 'react';
+import { PlayerRole, RoomStatus } from '@troublepainter/core';
+import { GameCanvas } from '../canvas/GameCanvas';
+import { QuizTitle } from '../ui/QuizTitle';
 import sizzlingTimer from '@/assets/big-timer.gif';
-import {DEFAULT_MAX_PIXELS} from '@/constants/canvasConstants';
-import {useTimer} from '@/hooks/useTimer';
-import {useGameSocketStore} from '@/stores/socket/gameSocket.store';
-import {cn} from '@/utils/cn';
+import { DEFAULT_MAX_PIXELS } from '@/constants/canvasConstants';
+import { useTimer } from '@/hooks/useTimer';
+import { useGameSocketStore } from '@/stores/socket/gameSocket.store';
+import { cn } from '@/utils/cn';
 
 const QuizStageContainer = () => {
   const room = useGameSocketStore((state) => state.room);
