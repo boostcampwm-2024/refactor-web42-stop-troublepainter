@@ -6,9 +6,9 @@ on:
     paths:
       - 'client/**'
       - 'core/**'
-      - 'nginx.conf'
+      - 'docker-build/prod/nginx.conf'
       - '.github/workflows/client-ci-cd.yml'
-      - 'Dockerfile.nginx'
+      - 'docker-build/prod/Dockerfile.nginx'
 
 jobs:
   ci-cd:

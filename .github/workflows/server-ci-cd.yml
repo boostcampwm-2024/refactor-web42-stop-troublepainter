@@ -7,7 +7,7 @@ on:
       - 'server/**'
       - 'core/**'
       - '.github/workflows/server-ci-cd.yml'
-      - 'Dockerfile.server'
+      - 'docker-build/prod/Dockerfile.server'
 
 jobs:
   ci-cd:
