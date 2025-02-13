@@ -62,6 +62,8 @@ jobs:
           file: ./docker-build/prod/Dockerfile.server
           push: true
           tags: ${{ secrets.DOCKERHUB_USERNAME }}/troublepainter-server:latest
+          cache-from: type=gha
+          cache-to: type=gha,mode=max
           build-args: |
             REDIS_HOST=${{ secrets.REDIS_HOST }}
             REDIS_PORT=${{ secrets.REDIS_PORT }}
