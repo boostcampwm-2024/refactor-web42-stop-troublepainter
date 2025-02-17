@@ -24,6 +24,7 @@
 > **방해꾼은 못말려**는 하나의 캔버스에서 펼쳐지는 실시간 드로잉 퀴즈 게임입니다.
 > 
 > 친구들과 함께 그림 그리고, 방해하고, 제시어를 맞추는 경험을 즐겨보세요!🎵
+
 ![392224147-861ffb2f-ddb6-45fe-9290-08bbc93489ae](https://github.com/user-attachments/assets/fa21318e-3f3d-490d-acf1-0b4bcf3186c1)
 
 #### 플레이어 역할
@@ -47,7 +48,8 @@
 - 플레이어별 이미지 생성으로 글자 작성자 추적 가능
 - point-in-polygon 알고리즘으로 인식된 글자 영역의 선 삭제
 
-(이미지 삽입)
+![image](https://github.com/user-attachments/assets/57bfc751-374b-4e70-945c-72337a8c3e3c)
+
 
 ### ➖ Clova Studio 패널티 시스템
 
@@ -56,7 +58,11 @@
 - 인식된 글자와 제시어 간 연관성 분석
 - 연관 단어 작성 시, 작성자에게 패널티 부여
 
-(이미지 삽입)
+![image](https://github.com/user-attachments/assets/4914cd92-429f-450c-9d67-2cfd59bd44e5)
+
+## 📺 시연 연상
+[2a9ba997c6965aeb059a49b81134b023.webm](https://github.com/user-attachments/assets/1346d769-32f6-4cc1-80fc-055c4ac5e1aa)
+
 
 ## 🖌️ FE 기술적 도전
 ### 캔버스 최적화
