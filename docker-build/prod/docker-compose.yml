@@ -19,6 +19,8 @@ services:
       options:
         max-size: '10m'
         max-file: '10'
+    volumes:
+      - "./logs:/app/logs"
     extra_hosts:
       - "host.docker.internal:host-gateway"
     restart: unless-stopped

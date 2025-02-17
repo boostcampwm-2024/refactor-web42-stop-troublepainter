@@ -4,6 +4,8 @@ import { ConfigModule } from '@nestjs/config';
 import { GameModule } from './game/game.module';
 import { ChatModule } from './chat/chat.module';
 import { DrawingModule } from './drawing/drawing.module';
+import { WinstonLogger } from './configs/logger.config';
+import { WinstonModule } from 'nest-winston';
 
 @Module({
   imports: [
@@ -11,6 +13,7 @@ import { DrawingModule } from './drawing/drawing.module';
       isGlobal: true,
       envFilePath: '.env',
     }),
+    WinstonModule.forRoot(WinstonLogger),
     RedisModule,
     GameModule,
     ChatModule,

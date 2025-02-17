@@ -12,6 +12,8 @@ services:
       - CLOVA_OCR_INVOKE_URL=${CLOVA_OCR_INVOKE_URL}
       - CLOVA_STUDIO_API_KEY=${CLOVA_STUDIO_API_KEY}
       - CLOVA_STUDIO_REQUEST_ID=${CLOVA_STUDIO_REQUEST_ID}
+    volumes:
+      - "./logs:/app/logs"
     networks:
       - app_network
     logging:

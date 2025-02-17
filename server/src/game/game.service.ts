@@ -3,15 +3,15 @@ import { Player, Room, RoomSettings } from 'src/common/types/game.types';
 import { v4 } from 'uuid';
 import { GameRepository } from './game.repository';
 import {
+  BadRequestException,
+  ForbiddenException,
+  GameAlreadyStartedException,
+  InsufficientPlayersException,
   PlayerNotFoundException,
   RoomFullException,
   RoomNotFoundException,
-  BadRequestException,
-  InsufficientPlayersException,
-  ForbiddenException,
-  GameAlreadyStartedException,
 } from 'src/exceptions/game.exception';
-import { RoomStatus, PlayerStatus, PlayerRole, Difficulty } from 'src/common/enums/game.status.enum';
+import { Difficulty, PlayerRole, PlayerStatus, RoomStatus } from 'src/common/enums/game.status.enum';
 import { ClovaClient } from 'src/common/clova-client';
 
 @Injectable()
@@ -155,7 +155,10 @@ export class GameService {
     ];
 
     const nouns = [
-      '미라',
+      '지니',
+      '준기',
+      '성환',
+      '감자',
       '코뿔소',
       '네모',
       '곰돌이',
