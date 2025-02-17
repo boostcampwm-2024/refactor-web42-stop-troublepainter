@@ -174,7 +174,7 @@ export class GameGateway implements OnGatewayDisconnect {
             if (paneltyWord) {
               await this.gameService.applyPenalty(roomId, playerId);
               paneltyList.push({
-                playerName: players.find((e) => e.playerId === playerId).nickname,
+                playerId: playerId,
                 word: paneltyWord,
               });
             }
