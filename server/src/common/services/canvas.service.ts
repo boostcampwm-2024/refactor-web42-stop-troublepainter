@@ -1,7 +1,6 @@
 import { Injectable } from '@nestjs/common';
-import { LWWMap, CRDTMessage, CRDTMessageTypes, CRDTSyncMessage, MapState } from '@troublepainter/core';
-import { DrawingData } from '@troublepainter/core';
-import { createCanvas, Canvas, CanvasRenderingContext2D } from 'canvas';
+import { CRDTMessage, CRDTMessageTypes, CRDTSyncMessage, DrawingData, LWWMap, MapState } from '@troublepainter/core';
+import { Canvas, CanvasRenderingContext2D, createCanvas } from 'canvas';
 
 @Injectable()
 export class CanvasService {
@@ -77,7 +76,7 @@ export class CanvasService {
     const activeStrokes = lwwMap.getActiveStrokes();
     for (const { stroke, id } of activeStrokes) {
       const playerId = lwwMapState[id].peerId;
-      if (stroke.points.length > 2) return; // 채우기는 제외
+      if (stroke.points.length > 2) continue; // 채우기는 지나가기
       this.drawStroke(sharedCtx, stroke);
       if (!individualCanvasMap[playerId]) {
         const canvas = createCanvas(MAINCANVAS_RESOLUTION_WIDTH, MAINCANVAS_RESOLUTION_HEIGHT);
