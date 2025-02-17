@@ -170,13 +170,10 @@ export class GameGateway implements OnGatewayDisconnect {
           if (boundaries.length > 0) {
             // 인식된 단어만 추출
             const inferTexts = ocrResult.images[0].fields.map((field) => field.inferText);
-            const paneltyWord = await this.findRelatedWord(currentWord, inferTexts);
-            if (paneltyWord) {
+            const paneltyWords = await this.filterRelatedWord(currentWord, inferTexts);
+            if (paneltyWords.length > 0) {
               await this.gameService.applyPenalty(roomId, playerId);
-              paneltyList.push({
-                playerId: playerId,
-                word: paneltyWord,
-              });
+              paneltyList.push({ playerId, paneltyWords });
             }
 
             await this.eraseMessage(roomId, playerId, boundaries);
@@ -351,12 +348,12 @@ export class GameGateway implements OnGatewayDisconnect {
     );
   }
 
-  // 캔버스 내 인식된 단어 중 제시어와 연관된 첫번째 단어 반환. 없으면 undefined
-  private async findRelatedWord(suggestedWord: string, inferTexts: string[]) {
+  // 캔버스 내 인식된 단어 중 제시어와 연관된 단어들을 배열로 반환.
+  private async filterRelatedWord(suggestedWord: string, inferTexts: string[]) {
     const isRelatedList = await Promise.all(
       inferTexts.map((word) => this.clovaStudio.isRelatedWord(suggestedWord, word)),
     );
-    return inferTexts.find((_, i) => isRelatedList[i]);
+    return inferTexts.filter((_, i) => isRelatedList[i]);
   }
 }
 
