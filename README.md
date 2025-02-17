@@ -7,32 +7,26 @@
 <div align=center>
 
 <p align=center>
-  <a href="https://inquisitive-beret-c36.notion.site/12855cd93d4f800b91bccc3ccf9d1444?pvs=74">팀 노션</a>
+  <a href="https://github.com/boostcampwm-2024/refactor-web42-stop-troublepainter/wiki">위키</a>
   &nbsp; | &nbsp; 
-  <a href="https://github.com/orgs/boostcampwm-2024/projects/212">프로젝트</a>
-  &nbsp; | &nbsp;
-  <a href="https://www.figma.com/design/Gl1naj84mDIWkG7IHZoVpo/%EC%9B%A8%EB%B2%A0%EB%B2%B1-UI-%EB%94%94%EC%9E%90%EC%9D%B8?node-id=71-124&t=acRqurOAstA2WU8J-1">피그마</a>
-  &nbsp; | &nbsp; 
-  <a href="https://github.com/boostcampwm-2024/web30-stop-troublepainter/wiki">위키</a>
-  <br>
-  <a href="https://www.troublepainter.site/">배포 링크</a>
-  &nbsp; | &nbsp; 
-  <a href="https://boostcampwm-2024.github.io/web30-stop-troublepainter/">TypeDoc</a>
-  &nbsp; | &nbsp; 
-  <a href="https://boostcampwm-2024.github.io/web30-stop-troublepainter/storybook-develop/?path=/docs/">Storybook</a>
+  <a href="https://re-troublepainter.kro.kr/">배포 링크</a>
 </p>
 
 <div align=center>
   <a href="https://hits.seeyoufarm.com">
-    <img src="https://hits.seeyoufarm.com/api/count/incr/badge.svg?url=https%3A%2F%2Fgithub.com%2Fboostcampwm-2024%2Fweb30-stop-troublepainter&count_bg=%231264A3&title_bg=%23323845&icon=&icon_color=%23E7E7E7&title=hits&edge_flat=false"/>
+    <img src="https://hits.seeyoufarm.com/api/count/incr/badge.svg?url=https%3A%2F%2Fgithub.com%2Fboostcampwm-2024%2Frefactor-web42-stop-troublepainter&count_bg=%231264A3&title_bg=%23323845&icon=&icon_color=%23E7E7E7&title=hits&edge_flat=false"/>
   </a>
 </div>
 </div>
 
-## 프로젝트 소개
+## 🎮 게임 소개
+**실시간 드로잉 퀴즈 게임에서 펼쳐지는 창의력과 혼란의 한판 승부!** <br>
+> **방해꾼은 못말려**는 하나의 캔버스에서 펼쳐지는 실시간 드로잉 퀴즈 게임입니다.
+> 
+> 친구들과 함께 그림 그리고, 방해하고, 제시어를 맞추는 경험을 즐겨보세요!🎵
+![392224147-861ffb2f-ddb6-45fe-9290-08bbc93489ae](https://github.com/user-attachments/assets/fa21318e-3f3d-490d-acf1-0b4bcf3186c1)
 
-**방해꾼은 못말려**는 그림꾼 vs 방해꾼, 한 캔버스에서 펼쳐지는 **실시간 드로잉 퀴즈 게임 🎨** 입니다.
-
+#### 플레이어 역할
 ```
 🎨 그림꾼: 제시어를 그림으로 표현하며 창의력을 발휘하세요
 
@@ -40,198 +34,79 @@
 
 🤔 구경꾼: 그림을 추리하고 정답을 맞춰 승리하세요
 ```
-**지금 바로 친구들과 함께 즐겨보세요!**
 
 <br>
 
-## 기술적 도전
+## 🤖 인공지능 기능 소개
 
-### 🖌️ 실시간 캔버스 동기화
+### 🔎 Clova OCR 글자 인식 및 삭제
 
-> "여러 명의 팀원과 하나의 캔버스를 공유한다고?"
+그리기 시간이 종료되면 **Clova OCR**이 캔버스에 작성된 **글자를 인식**합니다.
 
-소켓 통신과 LWW(Last-Write-Wins) 기반 CRDT 알고리즘으로 실시간 동기화 문제를 어떻게 해결했는지, CRDT 테스트까지 풀어낸 과정을 확인해 보세요. 이제 캔버스 상태는 언제나 (거의) 완벽하게 일치합니다.
+- node-canvas 라이브러리로 서버에서 이미지를 생성
+- 플레이어별 이미지 생성으로 글자 작성자 추적 가능
+- point-in-polygon 알고리즘으로 인식된 글자 영역의 선 삭제
 
-[🔗 자세히 보기](https://github.com/boostcampwm-2024/web30-stop-troublepainter/wiki/5.-%EC%BA%94%EB%B2%84%EC%8A%A4-%EB%8F%99%EA%B8%B0%ED%99%94%EB%A5%BC-%EC%9C%84%ED%95%9C-%EC%88%98%EC%A0%9C-CRDT-%EA%B5%AC%ED%98%84%EA%B8%B0) 
+(이미지 삽입)
 
-<br />
+### ➖ Clova Studio 패널티 시스템
 
-### 🎨 서드파티 라이브러리 없이 캔버스 구현
+**Clova Studio**가 인식된 글자와 제시어 간 **연관 관계를 파악**합니다.
 
-> "Canvas API는 엄청 유용합니다!"
+- 인식된 글자와 제시어 간 연관성 분석
+- 연관 단어 작성 시, 작성자에게 패널티 부여
 
-복잡한 드로잉 툴을 서드파티 없이 구현하려면 어떻게 해야 할까요? 직접 색상 선택, 스트로크 조절, Undo/Redo 같은 기능을 개발하고, 보간법 같은 최적화 기법까지 사용해 Canvas API를 최대한 사용해봤습니다.
+(이미지 삽입)
 
-[🔗 자세히 보기](https://github.com/boostcampwm-2024/web30-stop-troublepainter/wiki/4.-%EB%9D%BC%EC%9D%B4%EB%B8%8C%EB%9F%AC%EB%A6%AC-%EC%97%86%EC%9D%B4-Canvas-%EA%B5%AC%ED%98%84%ED%95%98%EA%B8%B0)
+## 🖌️ FE 기술적 도전
+### 캔버스 최적화
 
-<br />
+#### 캔버스 축소
 
-### 🔥 FE 5명의 좌충우돌 서버 구현기
+- OCR 인식률이 떨어지지 않도록 축소 필요
+- 0.75배, 0.5배, 0.25배에 대해 각각 테스트 진행 후 0.5배 축소로 결정
+    - 0.5배까지는 OCR 인식률이 일정하면서도 생성 속도가 개선되었지만, 0.25배 축소 시 OCR 인식률이 떨어지는 것으로 확인
+- 최적 축소율(0.5배) 적용으로 이미지 생성 속도 **23% 개선** (326 ms → 251ms)
+![image](https://github.com/user-attachments/assets/da274fde-763e-4b3e-bac8-a69821253537)
 
-> "실시간 통신? 백엔드 없어도 우리가 만든다!"
 
-인스턴스 생성부터 Docker와 GitHub Actions를 활용한 CI/CD 파이프라인 구축까지. 서버 부담을 줄이기 위한 고민과 도전 과정을 담았습니다.
+#### 이미지 스프라이트 기법 적용
 
-[🔗 실시간 통신](https://github.com/boostcampwm-2024/web30-stop-troublepainter/wiki/2.-%EC%8B%A4%EC%8B%9C%EA%B0%84-%ED%86%B5%EC%8B%A0)
+- 플레이어 별로 생성했던 이미지를 하나의 캔버스에 스프라이트로 그림
+- OCR 요청 비용 **75% 절감** (12원 → 3원)
+- 캔버스 크기 확대로 큰 비율의 **글자 인식률 상승**
+  
 
-[🔗 인프라 및 CI/CD 실습](https://github.com/boostcampwm-2024/web30-stop-troublepainter/wiki/3.-%EC%9D%B8%ED%94%84%EB%9D%BC-%EB%B0%8F-CI-CD)
+### Playwright 테스트
+#### Playwright를 활용한 OCR 테스트 자동화
 
-<br />
+- 그림을 그리는 마우스 이벤트 기록
+- 실제 사용자 시나리오 기반 테스트 환경 구축 ([문서 바로가기](https://www.notion.so/b16625716b284cb298eff22e84ba5e7a?pvs=21))
+![image](https://github.com/user-attachments/assets/cf478b16-8649-4458-aa58-ff2d68c963cf)
 
-### 🛠️ 효율적인 FE 아키텍처 설계 
 
-> "FE 아키텍처 설계, 이렇게 하면 될까?"
 
-재사용성, 유연성, 일관된 디자인을 위해 
+## 🦉 BE 기술적 도전
+### 실시간 데이터 공유
 
-1. UI와 로직을 깔끔히 분리한 Headless Pattern, Tailwind CSS 도구의 극한 활용
-2. 웹소켓을 사용하기 위한 수제 아키텍처
+#### Redis pub/sub을 활용한 데이터 공유
 
-이렇게 해결해본 경험을 공유할게요.
+- 서로 다른 소켓 간 데이터 공유를 위해 Redis pub/sub 사용
+- 게임 소켓과 드로잉 소켓 간 통신
+    - 서버 내 가상 캔버스를 생성해 그림 그리기
+    - Clova OCR로 인식된 글자 영역의 선을 삭제한 이미지를 클라이언트에 공유
 
-[🔗 자세히 보기](https://github.com/boostcampwm-2024/web30-stop-troublepainter/wiki/6.-%ED%9A%A8%EC%9C%A8%EC%A0%81%EC%9D%B8-FE-%EC%84%A4%EA%B3%84)
+### 도커 이미지 최적화
 
-<br>
+#### 멀티 빌드 기법 적용
 
-## 주요 기능
+- 이미지 크기 **47.2% 축소** (2.58GB → 1.22GB)
+- 불필요한 의존성을 설치하지 않도록 수정
 
-### 🔗 회원가입 없이 URL 하나로 게임 시작하기!
-
-> 클릭 한 번으로 게임방이 생성되고, 복사된 URL을 공유하면 누구나 쉽게 참여할 수 있습니다.
-
-<table>
-  <tr align="center">
-    <td><strong>방 만들기 및 초대 URL 공유, 대기실 입장</strong></td>
-  </tr>
-  <tr align="center">
-    <td>
-      <img src="https://github.com/user-attachments/assets/895f6246-5ca9-4eca-b0fb-b138075c08c3" alt="방 만들기 화면" />
-    </td>
-  </tr>
-</table>
-
-<br>
-
-### 🎭 신나는 역할 체인지 게임!
-
-> 라운드마다 무작위로 그림꾼 & 방해꾼, 구경꾼으로 역할이 나뉘어 서로 다른 재미를 느낄 수 있습니다.
-
-<table>
-  <tr align="center">
-    <td><strong>게임 시작 후 역할 랜덤 배정</strong></td>
-  </tr>
-  <tr align="center">
-    <td>
-      <img
-        src="https://github.com/user-attachments/assets/ac136e1d-626c-4000-a524-5b014efe3c88"
-        alt="역할 배정 화면"/>
-    </td>
-  </tr>
-</table>
-
-<br>
-
-### 🖌️ 기본에 충실한 드로잉 도구!
-
-> Canvas API의 기본 기능으로 완성도 높은 드로잉 기능을 제공합니다.
-
-<table>
-  <tr align="center">
-    <td><strong>펜툴 색상, 두께 변경 및 채우기 도구 사용 가능</strong></td>
-  </tr>
-  <tr align="center">
-    <td>
-      <img
-        src="https://github.com/user-attachments/assets/e56e2fae-888c-462e-825b-487b6277e6f5"
-        alt="드로잉 도구 시연"/>
-    </td>
-  </tr>
-</table>
-
-<table>
-  <tr align="center">
-    <td><strong>Undo/Redo 기능</strong></td>
-  </tr>
-  <tr align="center">
-    <td>
-      <img
-        src="https://github.com/user-attachments/assets/7acff86a-72c2-4019-8721-20a62f84fb31" 
-        alt="Undo/Redo 기능"/>
-    </td>
-  </tr>
-</table>
-
-<br>
-
-### 🎨 방해꾼과 그림꾼이 실시간으로 하나의 캔버스에서 대결해요!
-
-> 소켓 통신과 CRDT 기반으로 서로의 붓질이 실시간으로 동기화되어 긴장감 넘치는 그리기 대결을 즐길 수 있습니다.
-
-<table>
-  <tr align="center">
-    <td><strong>실시간으로 그려지는 붓질</strong></td>
-  </tr>
-  <tr align="center">
-    <td>
-      <img
-        src="https://github.com/user-attachments/assets/08620375-d951-4094-8c03-fb16381fbe03" 
-        alt="실시간 그리기 화면"/>
-    </td>
-  </tr>
-</table>
-
-<table>
-  <tr align="center">
-    <td><strong>동시에 여러 명이 그리기</strong></td>
-  </tr>
-  <tr align="center">
-    <td>
-      <img
-        src="https://github.com/user-attachments/assets/861ffb2f-ddb6-45fe-9290-08bbc93489ae" 
-        alt="동시 그리기 화면"/>
-    </td>
-  </tr>
-</table>
-
-<br>
-
-### 🎉 게임 종료와 함께 공개되는 최종 결과!
-
-> 정체를 숨기고 있던 방해꾼이 밝혀지는 흥미진진한 순간을 함께 즐겨보세요!
-
-<table>
-  <tr align="center">
-    <td><strong>방해꾼의 정체 공개</strong></td>
-  </tr>
-  <tr align="center">
-    <td>
-      <img
-        src="https://github.com/user-attachments/assets/b1a22b02-c5a1-4f32-a089-a84b1ea7eaeb" 
-        alt="결과 발표 화면"/>
-    </td>
-  </tr>
-</table>
-
-<table>
-  <tr align="center">
-    <td><strong>최종 순위 발표</strong></td>
-  </tr>
-  <tr align="center">
-    <td>
-      <img
-        src="https://github.com/user-attachments/assets/4f46b3ee-7112-47c5-bd1b-0e23fbe49498" 
-        alt="최종 순위 화면"/>
-    </td>
-  </tr>
-</table>
-
-<br />
 
 ## 기술 스택
 
-<div align=center>
-  <img src="https://github.com/user-attachments/assets/92d37463-6144-4353-a9ec-81087fbd1a35" width="700"/>
-</div>
+(구조 이미지)
 
 <table align=center>
     <thead>
@@ -301,9 +176,7 @@
 
 <br>
 
-## 웨베베베벱 팀 소개
-
-5명의 못말리는 FE 개발자들이 모인 팀이에요! 
+## Web42 팀 소개
 
 <table align="center">
   <tr>
