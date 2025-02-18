@@ -17,11 +17,11 @@ const CRDT_DATAS = Array.from({ length: 10 }, (_, index) => {
             points: [
               {
                 x: index * 100,
-                y: index * 60,
+                y: index * 62.5,
               },
               {
                 x: (index + 1) * 100,
-                y: (index + 1) * 60,
+                y: (index + 1) * 62.5,
               },
             ],
             style: {
@@ -76,18 +76,13 @@ describe('CanvasService', () => {
     });
   });
 
-  describe('getImagesByBase64', () => {
+  describe('generateBase64ImageSprite', () => {
     it('should return base64 encoded images', async () => {
       service.createRoom('room1');
       CRDT_DATAS.forEach((crdtData) => service.applyDrawing('room1', crdtData.drawingData));
 
-      const result = await service.getImagesByBase64('room1');
-      // 개인 캔버스
-      PLAYER_IDS.forEach((playerId) => {
-        expect(typeof result[playerId]).toBe('string');
-      });
-      // 공용 캔버스
-      expect(typeof result['shared']).toBe('string');
+      const result = await service.generateBase64ImageSprite('room1');
+      expect(typeof result).toBe('string');
     }, 20000);
   });
 
@@ -97,61 +92,65 @@ describe('CanvasService', () => {
       CRDT_DATAS.forEach((crdtData) => service.applyDrawing('room1', crdtData.drawingData));
 
       const crdtMessage = service.getEraseLineMessage('room1', [
-        {
-          playerId: '1',
-          boundary: [
-            { x: 0, y: 0 },
-            { x: 1000, y: 0 },
-            { x: 1000, y: 1000 },
-            { x: 0, y: 1000 },
-          ],
-        },
+        [
+          { x: 500, y: 0 },
+          { x: 500, y: 313 },
+          { x: 1000, y: 313 },
+          { x: 1000, y: 0 },
+        ],
       ]);
       expect(Object.keys(crdtMessage.state).length).toBe(4);
     });
 
-    it('remove all stroke', () => {
+    it('remove all strokes by shared boundary', () => {
       service.createRoom('room1');
       CRDT_DATAS.forEach((crdtData) => service.applyDrawing('room1', crdtData.drawingData));
 
       const crdtMessage = service.getEraseLineMessage(
         'room1',
-        PLAYER_IDS.map((playerId) => ({
-          playerId,
-          boundary: [
-            { x: 0, y: 0 },
-            { x: 1000, y: 0 },
-            { x: 1000, y: 1000 },
-            { x: 0, y: 1000 },
-          ],
-        })),
+        PLAYER_IDS.map(() => [
+          { x: 0, y: 0 },
+          { x: 500, y: 0 },
+          { x: 500, y: 313 },
+          { x: 0, y: 313 },
+        ]),
       );
       expect(Object.keys(crdtMessage.state).length).toBe(10);
     });
 
-    it('shared boundary', () => {
+    it('remove some strokes by shared boundary', () => {
+      service.createRoom('room1');
+      CRDT_DATAS.forEach((crdtData) => service.applyDrawing('room1', crdtData.drawingData));
+
+      const crdtMessage = service.getEraseLineMessage(
+        'room1',
+        PLAYER_IDS.map(() => [
+          { x: 10, y: 10 },
+          { x: 10, y: 300 },
+          { x: 490, y: 300 },
+          { x: 490, y: 10 },
+        ]),
+      );
+      expect(Object.keys(crdtMessage.state).length).toBe(8);
+    });
+
+    it('remove shared boundary', () => {
       service.createRoom('room1');
       CRDT_DATAS.forEach((crdtData) => service.applyDrawing('room1', crdtData.drawingData));
 
       const crdtMessage = service.getEraseLineMessage('room1', [
-        {
-          playerId: '1',
-          boundary: [
-            { x: 0, y: 0 },
-            { x: 1000, y: 0 },
-            { x: 1000, y: 1000 },
-            { x: 0, y: 1000 },
-          ],
-        },
-        {
-          playerId: 'shared',
-          boundary: [
-            { x: 0, y: 0 },
-            { x: 1000, y: 0 },
-            { x: 1000, y: 1000 },
-            { x: 0, y: 1000 },
-          ],
-        },
+        [
+          { x: 0, y: 0 },
+          { x: 500, y: 0 },
+          { x: 500, y: 313 },
+          { x: 0, y: 313 },
+        ],
+        [
+          { x: 500, y: 0 },
+          { x: 500, y: 313 },
+          { x: 1000, y: 313 },
+          { x: 1000, y: 0 },
+        ],
       ]);
       expect(Object.keys(crdtMessage.state).length).toBe(4);
     });

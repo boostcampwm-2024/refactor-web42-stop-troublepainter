@@ -157,31 +157,46 @@ export class GameGateway implements OnGatewayDisconnect {
 
     const timerPromise = this.runTimer(roomId, 10000, TimerType.OCR);
 
+    // OCR 작업
     const paneltyList = [];
-    const processingTimerPromise = (async () => {
-      // drawing 시간이 종료되면, 이미지를 base64로 변환
-      const canvasImages = await this.canvasService.getImagesByBase64(roomId);
+    {
+      const imageBase64 = await this.canvasService.generateBase64ImageSprite(roomId);
+      const ocrResult = (await this.clovaOcr.doOCR(imageBase64)) as OCRResult;
+      const fields = ocrResult.images[0].fields;
+      const boundaries = fields.map((field) => field.boundingPoly.vertices);
+      const playerIds = boundaries.map((boundary) => this.canvasService.getPlayerIdByBoundary(roomId, boundary));
+      const words = fields.map((field) => field.inferText);
+      const wordsGroupByPlayerId = words.reduce((acc: Record<string, string[]>, word, index) => {
+        const playerId = playerIds[index];
+        if (!playerId) return acc;
+        if (!(playerId in acc)) acc[playerId] = [];
+        acc[playerId].push(word);
+        return acc;
+      }, {});
+
+      // 패널티 작업
       await Promise.all(
-        Object.entries(canvasImages).map(async ([playerId, imageBase64]) => {
-          const ocrResult = await this.clovaOcr.doOCR(imageBase64);
-          const boundaries = this.getTextBoundaries(ocrResult, playerId);
-
-          // 단어가 존재한다면 영역 내 선 지우기 및 연관 여부 판단하기
-          if (boundaries.length > 0) {
-            // 인식된 단어만 추출
-            const inferTexts = ocrResult.images[0].fields.map((field) => field.inferText);
-            const paneltyWords = await this.filterRelatedWord(currentWord, inferTexts);
-            if (paneltyWords.length > 0) {
-              await this.gameService.applyPenalty(roomId, playerId);
-              paneltyList.push({ playerId, paneltyWords });
-            }
-
-            await this.eraseMessage(roomId, playerId, boundaries);
+        Object.entries(wordsGroupByPlayerId).map(async ([playerId, words]) => {
+          const paneltyWords = await this.filterRelatedWord(currentWord, words);
+          if (paneltyWords.length > 0) {
+            await this.gameService.applyPenalty(roomId, playerId);
+            paneltyList.push({ playerId, paneltyWords });
           }
         }),
       );
-    })();
-    await Promise.all([timerPromise, processingTimerPromise]);
+
+      // 선 삭제
+      const eraseMessage = this.canvasService.getEraseLineMessage(roomId, boundaries);
+      await this.redisService.publish(
+        `erasing:${roomId}`,
+        JSON.stringify({
+          playerId: '*',
+          drawingData: eraseMessage,
+        }),
+      );
+    }
+
+    await timerPromise;
 
     // OCR 및 선 삭제 로직이 종료된 이후 추측 시간으로 변경
     roomStatus = await this.gameService.handleOCRTimeout(roomId);
@@ -323,31 +338,6 @@ export class GameGateway implements OnGatewayDisconnect {
     }
   }
 
-  private getTextBoundaries(ocrResult: OCRResult, playerId: string) {
-    return (
-      ocrResult.images[0].fields.map((field) => ({
-        playerId,
-        boundary: [
-          { x: field.boundingPoly.vertices[0].x, y: field.boundingPoly.vertices[0].y },
-          { x: field.boundingPoly.vertices[1].x, y: field.boundingPoly.vertices[1].y },
-          { x: field.boundingPoly.vertices[2].x, y: field.boundingPoly.vertices[2].y },
-          { x: field.boundingPoly.vertices[3].x, y: field.boundingPoly.vertices[3].y },
-        ],
-      })) || []
-    );
-  }
-
-  private async eraseMessage(roomId: string, playerId: string, boundaries: TextBoundary[]) {
-    const eraseMessage = this.canvasService.getEraseLineMessage(roomId, boundaries);
-    await this.redisService.publish(
-      `erasing:${roomId}`,
-      JSON.stringify({
-        playerId,
-        drawingData: eraseMessage,
-      }),
-    );
-  }
-
   // 캔버스 내 인식된 단어 중 제시어와 연관된 단어들을 배열로 반환.
   private async filterRelatedWord(suggestedWord: string, inferTexts: string[]) {
     const isRelatedList = await Promise.all(
@@ -383,14 +373,4 @@ interface OCRResult {
       lineBreak: boolean;
     }>;
   }>;
-}
-
-interface Point {
-  x: number;
-  y: number;
-}
-
-interface TextBoundary {
-  playerId: string;
-  boundary: Point[];
 }
