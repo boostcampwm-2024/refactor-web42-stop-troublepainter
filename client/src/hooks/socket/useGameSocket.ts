@@ -24,6 +24,7 @@ import { checkTimerDifference } from '@/utils/checkTimerDifference';
 import { playerIdStorageUtils } from '@/utils/playerIdStorage';
 import { SOUND_IDS, SoundManager } from '@/utils/soundManager';
 import { gameSocketConnect, gameSocketDisconnect, offGameEvent, onGameEvent } from '@/stores/socket/gameWorker.ts';
+import { useToastStore } from '@/stores/toast.store';
 
 /**
  * 게임 진행에 필요한 소켓 연결과 상태를 관리하는 Hook입니다.
@@ -216,6 +217,18 @@ export const useGameSocket = () => {
         gameActions.resetRound();
         gameActions.updateGameTerminateType(terminationType);
         navigate(`/game/${roomId}/result`, { replace: true });
+      },
+
+      penaltyMessage: async (response: { playerId: string; paneltyWords: string[] }[]) => {
+        for (const { playerId, paneltyWords } of response) {
+          const playerName = useGameSocketStore.getState().players.find((e) => e.playerId === playerId)?.nickname;
+          if (!playerName) continue;
+          useToastStore.getState().actions.addToast({
+            title: '앗! 패널티 💥',
+            description: `${playerName}님, 연관 단어(${paneltyWords.map((e) => `"${e}"`).join(', ')}) 작성으로 패널티 당첨! 다음엔 조심하세요! 😆`,
+          });
+          await new Promise((res) => setTimeout(res, 50));
+        }
       },
     };
 

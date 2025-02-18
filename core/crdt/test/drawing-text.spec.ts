@@ -138,7 +138,7 @@ test.describe('Game Room Drawing Test', () => {
       drawEventData(drawers[2].page, eventData3);
 
       // 드로잉 종료 대기: 드로잉 시간 35초 + OCR 시간 넉넉하게 15초
-      await new Promise((resolve) => setTimeout(resolve, 50000));
+      await new Promise((resolve) => setTimeout(resolve, 70000));
 
       // 테스트 종료
       await Promise.all(clients.map((e) => e.context.close()));
