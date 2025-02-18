@@ -1,17 +1,21 @@
 import { Injectable } from '@nestjs/common';
 import { CRDTMessage, CRDTMessageTypes, CRDTSyncMessage, DrawingData, LWWMap, MapState } from '@troublepainter/core';
-import { Canvas, CanvasRenderingContext2D, createCanvas } from 'canvas';
+import { CanvasRenderingContext2D, createCanvas } from 'canvas';
 
 @Injectable()
 export class CanvasService {
   private crdtMap: Map<string, LWWMap> = new Map();
-  private canvasScale = 0.5;
+  private offsetMap: Map<string, Record<string, { x: number; y: number }>> = new Map();
+  private canvasScale = 0.5 as const;
+  private canvasSize = { w: 1000, h: 625 } as const;
 
   createRoom(roomId: string) {
     this.crdtMap.set(roomId, new LWWMap(roomId));
+    this.offsetMap.set(roomId, {});
   }
   removeRoom(roomID: string) {
     this.crdtMap.delete(roomID);
+    this.offsetMap.delete(roomID);
   }
 
   applyScale(position: { x: number; y: number }) {
@@ -45,80 +49,87 @@ export class CanvasService {
   // 드로잉 데이터를 적용
   applyDrawing(roomId: string, crdtDrawingData: CRDTMessage) {
     const lwwMap = this.crdtMap.get(roomId);
-    if (!lwwMap) return;
+    const offset = this.offsetMap.get(roomId);
+    if (!lwwMap && !offset) return;
 
     if (crdtDrawingData.type === CRDTMessageTypes.UPDATE) {
       const { key, register } = crdtDrawingData.state;
       lwwMap.mergeRegister(key, register);
+      // 오프셋 등록
+      if (!(register.peerId in offset)) {
+        const registeredPlayerCount = Object.keys(offset).length;
+        const offsetX = ((registeredPlayerCount + 1) % 2) * this.canvasSize.w * this.canvasScale;
+        const offsetY = Math.floor((registeredPlayerCount + 1) / 2) * this.canvasSize.h * this.canvasScale;
+        offset[register.peerId] = { x: offsetX, y: offsetY };
+      }
     }
   }
 
-  // 캔버스 이미지를 base64로 변환
-  // shared: 공용 캔버스 / 그외: 각 플레이어의 개인 캔버스
-  async getImagesByBase64(roomId: string): Promise<Record<string, string>> {
+  // 이미지 스프라이트를 생성
+  async generateBase64ImageSprite(roomId: string): Promise<string> | null {
     const lwwMap = this.crdtMap.get(roomId);
-    if (!lwwMap) return;
+    const offset = this.offsetMap.get(roomId);
+    if (!lwwMap && !offset) return;
     const lwwMapState = lwwMap.state;
 
-    const MAINCANVAS_RESOLUTION_WIDTH = Math.ceil(1000 * this.canvasScale);
-    const MAINCANVAS_RESOLUTION_HEIGHT = Math.ceil(625 * this.canvasScale);
+    const canvas = createCanvas(this.canvasSize.w + 100, this.canvasSize.h + 100);
+    const ctx = canvas.getContext('2d');
+    ctx.fillStyle = 'white';
+    ctx.fillRect(0, 0, canvas.width, canvas.height);
 
-    const sharedCanvas = createCanvas(MAINCANVAS_RESOLUTION_WIDTH, MAINCANVAS_RESOLUTION_HEIGHT);
-    // const ctxStart = performance.now();
-    const sharedCtx = sharedCanvas.getContext('2d');
-    // console.log('ctx time:', performance.now() - ctxStart);
-    sharedCtx.fillStyle = 'white';
-    sharedCtx.fillRect(0, 0, MAINCANVAS_RESOLUTION_WIDTH, MAINCANVAS_RESOLUTION_HEIGHT);
-    const individualCanvasMap: Record<string, { canvas: Canvas; ctx: CanvasRenderingContext2D }> = {};
-
-    // 그림 그리기
-    // const drawStart = performance.now();
+    // 공동 그리기
     const activeStrokes = lwwMap.getActiveStrokes();
+    for (const { stroke } of activeStrokes) {
+      if (stroke.points.length > 2) continue;
+      this.drawStroke(ctx, stroke);
+    }
+    // 개별 그리기
+    // ctx.setTransform를 최소화하기 위해 공동 그리기와 분리함
+    let prevPlayerId = null;
     for (const { stroke, id } of activeStrokes) {
       const playerId = lwwMapState[id].peerId;
       if (stroke.points.length > 2) continue; // 채우기는 지나가기
-      this.drawStroke(sharedCtx, stroke);
-      if (!individualCanvasMap[playerId]) {
-        const canvas = createCanvas(MAINCANVAS_RESOLUTION_WIDTH, MAINCANVAS_RESOLUTION_HEIGHT);
-        const ctx = canvas.getContext('2d');
-        ctx.fillStyle = 'white';
-        ctx.fillRect(0, 0, MAINCANVAS_RESOLUTION_WIDTH, MAINCANVAS_RESOLUTION_HEIGHT);
-        individualCanvasMap[playerId] = { canvas, ctx };
-      }
-      this.drawStroke(individualCanvasMap[playerId].ctx, stroke);
+      if (playerId in offset && prevPlayerId !== playerId)
+        ctx.setTransform(1, 0, 0, 1, offset[playerId].x, offset[playerId].y);
+      prevPlayerId = playerId;
+      this.drawStroke(ctx, stroke);
     }
-    // console.log('draw time:', performance.now() - drawStart);
 
-    //그림을 base64 이미지로 변환
-    // const base64Start = performance.now();
-    const canvasList = [sharedCanvas, ...Object.values(individualCanvasMap).map(({ canvas }) => canvas)];
-    const resultKeyList = ['shared', ...Object.keys(individualCanvasMap)];
-    const resultValueList = await Promise.all(
-      canvasList.map(async (canvas) => {
-        const pngData = [];
-        const stream = canvas.createJPEGStream();
-        stream.on('data', (chunk) => pngData.push(chunk));
-        await new Promise((resolve) => stream.on('end', resolve));
-        const buf = Buffer.concat(pngData);
-        return buf.toString('base64');
-      }),
-    );
-    // console.log('base64 time:', performance.now() - base64Start);
-
-    return resultKeyList.reduce((acc, key, idx) => {
-      acc[key] = resultValueList[idx];
-      return acc;
-    }, {});
+    // 이미지를 추출하여 base64로 변환
+    const pngData = [];
+    const stream = canvas.createJPEGStream();
+    await new Promise((resolve, reject) => {
+      stream.on('data', (chunk) => pngData.push(chunk));
+      stream.on('end', resolve);
+      stream.on('error', reject);
+    });
+    const buf = Buffer.concat(pngData);
+    return buf.toString('base64');
   }
 
-  // 지워야하는 CRDT 메시지 반환
-  // 만약 공용 캔버스의 바운더리라면 playerId를 'shared'로 설정
-  getEraseLineMessage(
-    roomId: string,
-    boundaryList: { playerId: string; boundary: { x: number; y: number }[] }[],
-  ): CRDTSyncMessage {
+  // 바운더리에 해당하는 플레이어 아이디를 반환. 없으면 null
+  getPlayerIdByBoundary(roomId: string, boundary: { x: number; y: number }[]): string | null {
+    if (!boundary && boundary.length < 1) return null;
     const lwwMap = this.crdtMap.get(roomId);
-    if (!lwwMap) return;
+    const offset = this.offsetMap.get(roomId);
+    if (!lwwMap && !offset) return null;
+    const sumPoint = boundary.reduce((acc, e) => ({ x: acc.x + e.x, y: acc.y + e.y }), { x: 0, y: 0 });
+    const mx = sumPoint.x / boundary.length;
+    const my = sumPoint.y / boundary.length;
+    const w = this.canvasSize.w * this.canvasScale;
+    const h = this.canvasSize.h * this.canvasScale;
+    const offsetList = Object.entries(offset);
+    for (const [plyaerId, { x, y }] of offsetList) {
+      if (x < mx && mx <= x + w && y < my && my <= y + h) return plyaerId;
+    }
+    return null;
+  }
+
+  // 바운더리 내에 선을 지우는 CRDT 메시지 반환
+  getEraseLineMessage(roomId: string, boundaryList: { x: number; y: number }[][]): CRDTSyncMessage | null {
+    const lwwMap = this.crdtMap.get(roomId);
+    const offset = this.offsetMap.get(roomId);
+    if (!lwwMap && !offset) return;
     const lwwMapState = lwwMap.state;
 
     // 점이 경계 안에 있는지 확인
@@ -131,9 +142,21 @@ export class CanvasService {
       return crossList.every((cross) => cross >= 0) || crossList.every((cross) => cross <= 0);
     };
 
+    // 플레이어아이디: 바운더리배열
+    const boundaryMap = boundaryList.reduce(
+      (acc: { playerId: string; boundary: { x: number; y: number }[] }[], boundary) => {
+        const playerId = this.getPlayerIdByBoundary(roomId, boundary) || 'shared';
+        const offsetPos = offset[playerId];
+        if (offsetPos) boundary = boundary.map((e) => ({ x: e.x - offsetPos.x, y: e.y - offsetPos.y }));
+        acc.push({ playerId, boundary });
+        return acc;
+      },
+      [],
+    );
+
     // 개인 캔버스의 바운더리와 겹치는 공용 캔버스 바운더리 제거
-    const sharedBoundaryList = boundaryList.filter(({ playerId }) => playerId === 'shared');
-    const individualBoundaryList = boundaryList.filter(({ playerId }) => playerId !== 'shared');
+    const sharedBoundaryList = boundaryMap.filter(({ playerId }) => playerId === 'shared');
+    const individualBoundaryList = boundaryMap.filter(({ playerId }) => playerId !== 'shared');
     const filteredSharedBoundaryList = sharedBoundaryList.filter(({ boundary: sharedBoundary }) =>
       individualBoundaryList.every(
         ({ boundary: individualBoundary }) =>
@@ -153,10 +176,10 @@ export class CanvasService {
           return stroke.points.every((strokePoint) => isPointInBoundary(strokePoint, boundary));
         }),
       )
-      .reduce((acc, { id, stroke }) => {
+      .reduce((acc: MapState, { id, stroke }) => {
         acc[id] = { peerId: lwwMapState[id].peerId, timestamp: stroke.timestamp, value: stroke, isDeactivated: true };
         return acc;
-      }, {} as MapState);
+      }, {});
 
     return { type: CRDTMessageTypes.SYNC, state: resultMapState };
   }
