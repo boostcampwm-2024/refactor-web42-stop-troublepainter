@@ -14,7 +14,7 @@ ARG VITE_SOCKET_URL
 
 RUN echo "VITE_API_URL=$VITE_API_URL" > client/.env && echo "VITE_SOCKET_URL=$VITE_SOCKET_URL" >> client/.env && pnpm --filter @troublepainter/core build && pnpm --filter client build
 
-FROM nginx:alpine
+FROM macbre/nginx-http3
 
 COPY ./docker-build/prod/nginx.conf /etc/nginx/templates/default.conf.template
 COPY --from=builder /app/client/dist /usr/share/nginx/html
