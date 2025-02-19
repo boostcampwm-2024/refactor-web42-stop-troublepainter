@@ -164,7 +164,9 @@ export class GameGateway implements OnGatewayDisconnect {
       const ocrResult = (await this.clovaOcr.doOCR(imageBuffer)) as OCRResult;
       const fields = ocrResult.images[0].fields;
       const boundaries = fields.map((field) => field.boundingPoly.vertices);
-      const playerIds = boundaries.map((boundary) => this.canvasService.getPlayerIdByBoundary(roomId, boundary));
+      const playerIds = await Promise.all(
+        boundaries.map((boundary) => this.canvasService.getPlayerIdByBoundary(roomId, boundary)),
+      );
       const words = fields.map((field) => field.inferText);
       const wordsGroupByPlayerId = words.reduce((acc: Record<string, string[]>, word, index) => {
         const playerId = playerIds[index];
@@ -186,7 +188,7 @@ export class GameGateway implements OnGatewayDisconnect {
       );
 
       // 선 삭제
-      const eraseMessage = this.canvasService.getEraseLineMessage(roomId, boundaries);
+      const eraseMessage = await this.canvasService.getEraseLineMessage(roomId, boundaries);
       await this.redisService.publish(
         `erasing:${roomId}`,
         JSON.stringify({
