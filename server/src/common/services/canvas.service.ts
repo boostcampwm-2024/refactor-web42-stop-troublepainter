@@ -69,8 +69,8 @@ export class CanvasService {
 
   // 이미지 스프라이트를 생성
   async generateImageBuffer(roomId: string) {
-    const unit8array = (await this.requestAndAwait(roomId, 'generateImageBuffer', undefined)) as Uint8Array | null;
-    if (unit8array) return Buffer.from(unit8array);
+    const arrayBuffer = (await this.requestAndAwait(roomId, 'generateImageBuffer', undefined)) as ArrayBuffer | null;
+    if (arrayBuffer) return Buffer.from(arrayBuffer);
     return null;
   }
 

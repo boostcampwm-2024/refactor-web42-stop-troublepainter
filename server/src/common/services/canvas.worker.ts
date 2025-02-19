@@ -179,6 +179,7 @@ class CanvasServiceWorker {
 const canvas = new CanvasServiceWorker();
 parentPort.on('message', async ({ action, requestId, roomId, payload }) => {
   let response: any;
+  let transferable: any;
   try {
     switch (action) {
       case 'createRoom':
@@ -191,7 +192,10 @@ parentPort.on('message', async ({ action, requestId, roomId, payload }) => {
         canvas.applyDrawing(roomId, payload);
         return;
       case 'generateImageBuffer':
-        response = await canvas.generateImageBuffer(roomId);
+        const buffer = await canvas.generateImageBuffer(roomId);
+        const arrayBuffer = buffer.buffer;
+        response = arrayBuffer;
+        transferable = [arrayBuffer];
         break;
       case 'getPlayerIdByBoundary':
         response = canvas.getPlayerIdByBoundary(roomId, payload);
@@ -200,7 +204,7 @@ parentPort.on('message', async ({ action, requestId, roomId, payload }) => {
         response = canvas.getEraseLineMessage(roomId, payload);
         break;
     }
-    if (requestId) parentPort.postMessage({ requestId, response });
+    if (requestId) parentPort.postMessage({ requestId, response }, transferable);
   } catch (e) {
     console.error(e);
   }
