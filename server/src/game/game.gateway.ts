@@ -23,7 +23,6 @@ import { ClovaStudio } from '../common/clova-studio';
 @WebSocketGateway({
   cors: '*',
   namespace: '/socket.io/game',
-  pingInterval: 10000,
 })
 @UseFilters(WsExceptionFilter)
 export class GameGateway implements OnGatewayDisconnect {
