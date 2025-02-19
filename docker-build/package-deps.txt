@@ -1,0 +1,7 @@
+python3
+pkgconfig
+pixman-dev
+cairo-dev
+pango-dev
+build-base
+libjpeg-turbo-dev
