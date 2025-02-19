@@ -2,6 +2,7 @@ import { Injectable } from '@nestjs/common';
 import { ConfigService } from '@nestjs/config';
 import axios, { AxiosInstance } from 'axios';
 import * as crypto from 'crypto';
+import * as FormData from 'form-data';
 
 @Injectable()
 export class ClovaOcr {
@@ -14,35 +15,42 @@ export class ClovaOcr {
     this.client = axios.create({
       baseURL: invokeUrl,
       headers: {
-        'Content-Type': 'application/json',
         'X-OCR-SECRET': secretKey,
       },
     });
   }
 
-  async doOCR(base64Data: string) {
-    let data = base64Data;
+  async doOCR(buffer: Buffer) {
+    const formData = new FormData();
+    const requestId = crypto.randomUUID();
 
-    // data:<image/png>;base64,
-    // data:imgae/jpeg;base64, 와 같은 prefix가 존재한다면 제거
-    if (base64Data.startsWith('data:')) {
-      data = base64Data.split(',')[1];
-    }
-
-    const requestData = {
+    // Add message part
+    const message = {
       images: [
         {
-          format: 'jpeg',
-          name: crypto.randomUUID(),
-          data,
+          format: 'jpg',
+          name: 'image',
         },
       ],
-      requestId: crypto.randomUUID(),
+      requestId,
       version: 'V2',
       timestamp: Date.now(),
     };
 
-    const response = await this.client.post('', requestData);
+    formData.append('message', JSON.stringify(message));
+
+    // Add image buffer
+    formData.append('file', buffer, {
+      filename: `image-${requestId}.jpg`,
+      contentType: 'image/jpeg',
+    });
+
+    const response = await this.client.post('', formData, {
+      headers: {
+        ...formData.getHeaders(),
+      },
+    });
+
     return response.data;
   }
 }

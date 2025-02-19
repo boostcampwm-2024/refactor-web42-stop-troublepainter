@@ -66,7 +66,7 @@ export class CanvasService {
   }
 
   // 이미지 스프라이트를 생성
-  async generateBase64ImageSprite(roomId: string): Promise<string> | null {
+  async generateImageBuffer(roomId: string): Promise<Buffer> | null {
     const lwwMap = this.crdtMap.get(roomId);
     const offset = this.offsetMap.get(roomId);
     if (!lwwMap && !offset) return;
@@ -95,16 +95,8 @@ export class CanvasService {
       this.drawStroke(ctx, stroke);
     }
 
-    // 이미지를 추출하여 base64로 변환
-    const pngData = [];
-    const stream = canvas.createJPEGStream();
-    await new Promise((resolve, reject) => {
-      stream.on('data', (chunk) => pngData.push(chunk));
-      stream.on('end', resolve);
-      stream.on('error', reject);
-    });
-    const buf = Buffer.concat(pngData);
-    return buf.toString('base64');
+    // JPEG buffer로 변환
+    return canvas.toBuffer('image/jpeg');
   }
 
   // 바운더리에 해당하는 플레이어 아이디를 반환. 없으면 null
