@@ -1,0 +1,7 @@
+python3
+pkg-config
+libpixman-1-dev
+libcairo2-dev
+libpango1.0-dev
+build-essential
+libjpeg-dev
