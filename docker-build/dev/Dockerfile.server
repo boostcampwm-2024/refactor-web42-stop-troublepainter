@@ -4,13 +4,15 @@ RUN corepack enable && corepack prepare pnpm@9.12.3 --activate
 
 WORKDIR /app
 
+COPY docker-build/package-deps.txt /tmp/package-deps.txt
+RUN apk add --no-cache $(cat /tmp/package-deps.txt)
+
 COPY pnpm-workspace.yaml package.json pnpm-lock.yaml tsconfig.base.json ./
 COPY core ./core
 COPY server ./server
 
-RUN apk add python3 pkgconfig pixman-dev cairo-dev pango-dev build-base libjpeg-turbo-dev
-
-RUN pnpm install --frozen-lockfile
+RUN pnpm install --filter core --frozen-lockfile
+RUN pnpm install --filter server --frozen-lockfile
 
 RUN pnpm --filter @troublepainter/core build
 RUN pnpm --filter server build
@@ -24,9 +26,11 @@ COPY --from=builder /app/server/dist ./server/dist
 COPY --from=builder /app/core/package.json ./core/package.json
 COPY --from=builder /app/core/dist ./core/dist
 
-RUN apk add python3 pkgconfig pixman-dev cairo-dev pango-dev build-base libjpeg-turbo-dev
+COPY docker-build/package-deps.txt /tmp/package-deps.txt
+RUN apk add --no-cache $(cat /tmp/package-deps.txt)
 
-RUN corepack enable && corepack prepare pnpm@9.12.3 --activate && cd server && pnpm install --prod --filter '!@troublepainter/core'
+RUN corepack enable && corepack prepare pnpm@9.12.3 --activate
+RUN pnpm install --prod --filter '!@troublepainter/core'
 
 WORKDIR /app/server
 
