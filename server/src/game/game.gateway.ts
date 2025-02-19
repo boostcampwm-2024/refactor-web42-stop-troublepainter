@@ -160,8 +160,8 @@ export class GameGateway implements OnGatewayDisconnect {
     // OCR 작업
     const paneltyList = [];
     {
-      const imageBase64 = await this.canvasService.generateBase64ImageSprite(roomId);
-      const ocrResult = (await this.clovaOcr.doOCR(imageBase64)) as OCRResult;
+      const imageBuffer = await this.canvasService.generateImageBuffer(roomId);
+      const ocrResult = (await this.clovaOcr.doOCR(imageBuffer)) as OCRResult;
       const fields = ocrResult.images[0].fields;
       const boundaries = fields.map((field) => field.boundingPoly.vertices);
       const playerIds = boundaries.map((boundary) => this.canvasService.getPlayerIdByBoundary(roomId, boundary));
