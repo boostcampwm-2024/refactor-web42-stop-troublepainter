@@ -8,7 +8,7 @@ COPY pnpm-workspace.yaml package.json pnpm-lock.yaml tsconfig.base.json ./
 COPY core ./core
 COPY client ./client
 
-RUN pnpm install --frozen-lockfile
+RUN pnpm install --filter core --frozen-lockfile && pnpm install --filter client --frozen-lockfile
 ARG VITE_API_URL
 ARG VITE_SOCKET_URL
 
