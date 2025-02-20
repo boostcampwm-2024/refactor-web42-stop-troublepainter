@@ -8,14 +8,15 @@ export class ClovaClient {
   private readonly client: AxiosInstance;
 
   constructor(private configService: ConfigService) {
-    const apiKey = this.configService.get<string>('CLOVA_API_KEY');
-    const gatewayKey = this.configService.get<string>('CLOVA_GATEWAY_KEY');
+    const apiKey = this.configService.get<string>('CLOVA_STUDIO_API_KEY');
+    const requestId = this.configService.get<string>('CLOVA_CLIENT_REQUEST_ID');
 
     this.client = axios.create({
-      baseURL: 'https://clovastudio.stream.ntruss.com/testapp/v1',
+      baseURL: 'https://clovastudio.stream.ntruss.com/testapp/v1/chat-completions/HCX-003',
       headers: {
-        'X-NCP-CLOVASTUDIO-API-KEY': apiKey,
-        'X-NCP-APIGW-API-KEY': gatewayKey,
+        Authorization: `Bearer ${apiKey}`,
+        'X-NCP-CLOVASTUDIO-REQUEST-ID': requestId,
+        'Content-Type': 'application/json',
       },
     });
   }
@@ -51,13 +52,12 @@ export class ClovaClient {
     };
 
     try {
-      const response = await this.client.post('/chat-completions/HCX-003', request);
-      const result = response.data.result.message.content
+      const response = await this.client.post('', request);
+      return response.data.result.message.content
         .split('\n')
         .map((line: string) => line.trim())
         .filter((line: string) => line)
         .map((line: string) => line.replace(/^\d+\.\s*/, ''));
-      return result;
     } catch (error) {
       throw new Error(`CLOVA API request failed: ${error.message}`);
     }
