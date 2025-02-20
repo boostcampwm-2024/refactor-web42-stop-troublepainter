@@ -63,7 +63,6 @@ class SocketManager {
     });
 
     socket.onAny((eventName, ...args) => {
-      console.log('namespace:', namespace, 'event:', eventName, 'args:', args);
       this.broadcast({
         type: 'socket_event',
         namespace,
@@ -158,7 +157,6 @@ addEventListener('connect', (e: Event) => {
 
   port.onmessage = (e: MessageEvent) => {
     const { type, payload } = e.data;
-    console.log('shared worker에서 받은 값', type, payload);
     switch (type) {
       case 'connect':
         manager.connect(payload.namespace, payload.auth);

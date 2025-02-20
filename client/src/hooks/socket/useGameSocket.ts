@@ -116,7 +116,6 @@ export const useGameSocket = () => {
     const handlers = {
       joinedRoom: (response: JoinRoomResponse) => {
         const { room, roomSettings, players, playerId } = response;
-        console.log('joinRoom Res: ', response);
         gameActions.updateRoom(room);
         gameActions.updateRoomSettings({ ...roomSettings, drawTime: roomSettings.drawTime - 5 });
         gameActions.updatePlayers(players);
