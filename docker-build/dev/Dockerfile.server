@@ -13,11 +13,8 @@ COPY pnpm-workspace.yaml package.json pnpm-lock.yaml tsconfig.base.json ./
 COPY core ./core
 COPY server ./server
 
-RUN pnpm install --filter core --frozen-lockfile
-RUN pnpm install --filter server --frozen-lockfile
-
-RUN pnpm --filter @troublepainter/core build
-RUN pnpm --filter server build
+RUN pnpm install --filter core --frozen-lockfile && pnpm --filter @troublepainter/core build
+RUN pnpm install --filter server --frozen-lockfile && pnpm --filter server build
 
 FROM node:22-slim AS production
 WORKDIR /app
@@ -33,8 +30,7 @@ COPY --from=builder /app/server/dist ./server/dist
 COPY --from=builder /app/core/package.json ./core/package.json
 COPY --from=builder /app/core/dist ./core/dist
 
-RUN corepack enable && corepack prepare pnpm@9.12.3 --activate
-RUN pnpm install --prod --filter '!@troublepainter/core'
+RUN corepack enable && corepack prepare pnpm@9.12.3 --activate && pnpm install --prod --no-optional --filter '!@troublepainter/core'
 
 WORKDIR /app/server
 
