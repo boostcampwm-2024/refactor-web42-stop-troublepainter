@@ -7,18 +7,20 @@ class CanvasServiceWorker {
   private offsetMap: Map<string, Record<string, { x: number; y: number }>> = new Map();
   private canvasScale = 0.5 as const;
   private canvasSize = { w: 1000, h: 625 } as const;
-  private baseOffset = { x: 100, y: 100 } as const;
+  private MARGIN = 100 as const;
+  private SHARED_PLAYER_ID = 'shared' as const;
 
   createRoom(roomId: string) {
     this.crdtMap.set(roomId, new LWWMap(roomId));
     this.offsetMap.set(roomId, {});
+    this.offsetMap.get(roomId)[this.SHARED_PLAYER_ID] = { x: this.MARGIN, y: this.MARGIN };
   }
   removeRoom(roomID: string) {
     this.crdtMap.delete(roomID);
     this.offsetMap.delete(roomID);
   }
 
-  applyScale(position: { x: number; y: number }) {
+  private applyScale(position: { x: number; y: number }) {
     return { x: Math.ceil(position.x * this.canvasScale), y: Math.ceil(position.y * this.canvasScale) };
   }
 
@@ -57,9 +59,10 @@ class CanvasServiceWorker {
       lwwMap.mergeRegister(key, register);
       // 오프셋 등록
       if (!(register.peerId in offset)) {
-        const registeredPlayerCount = Object.keys(offset).length;
-        const offsetX = ((registeredPlayerCount + 1) % 2) * this.canvasSize.w * this.canvasScale;
-        const offsetY = Math.floor((registeredPlayerCount + 1) / 2) * this.canvasSize.h * this.canvasScale;
+        const offsetCount = Object.keys(offset).length;
+        const offsetX = (offsetCount % 2) * (this.canvasSize.w * this.canvasScale + this.MARGIN) + this.MARGIN;
+        const offsetY =
+          Math.floor(offsetCount / 2) * (this.canvasSize.h * this.canvasScale + this.MARGIN) + this.MARGIN;
         offset[register.peerId] = { x: offsetX, y: offsetY };
       }
     }
@@ -72,14 +75,14 @@ class CanvasServiceWorker {
     if (!lwwMap && !offset) return;
     const lwwMapState = lwwMap.state;
 
-    const canvas = createCanvas(this.canvasSize.w + 200, this.canvasSize.h + 200);
+    const canvas = createCanvas(this.canvasSize.w + this.MARGIN * 3, this.canvasSize.h + this.MARGIN * 3);
     const ctx = canvas.getContext('2d');
     ctx.fillStyle = 'white';
     ctx.fillRect(0, 0, canvas.width, canvas.height);
 
     // 공동 그리기
     const activeStrokes = lwwMap.getActiveStrokes();
-    ctx.setTransform(1, 0, 0, 1, this.baseOffset.x, this.baseOffset.y);
+    ctx.setTransform(1, 0, 0, 1, this.MARGIN, this.MARGIN);
     for (const { stroke } of activeStrokes) {
       if (stroke.points.length > 2) continue;
       this.drawStroke(ctx, stroke);
@@ -91,7 +94,7 @@ class CanvasServiceWorker {
       const playerId = lwwMapState[id].peerId;
       if (stroke.points.length > 2) continue; // 채우기는 지나가기
       if (playerId in offset && prevPlayerId !== playerId)
-        ctx.setTransform(1, 0, 0, 1, offset[playerId].x + this.baseOffset.x, offset[playerId].y + this.baseOffset.y);
+        ctx.setTransform(1, 0, 0, 1, offset[playerId].x, offset[playerId].y);
       prevPlayerId = playerId;
       this.drawStroke(ctx, stroke);
     }
@@ -138,13 +141,9 @@ class CanvasServiceWorker {
     // 플레이어아이디: 바운더리배열
     const boundaryMap = boundaryList.reduce(
       (acc: { playerId: string; boundary: { x: number; y: number }[] }[], boundary) => {
-        const playerId = this.getPlayerIdByBoundary(roomId, boundary) || 'shared';
+        const playerId = this.getPlayerIdByBoundary(roomId, boundary) || this.SHARED_PLAYER_ID;
         const offsetPos = offset[playerId];
-        if (offsetPos)
-          boundary = boundary.map((e) => ({
-            x: e.x - offsetPos.x - this.baseOffset.x,
-            y: e.y - offsetPos.y - this.baseOffset.y,
-          }));
+        if (offsetPos) boundary = boundary.map((e) => ({ x: e.x - offsetPos.x, y: e.y - offsetPos.y }));
         acc.push({ playerId, boundary });
         return acc;
       },
@@ -152,8 +151,8 @@ class CanvasServiceWorker {
     );
 
     // 개인 캔버스의 바운더리와 겹치는 공용 캔버스 바운더리 제거
-    const sharedBoundaryList = boundaryMap.filter(({ playerId }) => playerId === 'shared');
-    const individualBoundaryList = boundaryMap.filter(({ playerId }) => playerId !== 'shared');
+    const sharedBoundaryList = boundaryMap.filter(({ playerId }) => playerId === this.SHARED_PLAYER_ID);
+    const individualBoundaryList = boundaryMap.filter(({ playerId }) => playerId !== this.SHARED_PLAYER_ID);
     const filteredSharedBoundaryList = sharedBoundaryList.filter(({ boundary: sharedBoundary }) =>
       individualBoundaryList.every(
         ({ boundary: individualBoundary }) =>
@@ -168,7 +167,7 @@ class CanvasServiceWorker {
       .getActiveStrokes()
       .filter(({ stroke, id }) =>
         newBoundaryList.some(({ boundary, playerId }) => {
-          if (playerId !== lwwMapState[id].peerId && playerId !== 'shared') return false;
+          if (playerId !== lwwMapState[id].peerId && playerId !== this.SHARED_PLAYER_ID) return false;
           // 선의 점이 모두 경계 안에 있는지 확인
           return stroke.points.every((strokePoint) => isPointInBoundary(strokePoint, boundary));
         }),
