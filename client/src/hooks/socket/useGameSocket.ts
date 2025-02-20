@@ -116,7 +116,6 @@ export const useGameSocket = () => {
     const handlers = {
       joinedRoom: (response: JoinRoomResponse) => {
         const { room, roomSettings, players, playerId } = response;
-        console.log('joinRoom Res: ', response);
         gameActions.updateRoom(room);
         gameActions.updateRoomSettings({ ...roomSettings, drawTime: roomSettings.drawTime - 5 });
         gameActions.updatePlayers(players);
@@ -219,13 +218,13 @@ export const useGameSocket = () => {
         navigate(`/game/${roomId}/result`, { replace: true });
       },
 
-      penaltyMessage: async (response: { playerId: string; paneltyWords: string[] }[]) => {
-        for (const { playerId, paneltyWords } of response) {
+      penaltyMessage: async (response: { playerId: string; penaltyWords: string[] }[]) => {
+        for (const { playerId, penaltyWords } of response) {
           const playerName = useGameSocketStore.getState().players.find((e) => e.playerId === playerId)?.nickname;
           if (!playerName) continue;
           useToastStore.getState().actions.addToast({
             title: '앗! 패널티 💥',
-            description: `${playerName}님, 연관 단어(${paneltyWords.map((e) => `"${e}"`).join(', ')}) 작성으로 패널티 당첨! 다음엔 조심하세요! 😆`,
+            description: `${playerName}님, 연관 단어(${penaltyWords.map((e) => `"${e}"`).join(', ')}) 작성으로 패널티 당첨! 다음엔 조심하세요! 😆`,
           });
           await new Promise((res) => setTimeout(res, 50));
         }

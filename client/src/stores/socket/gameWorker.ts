@@ -39,7 +39,6 @@ class GameWorkerManager {
   private waitingQueue: WaitingQueueType[] = [];
   private eventHandlers: Map<keyof GameEventMap, Set<Function>> = new Map();
   private constructor() {
-    console.log('Initializing GameWorkerManager...');
     try {
       this.worker = new SharedWorker(new URL('./socketWorker.ts', import.meta.url), {
         type: 'module',
@@ -68,7 +67,6 @@ class GameWorkerManager {
           this.connected = e.data.connected[SocketNamespace.GAME] || false;
           break;
         case 'connection_update':
-          console.log('Game connection status:', connected);
           this.connected = connected;
           if (this.connected && this.waitingQueue.length) {
             this.waitingQueue.forEach((v) => {
@@ -118,8 +116,6 @@ class GameWorkerManager {
       return;
     }
 
-    console.log('Connecting to game socket');
-
     this.worker.port.postMessage({
       type: 'connect',
       payload: {
@@ -130,7 +126,6 @@ class GameWorkerManager {
 
   public disconnect() {
     if (!this.worker) return;
-    console.log('Disconnecting from game socket...');
     if (this.waitingQueue.length) {
       this.waitingQueue = [];
     }
