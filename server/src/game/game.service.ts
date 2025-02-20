@@ -477,11 +477,11 @@ export class GameService {
     return room?.currentWord;
   }
 
-  async applyPenalty(roomId: string, playerId: string) {
+  async applyPenalty(roomId: string, playerId: string, penaltyScore: number) {
     if (playerId === 'shared') return;
 
     const player = await this.gameRepository.getPlayer(roomId, playerId);
-    const updatedScore = player.score - 1;
+    const updatedScore = player.score - penaltyScore;
 
     await this.gameRepository.updatePlayer(roomId, playerId, { score: updatedScore });
   }
