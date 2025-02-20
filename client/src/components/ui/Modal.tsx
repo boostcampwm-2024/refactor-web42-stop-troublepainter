@@ -1,4 +1,4 @@
-import { HTMLAttributes, KeyboardEvent, PropsWithChildren, useEffect, useRef } from 'react';
+import { HTMLAttributes, KeyboardEvent, PropsWithChildren, useEffect, useRef, useState } from 'react';
 import ReactDOM from 'react-dom'; // Import ReactDOM explicitly
 import { cn } from '@/utils/cn';
 
@@ -8,19 +8,18 @@ export interface ModalProps extends PropsWithChildren<HTMLAttributes<HTMLDivElem
   isModalOpened: boolean;
   handleKeyDown?: (e: KeyboardEvent<Element>) => void;
 }
-
 const Modal = ({ className, handleKeyDown, closeModal, isModalOpened, title, children, ...props }: ModalProps) => {
   const modalRoot = document.getElementById('modal-root');
   const modalRef = useRef<HTMLDivElement>(null);
-
+  const [firstOpen, setFirstOpen] = useState(false);
   if (!modalRoot) return null;
-
   useEffect(() => {
     if (isModalOpened && modalRef.current) {
       modalRef.current.focus();
     }
+    if (isModalOpened && !firstOpen) setFirstOpen(true);
   }, [isModalOpened]);
-
+  if (!isModalOpened && !firstOpen) return null;
   return ReactDOM.createPortal(
     <div
       ref={modalRef}
@@ -39,7 +38,6 @@ const Modal = ({ className, handleKeyDown, closeModal, isModalOpened, title, chi
           'transition-opacity duration-300 ease-in-out',
         )}
       />
-
       <div
         className={cn(
           'relative m-3 h-auto w-full flex-col justify-center overflow-hidden rounded-xl border-2 border-violet-950 bg-violet-100 transition-opacity duration-300 ease-in-out',
@@ -56,14 +54,11 @@ const Modal = ({ className, handleKeyDown, closeModal, isModalOpened, title, chi
             <h2 className="translate-y-1 text-3xl text-stroke-md sm:text-4xl">{title}</h2>
           </div>
         )}
-
         <div className="p-5">{children}</div>
       </div>
     </div>,
     modalRoot,
   );
 };
-
 Modal.displayName = 'Modal';
-
 export { Modal };
