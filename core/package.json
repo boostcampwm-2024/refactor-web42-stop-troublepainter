@@ -26,8 +26,6 @@
   "devDependencies": {
     "tsup": "^8.0.0",
     "vitest": "^2.1.5",
-    "@types/pngjs": "^6.0.5",
-    "pngjs": "^7.0.0",
     "typescript": "^5.0.0"
   }
 }
