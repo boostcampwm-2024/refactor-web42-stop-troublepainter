@@ -1,0 +1,57 @@
+config:
+  target: "http://localhost:3000"
+  phases:
+    - duration: 30
+      arrivalCount: 100
+  engines:
+    socketio-v3: {}
+  verbose: true
+  processor: "./functions.js"
+
+scenarios:
+  - name: "드로잉 시나리오"
+    engine: socketio-v3
+    flow:
+      - function: "handleRoomJoin"
+
+      - namespace: "/socket.io/game"
+        emit:
+          - "test:joinRoom"
+          - roomId: "{{ roomId }}"
+            playerId: "{{ playerId }}"
+        response:
+          channel: "joinedRoom"
+
+      - namespace: "/socket.io/drawing"
+        connect:
+          auth:
+            roomId: "{{ roomId }}"
+            playerId: "{{ playerId }}"
+      - think: 10
+
+      - loop:
+          - loop:
+              - namespace: "/socket.io/drawing"
+                emit:
+                  - "draw"
+                  - data:
+                      playerId: "{{ playerId }}"
+                      drawingData:
+                        type: "update"
+                        key: "{{ $randomString() }}-{{ $timestamp }}-{{ $randomString(6) }}"
+                        isDeactivated: false
+                        peerId: "{{ playerId }}"
+                        timestamp: "{{ $timestamp }}"
+                        value:
+                          points:
+                            - x: "{{ $randomNumber(0, 600) }}"
+                              y: "{{ $randomNumber(0, 400) }}"
+                            - x: "{{ $randomNumber(0, 600) }}"
+                              y: "{{ $randomNumber(0, 400) }}"
+                          style:
+                            color: "#FF69B4"
+                            width: 4
+                          timestamp: "{{ $timestamp }}"
+            count: 1800
+          - think: 10
+        count: 5
