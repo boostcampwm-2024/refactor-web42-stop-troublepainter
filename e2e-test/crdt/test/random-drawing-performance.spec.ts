@@ -1,8 +1,5 @@
-import { test as base, Page, chromium, BrowserContext } from '@playwright/test';
-import { drawEventData } from './drawing-utils';
-import eventData1 from './drawing-performance/event-data-1.json' assert { type: 'json' };
-import eventData2 from './drawing-performance/event-data-2.json' assert { type: 'json' };
-import eventData3 from './drawing-performance/event-data-3.json' assert { type: 'json' };
+import { BrowserContext, chromium, Page, test as base } from '@playwright/test';
+import { drawingPatterns } from './drawing-utils';
 
 interface TestClient {
   page: Page;
@@ -25,7 +22,7 @@ async function setupTestRoom(baseUrl: string): Promise<TestClient[]> {
 
   // 호스트 설정
   const hostPage = await contexts[0].newPage();
-  await hostPage.goto(baseUrl, { waitUntil: 'commit' });
+  await hostPage.goto(baseUrl);
   await hostPage.getByRole('button', { name: '방 만들기' }).click();
   await hostPage.waitForURL('**/lobby/*');
   const roomUrl = hostPage.url();
@@ -41,7 +38,7 @@ async function setupTestRoom(baseUrl: string): Promise<TestClient[]> {
     ...(await Promise.all(
       contexts.slice(1).map(async (context) => {
         const page = await context.newPage();
-        await page.goto(roomUrl, { waitUntil: 'load' });
+        await page.goto(roomUrl);
         return {
           page,
           context,
@@ -56,7 +53,7 @@ async function setupTestRoom(baseUrl: string): Promise<TestClient[]> {
   await clients[0].page.getByText('곧 게임이 시작됩니다!').waitFor({ state: 'visible' });
 
   // 게임 화면으로 전환
-  await Promise.all(clients.map((client) => client.page.waitForURL('**/game/*')));
+  await Promise.all(clients.map((client) => client.page.waitForURL((url) => url.toString().includes('/game/'))));
 
   // 각 클라이언트의 역할 모달 대기 및 역할 확인
   await Promise.all(
@@ -114,7 +111,7 @@ test.describe('Game Room Drawing Test', () => {
     clients = [];
   });
 
-  test('Drawing performance test', async () => {
+  test('Drawing performance test with multiple browsers', async () => {
     try {
       // 셋업 및 모달 처리
       const TEST_URL = 'http://localhost:5173';
@@ -138,13 +135,27 @@ test.describe('Game Room Drawing Test', () => {
       await Promise.all(cdpSessions.map((e) => e.send('Performance.enable')));
       console.log('Performance.enable');
 
-      // 2단계: 드로잉
-      console.log('Starting drawing phase...');
-      await Promise.all([
-        drawEventData(drawers[0].page, eventData1),
-        drawEventData(drawers[1].page, eventData2),
-        drawEventData(drawers[2].page, eventData3),
-      ]);
+      // 2단계: 30초 동안 드로잉
+      const drawingTime = 20000;
+      const drawingStartTime = performance.now();
+      console.log('Starting 30 seconds drawing phase...');
+      const DRAW_COUNT = 20;
+      let curDrawCount = 0;
+      while (curDrawCount < DRAW_COUNT) {
+        if (performance.now() - drawingStartTime < drawingTime * (curDrawCount / DRAW_COUNT)) continue;
+        console.log(curDrawCount++);
+        await Promise.all(
+          drawers.map(async (drawer) => {
+            try {
+              if (!drawer.page.isClosed()) {
+                await drawingPatterns.randomByMouse(drawer.page);
+              }
+            } catch (error) {
+              console.error(`Drawing failed for ${drawer.role}:`, error);
+            }
+          }),
+        );
+      }
 
       // 성능 측정 종료
       const METRIC_FILTER = [
@@ -177,7 +188,6 @@ test.describe('Game Room Drawing Test', () => {
           }
         }),
       );
-
       Object.values(compareMetric).forEach((e) => {
         e[0] /= drawers.length; //DRAWER 3명
         e[1] /= clients.length - drawers.length; //GUESSER 2명
