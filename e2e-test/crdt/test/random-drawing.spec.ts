@@ -1,4 +1,4 @@
-import { test as base, expect, Page, chromium, BrowserContext, firefox, webkit } from '@playwright/test';
+import { BrowserContext, chromium, expect, Page, test as base } from '@playwright/test';
 import { compareByPng } from './test-utils';
 import { drawingPatterns } from './drawing-utils';
 

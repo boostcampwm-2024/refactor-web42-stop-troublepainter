@@ -1,4 +1,4 @@
-import { test as base, Page, chromium, BrowserContext } from '@playwright/test';
+import { BrowserContext, chromium, Page, test as base } from '@playwright/test';
 import { drawEventData } from './drawing-utils';
 import eventData1 from './drawing-text/event-data-1.json' assert { type: 'json' };
 import eventData2 from './drawing-text/event-data-2.json' assert { type: 'json' };
