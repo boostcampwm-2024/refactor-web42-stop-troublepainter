@@ -30,9 +30,12 @@ services:
     container_name: troublepainter_nginx
     volumes:
       - /etc/letsencrypt:/etc/letsencrypt
+      - ./log:/var/log/nginx
+    user: root
     ports:
       - "80:80"
-      - "443:443"
+      - "443:443/tcp"
+      - "443:443/udp"
     depends_on:
       - server
     networks:
