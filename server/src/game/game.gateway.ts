@@ -155,7 +155,7 @@ export class GameGateway implements OnGatewayDisconnect {
       roomStatus,
     });
 
-    const timerPromise = this.runTimer(roomId, 10000, TimerType.OCR);
+    const timerPromise = this.runTimer(roomId, 5000, TimerType.OCR);
 
     // OCR 작업
     const paneltyList = [];

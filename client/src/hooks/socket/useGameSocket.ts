@@ -1,17 +1,17 @@
 import { useEffect } from 'react';
 import {
-  PlayerRole,
   type JoinRoomResponse,
   type PlayerLeftResponse,
-  type RoundStartResponse,
-  type UpdateSettingsResponse,
-  type TimerSyncResponse,
-  RoundEndResponse,
-  RoomStatus,
-  TimerType,
+  PlayerRole,
   PlayerStatus,
   RoomEndResponse,
+  RoomStatus,
+  RoundEndResponse,
+  type RoundStartResponse,
   TerminationType,
+  type TimerSyncResponse,
+  TimerType,
+  type UpdateSettingsResponse,
 } from '@troublepainter/core';
 import { useNavigate, useParams } from 'react-router-dom';
 import entrySound from '@/assets/sounds/entry-sound-effect.mp3';
@@ -19,12 +19,12 @@ import { gameSocketHandlers } from '@/handlers/socket/gameSocket.handler';
 import { useGameSocketStore } from '@/stores/socket/gameSocket.store';
 // import { SocketNamespace } from '@/stores/socket/socket.config';
 // import { useSocketStore } from '@/stores/socket/socket.store';
+import { gameSocketConnect, gameSocketDisconnect, offGameEvent, onGameEvent } from '@/stores/socket/gameWorker.ts';
 import { useTimerStore } from '@/stores/timer.store';
+import { useToastStore } from '@/stores/toast.store';
 import { checkTimerDifference } from '@/utils/checkTimerDifference';
 import { playerIdStorageUtils } from '@/utils/playerIdStorage';
 import { SOUND_IDS, SoundManager } from '@/utils/soundManager';
-import { gameSocketConnect, gameSocketDisconnect, offGameEvent, onGameEvent } from '@/stores/socket/gameWorker.ts';
-import { useToastStore } from '@/stores/toast.store';
 
 /**
  * 게임 진행에 필요한 소켓 연결과 상태를 관리하는 Hook입니다.
@@ -189,7 +189,7 @@ export const useGameSocket = () => {
 
       drawingTimeEnded: () => {
         gameActions.updateRoomStatus(RoomStatus.OCR);
-        timerActions.updateTimer(TimerType.OCR, 10);
+        timerActions.updateTimer(TimerType.OCR, 5);
       },
 
       ocrTimeEnded: () => {
