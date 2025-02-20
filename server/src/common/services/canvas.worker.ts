@@ -7,6 +7,7 @@ class CanvasServiceWorker {
   private offsetMap: Map<string, Record<string, { x: number; y: number }>> = new Map();
   private canvasScale = 0.5 as const;
   private canvasSize = { w: 1000, h: 625 } as const;
+  private baseOffset = { x: 100, y: 100 } as const;
 
   createRoom(roomId: string) {
     this.crdtMap.set(roomId, new LWWMap(roomId));
@@ -71,13 +72,14 @@ class CanvasServiceWorker {
     if (!lwwMap && !offset) return;
     const lwwMapState = lwwMap.state;
 
-    const canvas = createCanvas(this.canvasSize.w + 100, this.canvasSize.h + 100);
+    const canvas = createCanvas(this.canvasSize.w + 200, this.canvasSize.h + 200);
     const ctx = canvas.getContext('2d');
     ctx.fillStyle = 'white';
     ctx.fillRect(0, 0, canvas.width, canvas.height);
 
     // 공동 그리기
     const activeStrokes = lwwMap.getActiveStrokes();
+    ctx.setTransform(1, 0, 0, 1, this.baseOffset.x, this.baseOffset.y);
     for (const { stroke } of activeStrokes) {
       if (stroke.points.length > 2) continue;
       this.drawStroke(ctx, stroke);
@@ -89,7 +91,7 @@ class CanvasServiceWorker {
       const playerId = lwwMapState[id].peerId;
       if (stroke.points.length > 2) continue; // 채우기는 지나가기
       if (playerId in offset && prevPlayerId !== playerId)
-        ctx.setTransform(1, 0, 0, 1, offset[playerId].x, offset[playerId].y);
+        ctx.setTransform(1, 0, 0, 1, offset[playerId].x + this.baseOffset.x, offset[playerId].y + this.baseOffset.y);
       prevPlayerId = playerId;
       this.drawStroke(ctx, stroke);
     }
@@ -138,7 +140,11 @@ class CanvasServiceWorker {
       (acc: { playerId: string; boundary: { x: number; y: number }[] }[], boundary) => {
         const playerId = this.getPlayerIdByBoundary(roomId, boundary) || 'shared';
         const offsetPos = offset[playerId];
-        if (offsetPos) boundary = boundary.map((e) => ({ x: e.x - offsetPos.x, y: e.y - offsetPos.y }));
+        if (offsetPos)
+          boundary = boundary.map((e) => ({
+            x: e.x - offsetPos.x - this.baseOffset.x,
+            y: e.y - offsetPos.y - this.baseOffset.y,
+          }));
         acc.push({ playerId, boundary });
         return acc;
       },

@@ -60,7 +60,9 @@ export class ClovaStudio {
 
     try {
       const response = await this.client.post('', request);
-      const rate = +response.data.result.message.content.trim();
+      const rateStr = response.data.result.message.content.trim();
+      const match = rateStr.match(/-?\d+(\.\d+)?/);
+      const rate = match ? parseFloat(match[0]) : 0;
       return rate >= 0.5;
     } catch (error) {
       throw new Error(`CLOVA API request failed: ${error.message}`);
