@@ -16,7 +16,8 @@ RUN echo "VITE_API_URL=$VITE_API_URL" > client/.env && echo "VITE_SOCKET_URL=$VI
 
 FROM macbre/nginx-http3
 
-COPY ./docker-build/prod/nginx.conf /etc/nginx/templates/default.conf.template
+COPY ./docker-build/prod/nginx.main.conf /etc/nginx/nginx.conf
+COPY ./docker-build/prod/nginx.http.conf /etc/nginx/conf.d/nginx.http.conf
 COPY --from=builder /app/client/dist /usr/share/nginx/html
 
 EXPOSE 80 443
