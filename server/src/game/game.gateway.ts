@@ -31,7 +31,7 @@ export class GameGateway implements OnGatewayDisconnect {
 
   private disconnectTimeouts: Map<string, NodeJS.Timeout> = new Map();
   private readonly DISCONNECT_TIMEOUT = 10000;
-  private paneltyMap = new Map<string, { playerId: string; paneltyWords: string[] }[]>();
+  private penaltyMap = new Map<string, { playerId: string; penaltyWords: string[] }[]>();
 
   constructor(
     private readonly gameService: GameService,
@@ -155,10 +155,10 @@ export class GameGateway implements OnGatewayDisconnect {
       roomStatus,
     });
 
-    const timerPromise = this.runTimer(roomId, 10000, TimerType.OCR);
+    const timerPromise = this.runTimer(roomId, 5000, TimerType.OCR);
 
     // OCR 작업
-    const paneltyList = [];
+    const penaltyList = [];
     {
       const imageBuffer = await this.canvasService.generateImageBuffer(roomId);
       const ocrResult = (await this.clovaOcr.doOCR(imageBuffer)) as OCRResult;
@@ -179,14 +179,14 @@ export class GameGateway implements OnGatewayDisconnect {
       // 패널티 작업
       await Promise.all(
         Object.entries(wordsGroupByPlayerId).map(async ([playerId, words]) => {
-          const paneltyWords = await this.filterRelatedWord(currentWord, words);
-          if (paneltyWords.length > 0) {
-            await this.gameService.applyPenalty(roomId, playerId);
-            paneltyList.push({ playerId, paneltyWords });
+          const penaltyWords = await this.filterRelatedWord(currentWord, words);
+          if (penaltyWords.length > 0) {
+            await this.gameService.applyPenalty(roomId, playerId, penaltyWords.length);
+            penaltyList.push({ playerId, penaltyWords });
           }
         }),
       );
-      this.paneltyMap.set(roomId, paneltyList);
+      this.penaltyMap.set(roomId, penaltyList);
 
       // 선 삭제
       const eraseMessage = await this.canvasService.getEraseLineMessage(roomId, boundaries);
@@ -211,10 +211,10 @@ export class GameGateway implements OnGatewayDisconnect {
     const result = await this.gameService.handleGuessingTimeout(roomId);
     this.server.to(roomId).emit('roundEnded', result);
 
-    if (paneltyList.length > 0) {
-      this.server.to(roomId).emit('penaltyMessage', paneltyList);
+    if (penaltyList.length > 0) {
+      this.server.to(roomId).emit('penaltyMessage', penaltyList);
     }
-    this.paneltyMap.delete(roomId);
+    this.penaltyMap.delete(roomId);
 
     // 라운드가 종료되면 가상 room 제거 및 구독 해제
     this.canvasService.removeRoom(roomId);
@@ -281,11 +281,11 @@ export class GameGateway implements OnGatewayDisconnect {
     if (result.isCorrect) {
       this.timerService.stopGameTimer(roomId);
       this.server.to(roomId).emit('roundEnded', result);
-      const paneltyList = this.paneltyMap.get(roomId);
-      if (paneltyList && paneltyList.length > 0) {
-        this.server.to(roomId).emit('penaltyMessage', paneltyList);
+      const penaltyList = this.penaltyMap.get(roomId);
+      if (penaltyList && penaltyList.length > 0) {
+        this.server.to(roomId).emit('penaltyMessage', penaltyList);
       }
-      this.paneltyMap.delete(roomId);
+      this.penaltyMap.delete(roomId);
       await this.runTimer(roomId, 10000, TimerType.ENDING);
       await this.startNewRound(roomId);
     }
@@ -332,7 +332,7 @@ export class GameGateway implements OnGatewayDisconnect {
               hostId,
               players: remainingPlayers,
             });
-            this.paneltyMap.delete(roomId);
+            this.penaltyMap.delete(roomId);
           }
         } catch (error) {
           console.error('Disconnect timeout error:', error);

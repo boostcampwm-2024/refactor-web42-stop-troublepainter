@@ -22,16 +22,16 @@ RUN pnpm --filter server build
 FROM node:22-slim AS production
 WORKDIR /app
 
+COPY docker-build/package-deps.txt /tmp/package-deps.txt
+RUN apt-get update && \
+    apt-get install -y $(xargs < /tmp/package-deps.txt) && \
+    rm -rf /var/lib/apt/lists/*
+
 COPY --from=builder /app/pnpm-workspace.yaml ./
 COPY --from=builder /app/server/package.json ./server/package.json
 COPY --from=builder /app/server/dist ./server/dist
 COPY --from=builder /app/core/package.json ./core/package.json
 COPY --from=builder /app/core/dist ./core/dist
-
-COPY docker-build/package-deps.txt /tmp/package-deps.txt
-RUN apt-get update && \
-    apt-get install -y $(xargs < /tmp/package-deps.txt) && \
-    rm -rf /var/lib/apt/lists/*
 
 RUN corepack enable && corepack prepare pnpm@9.12.3 --activate
 RUN pnpm install --prod --filter '!@troublepainter/core'
