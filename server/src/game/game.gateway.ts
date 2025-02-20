@@ -31,6 +31,7 @@ export class GameGateway implements OnGatewayDisconnect {
 
   private disconnectTimeouts: Map<string, NodeJS.Timeout> = new Map();
   private readonly DISCONNECT_TIMEOUT = 10000;
+  private paneltyMap = new Map<string, { playerId: string; paneltyWords: string[] }[]>();
 
   constructor(
     private readonly gameService: GameService,
@@ -185,6 +186,7 @@ export class GameGateway implements OnGatewayDisconnect {
           }
         }),
       );
+      this.paneltyMap.set(roomId, paneltyList);
 
       // 선 삭제
       const eraseMessage = await this.canvasService.getEraseLineMessage(roomId, boundaries);
@@ -212,6 +214,7 @@ export class GameGateway implements OnGatewayDisconnect {
     if (paneltyList.length > 0) {
       this.server.to(roomId).emit('penaltyMessage', paneltyList);
     }
+    this.paneltyMap.delete(roomId);
 
     // 라운드가 종료되면 가상 room 제거 및 구독 해제
     this.canvasService.removeRoom(roomId);
@@ -278,7 +281,11 @@ export class GameGateway implements OnGatewayDisconnect {
     if (result.isCorrect) {
       this.timerService.stopGameTimer(roomId);
       this.server.to(roomId).emit('roundEnded', result);
-
+      const paneltyList = this.paneltyMap.get(roomId);
+      if (paneltyList && paneltyList.length > 0) {
+        this.server.to(roomId).emit('penaltyMessage', paneltyList);
+      }
+      this.paneltyMap.delete(roomId);
       await this.runTimer(roomId, 10000, TimerType.ENDING);
       await this.startNewRound(roomId);
     }
@@ -325,6 +332,7 @@ export class GameGateway implements OnGatewayDisconnect {
               hostId,
               players: remainingPlayers,
             });
+            this.paneltyMap.delete(roomId);
           }
         } catch (error) {
           console.error('Disconnect timeout error:', error);
