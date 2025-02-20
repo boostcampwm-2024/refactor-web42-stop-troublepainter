@@ -61,7 +61,11 @@
 ![image](https://github.com/user-attachments/assets/4914cd92-429f-450c-9d67-2cfd59bd44e5)
 
 ## 📺 시연 연상
-[2a9ba997c6965aeb059a49b81134b023.webm](https://github.com/user-attachments/assets/1346d769-32f6-4cc1-80fc-055c4ac5e1aa)
+
+
+https://github.com/user-attachments/assets/68432d60-7a50-4f4b-8eb3-dc73adaacb14
+
+
 
 
 ## 🖌️ FE 기술적 도전
