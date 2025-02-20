@@ -14,7 +14,6 @@ class ChatWorkerManager {
   private auth: ChatAuth | null = null;
 
   private constructor() {
-    console.log('Initializing ChatWorkerManager...');
     try {
       this.worker = new SharedWorker(new URL('./socketWorker.ts', import.meta.url), {
         type: 'module',
@@ -32,7 +31,7 @@ class ChatWorkerManager {
   private setupWorkerListeners() {
     if (!this.worker) return;
     this.worker.port.onmessage = (e) => {
-      const { type, namespace, connected, event, args } = e.data;
+      const { type, namespace, connected } = e.data;
 
       // CHAT 네임스페이스 이벤트만 처리
       if (type === 'connection_update' || type === 'socket_event' || type === 'socket_error') {
@@ -44,14 +43,9 @@ class ChatWorkerManager {
           this.connected = e.data.connected[SocketNamespace.CHAT] || false;
           break;
         case 'connection_update':
-          console.log('Chat connection status:', connected);
           this.connected = connected;
           break;
-        case 'socket_event':
-          if (event === 'messageReceived') {
-            console.log('Chat message received:', args[0]);
-          }
-          break;
+
         case 'socket_error':
           console.error('Chat socket error:', e.data.error);
           break;
@@ -99,7 +93,6 @@ class ChatWorkerManager {
       return;
     }
 
-    console.log('Sending chat message:', message);
     this.worker.port.postMessage({
       type: 'emit',
       payload: {
@@ -112,7 +105,6 @@ class ChatWorkerManager {
 
   public disconnect() {
     if (!this.worker) return;
-    console.log('Disconnecting from chat...');
     this.worker.port.postMessage({
       type: 'disconnect',
       payload: {

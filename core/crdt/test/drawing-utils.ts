@@ -79,8 +79,6 @@ export async function drawEventData(page: Page, eventData: any[]) {
     delayOfDelay = Math.floor(performance.now() - startDelay) - delay;
     if (delayOfDelay < 0) delayOfDelay = 0;
   }
-
-  console.log('드로잉 종료');
 }
 
 export const drawingPatterns: Record<string, DrawingFunction> = {
