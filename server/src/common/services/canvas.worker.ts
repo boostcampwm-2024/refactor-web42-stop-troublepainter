@@ -30,13 +30,14 @@ class CanvasServiceWorker {
     if (points.length === 0) return;
     ctx.strokeStyle = style.color;
     ctx.fillStyle = style.color;
-    ctx.lineWidth = style.width;
+    const styleWidth = 1;
+    ctx.lineWidth = styleWidth;
     ctx.beginPath();
     ctx.lineCap = 'round';
     ctx.lineJoin = 'round';
     const scaledPoint = this.applyScale(points[0]);
     if (points.length === 1) {
-      ctx.arc(scaledPoint.x, scaledPoint.y, style.width / 2, 0, Math.PI * 2);
+      ctx.arc(scaledPoint.x, scaledPoint.y, styleWidth / 2, 0, Math.PI * 2);
       ctx.fill();
     } else {
       ctx.moveTo(scaledPoint.x, scaledPoint.y);
