@@ -40,6 +40,10 @@
 
 ## 🤖 인공지능 기능 소개
 
+기존 프로젝트의 피드백 중 그림꾼이 캔버스에 제시어를 작성해버리면 방해꾼이 질 수밖에 없는 상황이 발생한다는 내용이 있었습니다.
+
+이를 해결하기 위해 Clova OCR과 Clova Studio를 활용해 패널티 시스템을 도입했습니다.
+
 ### 🔎 Clova OCR 글자 인식 및 삭제
 
 그리기 시간이 종료되면 **Clova OCR**이 캔버스에 작성된 **글자를 인식**합니다.
@@ -48,8 +52,7 @@
 - 플레이어별 이미지 생성으로 글자 작성자 추적 가능
 - point-in-polygon 알고리즘으로 인식된 글자 영역의 선 삭제
 
-![image](https://github.com/user-attachments/assets/57bfc751-374b-4e70-945c-72337a8c3e3c)
-
+![녹화_2025_02_20_20_28_15_530](https://github.com/user-attachments/assets/d0dd5028-6f51-4c62-8c32-74ab36368ace)
 
 ### ➖ Clova Studio 패널티 시스템
 
@@ -58,13 +61,12 @@
 - 인식된 글자와 제시어 간 연관성 분석
 - 연관 단어 작성 시, 작성자에게 패널티 부여
 
-![image](https://github.com/user-attachments/assets/4914cd92-429f-450c-9d67-2cfd59bd44e5)
+![녹화_2025_02_20_20_28_52_303](https://github.com/user-attachments/assets/80f9d60e-c80b-4bc0-98b2-6b10d1482b34)
+
 
 ## 📺 시연 연상
 
-
-https://github.com/user-attachments/assets/68432d60-7a50-4f4b-8eb3-dc73adaacb14
-
+https://github.com/user-attachments/assets/06dbf5a5-6cc7-47da-854e-c2f675799352
 
 
 
